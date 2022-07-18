@@ -1,4 +1,9 @@
+# Select FLASH size according to desired hardware (nodemcu devkit v1 30p)
 CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
 CONFIG_ESPTOOLPY_FLASHSIZE="4MB"
 
+# Enable HTTPS server component 
 CONFIG_ESP_HTTPS_SERVER_ENABLE=y
+
+# Expand memory for larger headers (seen on Chrome)
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
