@@ -16,6 +16,8 @@
 #include "esp_tls.h"
 #include "sdkconfig.h"
 
+// #define TLS_REQ_CLIENT_CERT
+
 /* @brief tag used for ESP serial console messages */
 const char TAG[] = "main";
 
@@ -52,6 +54,7 @@ esp_err_t root_get_handler(httpd_req_t *req)
 	return ESP_OK;
 }
 
+#ifdef TLS_REQ_CLIENT_CERT
 /**
  * Example callback function to get the certificate of connected clients,
  * whenever a new SSL connection is created
@@ -85,6 +88,8 @@ void https_server_user_callback(esp_https_server_user_cb_arg_t *user_cb)
 	free(buf);
 }
 
+#endif // TLS_REQ_CLIENT_CERT
+
 httpd_handle_t start_webserver(void)
 {
 	httpd_handle_t server = NULL;
@@ -104,7 +109,9 @@ httpd_handle_t start_webserver(void)
 	conf.prvtkey_pem = prvtkey_pem_start;
 	conf.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
 
+#ifdef TLS_REQ_CLIENT_CERT
 	conf.user_cb = https_server_user_callback;
+#endif // TLS_REQ_CLIENT_CERT
 
 	// dedicated webserver control port, for easier coexistance with other servers
 	conf.httpd.ctrl_port = 32000;
@@ -154,8 +161,8 @@ void cb_connection_ok_handler(void *pvParameter)
 	/* transform IP to human readable string */
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
-
 	ESP_LOGI(TAG, "I have a connection and my IP is %s!", str_ip);
+
 	if (app_server == NULL)
 	{
 		app_server = start_webserver();
@@ -170,6 +177,7 @@ void cb_connection_ok_handler(void *pvParameter)
 void cb_disconnect_handler(void *pvParameter)
 {
 	ESP_LOGI(TAG, "STA Disconnected");
+
 	if (app_server)
 	{
 		stop_webserver(app_server);
