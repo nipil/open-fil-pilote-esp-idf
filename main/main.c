@@ -11,6 +11,7 @@
 
 #include <esp_https_server.h>
 #include <esp_http_server.h>
+#include <esp_sntp.h>
 
 #include "esp_tls.h"
 #include "sdkconfig.h"
@@ -27,6 +28,17 @@ void monitoring_task(void *pvParameter)
 	for (;;)
 	{
 		ESP_LOGI(TAG, "free heap: %d", esp_get_free_heap_size());
+
+		time_t now;
+		char strftime_buf[64];
+		struct tm timeinfo;
+		time(&now);
+		setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);
+		tzset();
+		localtime_r(&now, &timeinfo);
+		strftime(strftime_buf, sizeof(strftime_buf), "%c %z %Z", &timeinfo);
+		ESP_LOGI(TAG, "The current date/time in Europe/Paris is: %s", strftime_buf);
+
 		vTaskDelay(pdMS_TO_TICKS(10000));
 	}
 }
@@ -127,6 +139,14 @@ void stop_webserver(httpd_handle_t server)
 
 httpd_handle_t *app_server = NULL;
 
+void sntp_callback(struct timeval *tv)
+{
+	ESP_LOGI(TAG, "SNTP received time since epoch : = %jd sec: %li ms: %li us",
+			 (intmax_t)tv->tv_sec,
+			 tv->tv_usec / 1000,
+			 tv->tv_usec % 1000);
+}
+
 void cb_connection_ok_handler(void *pvParameter)
 {
 	ip_event_got_ip_t *param = (ip_event_got_ip_t *)pvParameter;
@@ -140,6 +160,11 @@ void cb_connection_ok_handler(void *pvParameter)
 	{
 		app_server = start_webserver();
 	}
+
+	sntp_set_time_sync_notification_cb(sntp_callback);
+	sntp_setservername(0, "pool.ntp.org");
+	ESP_LOGI(TAG, "Starting SNTP time configuration!");
+	sntp_init();
 }
 
 void cb_disconnect_handler(void *pvParameter)
@@ -150,6 +175,9 @@ void cb_disconnect_handler(void *pvParameter)
 		stop_webserver(app_server);
 		app_server = NULL;
 	}
+
+	ESP_LOGI(TAG, "Stopping SNTP synchronization");
+	sntp_stop();
 }
 
 void app_main()
