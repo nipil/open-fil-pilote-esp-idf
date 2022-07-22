@@ -23,6 +23,9 @@
 /* @brief tag used for ESP serial console messages */
 const char TAG[] = "main";
 
+/* HTTPS server handle */
+httpd_handle_t *app_server = NULL;
+
 /**
  * @brief RTOS task that periodically prints the heap memory available.
  * @note Pure debug information, should not be ever started on production code! This is an example on how you can integrate your code with wifi-manager
@@ -145,8 +148,6 @@ void stop_webserver(httpd_handle_t server)
 	// Stop the httpd server
 	httpd_ssl_stop(server);
 }
-
-httpd_handle_t *app_server = NULL;
 
 void sntp_callback(struct timeval *tv)
 {
