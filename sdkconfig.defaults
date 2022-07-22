@@ -7,3 +7,8 @@ CONFIG_ESP_HTTPS_SERVER_ENABLE=y
 
 # Expand memory for larger headers (seen on Chrome)
 CONFIG_HTTPD_MAX_REQ_HDR_LEN=1024
+
+# Wifi Manager Configuration
+CONFIG_WEBAPP_LOCATION="/wm/"
+CONFIG_DEFAULT_AP_SSID="ofp-wm"
+CONFIG_DEFAULT_AP_PASSWORD="openfilpilote"
