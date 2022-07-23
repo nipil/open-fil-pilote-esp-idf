@@ -72,8 +72,13 @@ esp_err_t https_handler_private(httpd_req_t *req)
 		return ESP_FAIL;
 	}
 
+	extern const unsigned char ofp_html_start[] asm("_binary_ofp_html_start");
+	extern const unsigned char ofp_html_end[] asm("_binary_ofp_html_end");
+	size_t ofp_html_len = ofp_html_end - ofp_html_start;
+
+	ESP_LOGI(TAG, "%i bytes in HTML", ofp_html_len);
 	httpd_resp_set_type(req, "text/html");
-	httpd_resp_send(req, "<h1>private</h1>", HTTPD_RESP_USE_STRLEN);
+	httpd_resp_send(req, (const char *) ofp_html_start, ofp_html_len);
 
 	return ESP_OK;
 }
