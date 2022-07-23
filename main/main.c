@@ -16,6 +16,11 @@
 #include <esp_sntp.h>
 
 #include "esp_tls.h"
+
+/* authorisation HTTP 401 */
+#include "httpd_basic_auth.h"
+
+/* menu autoconfig */
 #include "sdkconfig.h"
 
 // #define TLS_REQ_CLIENT_CERT
@@ -57,10 +62,27 @@ void monitoring_task(void *pvParameter)
 }
 
 /* An HTTP GET handler */
-esp_err_t root_get_handler(httpd_req_t *req)
+esp_err_t https_handler_private(httpd_req_t *req)
+{
+
+	if (!httpd_basic_auth(req, "https", "https") == ESP_OK)
+	{
+		httpd_basic_auth_resp_send_401(req);
+		httpd_resp_sendstr(req, "Not Authorized");
+		return ESP_FAIL;
+	}
+
+	httpd_resp_set_type(req, "text/html");
+	httpd_resp_send(req, "<h1>private</h1>", HTTPD_RESP_USE_STRLEN);
+
+	return ESP_OK;
+}
+
+/* HTTPS root handle */
+esp_err_t https_handler_root(httpd_req_t *req)
 {
 	httpd_resp_set_type(req, "text/html");
-	httpd_resp_send(req, "<h1>Hello Secure World!</h1>", HTTPD_RESP_USE_STRLEN);
+	httpd_resp_send(req, "<h1>root</h1>", HTTPD_RESP_USE_STRLEN);
 
 	return ESP_OK;
 }
@@ -142,9 +164,16 @@ httpd_handle_t start_webserver(void)
 	const httpd_uri_t root = {
 		.uri = "/",
 		.method = HTTP_GET,
-		.handler = root_get_handler};
+		.handler = https_handler_root};
 
 	ESP_ERROR_CHECK(httpd_register_uri_handler(server, &root));
+
+	const httpd_uri_t private = {
+		.uri = "/private",
+		.method = HTTP_GET,
+		.handler = https_handler_private};
+
+	ESP_ERROR_CHECK(httpd_register_uri_handler(server, &private));
 
 	return server;
 }
@@ -165,9 +194,16 @@ void sntp_callback(struct timeval *tv)
 
 esp_err_t my_wifimanager_httpd_custom_get_handler(httpd_req_t *req)
 {
-    esp_err_t ret = ESP_OK;
+	esp_err_t ret = ESP_OK;
 
-    ESP_LOGI(TAG, "WM GET %s", req->uri);
+	ESP_LOGI(TAG, "WM GET %s", req->uri);
+
+	if (!httpd_basic_auth(req, "http", "http") == ESP_OK)
+	{
+		httpd_basic_auth_resp_send_401(req);
+		httpd_resp_sendstr(req, "Not Authorized");
+		return ESP_FAIL;
+	}
 
 	const static char buff[] = "{ \"message\": \"pouet\" }";
 	httpd_resp_set_status(req, "200 OK");
@@ -176,7 +212,7 @@ esp_err_t my_wifimanager_httpd_custom_get_handler(httpd_req_t *req)
 	httpd_resp_set_hdr(req, "Pragma", "no-cache");
 	httpd_resp_send(req, buff, strlen(buff));
 
-    return ret;
+	return ret;
 }
 
 void cb_connection_ok_handler(void *pvParameter)
