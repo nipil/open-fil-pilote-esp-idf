@@ -1,14 +1,17 @@
-[
-    {
-        "id": "Aucun",
-        "desc": "modules ESP32 seul, sans matériel Fil Pilote, ni afficheur"
-    },
-    {
-        "id": "M1E1",
-        "desc": "DevKit basé sur un module NodeMCU 30 pin, sans afficheur, basé sur une carte mère M1 et des extensions E1 ajoutant chacune 4 zones."
-    },
-    {
-        "id": "OFP-10Z",
-        "desc": "Carte intégrée 10 zones, avec afficheur intégré"
-    }
-]
+{
+    "current_type_id": "ESP32",
+    "supported_types": [
+        {
+            "id": "ESP32",
+            "desc": "modules ou DevKit seul"
+        },
+        {
+            "id": "M1E1",
+            "desc": "DevKit NodeMCU 30 pin + OFP M1 + OFP E1"
+        },
+        {
+            "id": "OFP-10Z",
+            "desc": "Carte 10 zones avec afficheur et bouton"
+        }
+    ]
+}
