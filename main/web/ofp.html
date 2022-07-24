@@ -26,18 +26,35 @@
         <h2 class="accordion-header" id="headingHeaters">
           <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHeaters"
             aria-expanded="true" aria-controls="collapseHeaters">
-            Radiateurs
+            Zones et radiateurs
           </button>
         </h2>
         <div id="collapseHeaters" class="accordion-collapse collapse show" aria-labelledby="headingHeaters"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
+            <h5>Forcer l'&eacute;tat de toutes les zones</h5>
+            <input type="radio" class="btn-check" name="overrideZones" id="oz_none" autocomplete="off" checked>
+            <label class="btn btn-outline-primary" for="oz_none">Aucun for&ccedil;age</label>
+            <input type="radio" class="btn-check" name="overrideZones" id="oz_offload" autocomplete="off">
+            <label class="btn btn-outline-secondary" for="oz_offload">Arr&ecirc;t / D&eacute;lestage</label>
+            <input type="radio" class="btn-check" name="overrideZones" id="oz_nofreeze" autocomplete="off">
+            <label class="btn btn-outline-info" for="oz_nofreeze">Hors-gel</label>
+            <input type="radio" class="btn-check" name="overrideZones" id="oz_eco" autocomplete="off">
+            <label class="btn btn-outline-success" for="oz_eco">Economie</label>
+            <input type="radio" class="btn-check" name="overrideZones" id="oz_cozym2" autocomplete="off">
+            <label class="btn btn-outline-warning" for="oz_cozym2">Confort-2°</label>
+            <input type="radio" class="btn-check" name="overrideZones" id="oz_cozym1" autocomplete="off">
+            <label class="btn btn-outline-warning" for="oz_cozym1">Confort-1°</label>
+            <input type="radio" class="btn-check" name="overrideZones" id="oz_cozy" autocomplete="off">
+            <label class="btn btn-outline-danger" for="oz_cozy">Confort</label>
 
+            <hr>
 
-
-
-
+            <h5>Configurer les zones</h5>
+            <div class="mb-3">
+              Chargement des zones et radiateurs ...
+            </div>
           </div>
         </div>
       </div>
@@ -46,16 +63,42 @@
         <h2 class="accordion-header" id="headingPlanning">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
             data-bs-target="#collapsePlanning" aria-expanded="false" aria-controls="collapsePlanning">
-            Planning
+            Planning et programmation
           </button>
         </h2>
         <div id="collapsePlanning" class="accordion-collapse collapse" aria-labelledby="headingPlanning"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
+            <form action="/api/planning" method="post">
+              <h5>Cr&eacute;er une programmation</h5>
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="newPlanning">
+                <label for="newPlanning">Nom de la programmation</label>
+              </div>
+              <div class="mb-3">
+                <button type="submit" class="btn btn-primary mb-3">Cr&eacute;er</button>
+              </div>
+            </form>
 
+            <hr>
 
+            <h5>G&eacute;rer la programmation</h5>
+            <div class="mb-3" id="planningSelect">
+              <select class="form-select" aria-label="Planning">
+                <option value="0" selected>piece de vie</option>
+                <option value="1">chambres</option>
+                <option value="2">bureau</option>
+              </select>
+            </div>
 
+            <hr>
+
+            <form id="planningParameters" method="post">
+              <div class="mb-3">
+                Chargement de la programmation ...
+              </div>
+            </form>
 
           </div>
         </div>
@@ -65,14 +108,16 @@
         <h2 class="accordion-header" id="headingAccounts">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
             data-bs-target="#collapseAccounts" aria-expanded="false" aria-controls="collapseAccounts">
-            Comptes
+            Utilisateurs et permissions
           </button>
         </h2>
         <div id="collapseAccounts" class="accordion-collapse collapse" aria-labelledby="headingAccounts"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
+
             <form action="/api/account" method="post">
               <div class="row">
+                <h5 class="mb-3">Cr&eacute;er un compte</h5>
                 <div class="mb-3">
                   <label class="form-label" for="newAccountId">Identifiant</label>
                   <input type="text" class="form-control" id="newAccountId">
@@ -86,10 +131,13 @@
                 </div>
               </div>
             </form>
+
             <hr>
+            <h5 class="mb-3">G&eacute;rer les comptes</h5>
             <div class="row" id="accounts">
               Chargement des comptes ...
             </div>
+
           </div>
         </div>
       </div>
@@ -98,18 +146,19 @@
         <h2 class="accordion-header" id="headingHardware">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
             data-bs-target="#collapseHardware" aria-expanded="false" aria-controls="collapseHardware">
-            Mat&eacute;riel
+            Configuration du mat&eacute;riel
           </button>
         </h2>
         <div id="collapseHardware" class="accordion-collapse collapse" aria-labelledby="headingHardware"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
+
             <form action="/api/hardware/type" method="post">
               <div class="row" id="hardwareType">
-                <div class="col-sm-auto" id="hardwareTypeSelectDiv">
-                  <select class="form-select" aria-label="Default select example">
-                    <option selected>None</option>
-                    <option value="M1E1">M1E1</option>
+                <div class="col" id="hardwareTypeSelectDiv">
+                  <select class="form-select" aria-label="Type de mat&zacute;riel" id="hardwareTypeSelect">
+                    <option value="0" selected>Indéfini</option>
+                    <option value="1">M1E1</option>
                   </select>
                 </div>
                 <div class="col-sm-auto">
@@ -117,15 +166,18 @@
                 </div>
               </div>
               <div class="row bg-danger text-light p-3">
-                ATTENTION : Sélectionner un matériel différent réinitialisera la configuration des radiateurs !
+                Attention : Sélectionner un matériel différent réinitialisera les zones (nom et état)
               </div>
             </form>
+
             <hr>
+
             <form action="/api/hardware/parameters" method="post">
               <div class="row" id="hardwareParameters">
                 Chargement des paramètres du matériel...
               </div>
             </form>
+
           </div>
         </div>
       </div>
