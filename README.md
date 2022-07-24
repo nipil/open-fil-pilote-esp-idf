@@ -1,3 +1,7 @@
-# install
+# open-fil-pilote-esp-idf
 
-See certs/README.md to generate HTTPS certificates
+Firmware pour les cartes domotiques Open-fil-pilote
+
+# configuration manuelle
+
+Voir le document certs/README.md pour la génération des certificats
