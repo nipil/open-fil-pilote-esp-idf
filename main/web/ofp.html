@@ -41,31 +41,38 @@
             <h5>Forcer l'&eacute;tat de toutes les zones</h5>
             <div class="row">
               <div class="col-sm-auto mb-3">
+                <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_none" autocomplete="off"
                   checked>
                 <label class="btn btn-outline-primary w-100" for="oz_none">Aucun for&ccedil;age</label>
               </div>
               <div class="col-sm-auto mb-3">
+                <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_offload" autocomplete="off">
                 <label class="btn btn-outline-secondary w-100" for="oz_offload">Arr&ecirc;t / D&eacute;lestage</label>
               </div>
               <div class="col-sm-auto mb-3">
+                <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_nofreeze" autocomplete="off">
                 <label class="btn btn-outline-info w-100" for="oz_nofreeze">Hors-gel</label>
               </div>
               <div class="col-sm-auto mb-3">
+                <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_economy" autocomplete="off">
                 <label class="btn btn-outline-success w-100" for="oz_economy">Economie</label>
               </div>
               <div class="col-sm-auto mb-3">
+                <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_cozyminus2" autocomplete="off">
                 <label class="btn btn-outline-warning w-100" for="oz_cozyminus2">Confort-2°</label>
               </div>
               <div class="col-sm-auto mb-3">
+                <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_cozyminus1" autocomplete="off">
                 <label class="btn btn-outline-warning w-100" for="oz_cozyminus1">Confort-1°</label>
               </div>
               <div class="col-sm-auto mb-3">
+                <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_cozy" autocomplete="off">
                 <label class="btn btn-outline-danger w-100" for="oz_cozy">Confort</label>
               </div>
@@ -73,7 +80,8 @@
               <hr>
 
               <h5>Configurer les zones</h5>
-              <div class="mb-3">
+              <!-- TODO onLoad -->
+              <div class="mb-3" id="zones">
                 Chargement des zones et radiateurs ...
               </div>
             </div>
@@ -98,6 +106,7 @@
                   <label for="newPlanning">Nom de la programmation</label>
                 </div>
                 <div class="mb-3">
+                  <!-- TODO submit -->
                   <button type="submit" class="btn btn-primary mb-3">Cr&eacute;er</button>
                 </div>
               </form>
@@ -106,7 +115,9 @@
 
               <h5>G&eacute;rer la programmation</h5>
               <div class="mb-3" id="planningSelect">
+                <!-- TODO onChange -->
                 <select class="form-select" aria-label="Planning">
+                  <!-- TODO onLoad -->
                   <option value="0" selected>piece de vie</option>
                   <option value="1">chambres</option>
                   <option value="2">bureau</option>
@@ -115,6 +126,7 @@
 
               <hr>
 
+              <!-- TODO onLoad (from above select) -->
               <form id="planningParameters" method="post">
                 <div class="mb-3">
                   Chargement de la programmation ...
@@ -136,6 +148,7 @@
             data-bs-parent="#accordionApp">
             <div class="accordion-body">
 
+              <!-- TODO submit -->
               <form action="/api/account" method="post">
                 <div class="row">
                   <h5 class="mb-3">Cr&eacute;er un compte</h5>
@@ -155,6 +168,7 @@
 
               <hr>
               <h5 class="mb-3">G&eacute;rer les comptes</h5>
+              <!-- TODO onLoad -->
               <div class="row" id="accounts">
                 Chargement des comptes ...
               </div>
@@ -181,6 +195,7 @@
                     </select>
                   </div>
                   <div class="col-sm-auto">
+                    <!-- TODO -->
                     <button type="submit" class="btn btn-primary mb-3">Sélectionner</button>
                   </div>
                 </div>
@@ -191,6 +206,7 @@
 
               <hr>
 
+              <!-- TODO onLoad (from above select) -->
               <form action="/api/hardware/parameters" method="post">
                 <div class="row" id="hardwareParameters">
                   Chargement des paramètres du matériel...
