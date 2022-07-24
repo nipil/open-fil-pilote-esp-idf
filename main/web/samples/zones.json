@@ -1,0 +1,56 @@
+[
+    {
+        "id": "e1z1",
+        "description": "salon",
+        "desired": "offload",
+        "planning": null
+    },
+    {
+        "id": "e1z2",
+        "description": "chambre parents",
+        "desired": "nofreeze",
+        "planning": null
+    },
+    {
+        "id": "e1z3",
+        "description": "e1z3",
+        "desired": "offload",
+        "planning": null
+    },
+    {
+        "id": "e1z4",
+        "description": "bureau cecile",
+        "desired": "economy",
+        "planning": null
+    },
+    {
+        "id": "e1z4",
+        "description": "bureau nico",
+        "desired": "cozyminus2",
+        "planning": null
+    },
+    {
+        "id": "e2z1",
+        "description": "e2z1",
+        "desired": "cozyminus1",
+        "planning": null
+    },
+    {
+        "id": "e2z2",
+        "description": "e2z2",
+        "desired": "cozy",
+        "planning": null
+    },
+    {
+        "id": "e2z3",
+        "description": "salle de bain",
+        "desired": "planning",
+        "planning": "pieces d'eau"
+    }
+    {
+        "id": "e2z4",
+        "description": "inutilisé",
+        "desired": "cozy",
+        "planning": null
+    }
+]
