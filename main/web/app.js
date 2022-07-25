@@ -39,10 +39,52 @@ function onload_hardware() {
     // onload_hardware_parameters();
 }
 
+function onload_accounts() {
+    console.log("onload_accounts");
+    fetch('/samples/accounts.json')
+        .then(handleHttpErrors)
+        .then(res => res.json())
+        .then(function (json) {
+            let template = {
+                '<>': 'tr', 'html': [
+                    { '<>': 'th', 'html': '${id}' },
+                    { '<>': 'td', 'html': '${type}' },
+                    {
+                        '<>': 'td', 'html': [
+                            { '<>': 'button', 'class': 'btn btn-primary', 'onclick': function(e) { account_reset(e.obj.id); }, 'html': 'R&eacute;initialiser' }, ,
+                        ]
+                    },
+                    {
+                        '<>': 'td', 'html': [
+                            { '<>': 'button', 'class': 'btn btn-danger', 'onclick': function(e) { account_delete(e.obj.id); }, 'html': 'Supprimer' }, ,
+                        ]
+                    }
+                ]
+            };
+            $('#accountListTable').json2html(json.accounts, template);
+        })
+        .catch (function (err) {
+    let el = document.getElementById('accountListDiv');
+    el.innerHTML = `Impossible de r&eacute;cup&eacute;rer les comptes utilisateur (${err})`
+    el.classList.add("bg-danger");
+    el.classList.add("p-3");
+});
+}
+
+// TODO popup + post
+function account_reset(account_name) {
+    console.log("account_reset", account_name);
+}
+
+// TODO popup + delete
+function account_delete(account_name) {
+    console.log("account_delete", account_name);
+}
+
 function onload_body() {
     console.log("onload_body");
-    onload_hardware();
-    // onload_accounts();
+    // onload_hardware();
+    onload_accounts();
     // onload_planning();
     // onload_zones();
 }
@@ -76,9 +118,6 @@ function onload_planning() {
     onload_planning_definition();
 }
 
-function onload_accounts() {
-    console.log("onload_accounts");
-}
 
 function onload_hardware_parameters() {
     console.log("onload_hardware_parameters");

@@ -1,5 +1,16 @@
-[
-    "admin",
-    "nico",
-    "cecile"
-]
+{
+    "accounts": [
+        {
+            "id": "admin",
+            "type": "admin"
+        },
+        {
+            "id": "nico",
+            "type": "user"
+        },
+        {
+            "id": "cecile",
+            "type": "user"
+        }
+    ]
+}

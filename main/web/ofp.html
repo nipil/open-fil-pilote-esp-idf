@@ -12,6 +12,7 @@
     integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
     crossorigin="anonymous"></script>
 
+  <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.1.0/json2html.min.js"></script>
 
   <script src="app.js"></script>
@@ -64,12 +65,12 @@
               <div class="col-sm-auto mb-3">
                 <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_cozyminus2" autocomplete="off">
-                <label class="btn btn-outline-warning w-100" for="oz_cozyminus2">Confort-2°</label>
+                <label class="btn btn-outline-warning w-100" for="oz_cozyminus2">Confort-2&deg;</label>
               </div>
               <div class="col-sm-auto mb-3">
                 <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_cozyminus1" autocomplete="off">
-                <label class="btn btn-outline-warning w-100" for="oz_cozyminus1">Confort-1°</label>
+                <label class="btn btn-outline-warning w-100" for="oz_cozyminus1">Confort-1&deg;</label>
               </div>
               <div class="col-sm-auto mb-3">
                 <!-- TODO onClick -->
@@ -169,8 +170,15 @@
               <hr>
               <h5 class="mb-3">G&eacute;rer les comptes</h5>
               <!-- TODO onLoad -->
-              <div class="row" id="accounts">
-                Chargement des comptes ...
+              <div class="mb-3" id="accountListDiv">
+                <table class="table table-striped table-bordered align-middle" id="accountListTable">
+                  <tr>
+                    <th>Utilisateur</th>
+                    <th>Privil&egrave;ge</th>
+                    <th>Mot de passe</th>
+                    <th>Suppression</th>
+                  </tr>
+                </table>
               </div>
 
             </div>
