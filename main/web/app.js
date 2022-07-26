@@ -1,4 +1,3 @@
-
 function updateStatus(id_element, id_status, status_message = null, status_bg_class = null) {
     if (status_message === null) {
         // ok
@@ -25,6 +24,8 @@ function updateStatus(id_element, id_status, status_message = null, status_bg_cl
     }
 }
 
+/*******************************************************************************/
+
 function handleHttpErrors(response) {
     if (!response.ok) {
         throw Error(response.status);
@@ -32,10 +33,21 @@ function handleHttpErrors(response) {
     return response;
 }
 
+function getUrl(url, reload = false) {
+    let options = {}
+    if (reload) {
+        options = { cache: "reload" }
+    }
+    return fetch(url, options)
+        .then(handleHttpErrors);
+}
+
+/*******************************************************************************/
+
 function onload_hardware_types() {
     fetch('/samples/hardware_types.json')
         .then(handleHttpErrors)
-        .then(res => res.json())
+        .then((res) => res.json())
         .then(function (json) {
             // to enable selection of current hardware
             let current_type_id = json.current_type_id;
@@ -61,7 +73,6 @@ function onload_hardware_types() {
 }
 
 function onload_hardware() {
-    console.log("onload_hardware");
     onload_hardware_types();
     onload_hardware_parameters();
 }
@@ -69,7 +80,7 @@ function onload_hardware() {
 function onload_accounts() {
     fetch('/samples/accounts.json')
         .then(handleHttpErrors)
-        .then(res => res.json())
+        .then((res) => res.json())
         .then(function (json) {
             let template = {
                 '<>': 'tr', 'html': [
@@ -99,25 +110,22 @@ function onload_accounts() {
 
 // TODO popup + post
 function account_reset(account_name) {
-    console.log("account_reset", account_name);
 }
 
 // TODO popup + delete
 function account_delete(account_name) {
-    console.log("account_delete", account_name);
 }
 
 function planning_rename() {
     let select = document.getElementById('planningSelect');
     var value = select.options[select.selectedIndex].value;
-    console.log("planning_rename", value);
     // TODO: rename (or change with post button and text input... ?)
 }
 
 function onload_planning_list() {
     fetch('/samples/planningList.json')
         .then(handleHttpErrors)
-        .then(res => res.json())
+        .then((res) => res.json())
         .then(function (json) {
             let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
             let el = document.getElementById('planningSelect');
@@ -131,70 +139,23 @@ function onload_planning_list() {
 }
 
 function onload_planning_definition() {
-    console.log("onload_planning_definition");
 }
 
 function onload_planning() {
-    console.log("onload_planning");
     onload_planning_list();
     onload_planning_definition();
 }
 
-function onload_zone_types() {
-    console.log("onload_zone_types");
-    fetch('/samples/zoneTypes.json')
-        .then(handleHttpErrors)
-        .then(res => res.json())
-        .then(function (json) {
-
-            let zoneTypes = {
-                "list": json.zone_types,
-                "by_id": {}
-            };
-            zoneTypes.list.forEach(zoneType => {
-                zoneTypes.by_id[zoneType.id] = zoneType;
-            });
-            // build global variable holding available zone types
-            window.ofpZoneTypes = zoneTypes;
-
-            updateStatus(null, 'statusZoneTypes');
-        })
-        .catch(function (err) {
-            updateStatus(null, 'statusZoneTypes',
-                `Impossible de r&eacute;cup&eacute;rer les types d'ordre fil-pilote support&eacute;s (${err})`, 'bg-warning');
-        });
-}
-
-function onload_zones_override() {
-    fetch('/samples/zones_override.json')
-        .then(handleHttpErrors)
-        .then(res => res.json())
-        .then(function (json) {
-            let id = json.override;
-            let el = document.getElementById(`oz_${id}`);
-            el.checked = true;
-            updateStatus('zoneOverride', 'statusZoneOverride');
-        })
-        .catch(function (err) {
-            updateStatus('zoneOverride', 'statusZoneOverride',
-                `Impossible de r&eacute;cup&eacute;rer les for&ccedil;ages (${err})`, 'bg-warning');
-        });
-}
-
 function zone_set_mode(zone_id, mode) {
-    console.log('zone_set_mode', zone_id, mode);
 }
 
 function zone_set_value(zone_id, value) {
-    console.log('zone_set_value', zone_id, value);
 }
 
 function onload_zones_config() {
-    console.log("onload_zones_config");
-
     fetch('/samples/zonesConfig.json')
         .then(handleHttpErrors)
-        .then(res => res.json())
+        .then((res) => res.json())
         .then(function (json) {
             let template = {
                 '<>': 'div', 'class': 'row mb-3', 'html': [
@@ -222,13 +183,89 @@ function onload_zones() {
 }
 
 function onload_hardware_parameters() {
-    console.log("onload_hardware_parameters");
 }
 
-function onload_body() {
-    console.log("onload_body");
-    onload_hardware();
-    onload_accounts();
-    onload_planning();
-    onload_zones();
+/* ************************************************************************** */
+
+function logError(message) {
+    let msg = document.createElement("div");
+    let txt = document.createTextNode(message);
+    msg.appendChild(txt);
+
+    let el = document.getElementById('status');
+    el.appendChild(msg);
+    el.className = 'mb-3 p-3 bg-warning';
 }
+
+async function changeZoneOverrides(newOverride) {
+    console.log("changeZoneOverrides", newOverride);
+}
+
+function getZoneTypes(reload = false) {
+    return getUrl('/samples/zoneTypes.json', reload);
+}
+
+function getZoneOverride(reload = false) {
+    return getUrl('/samples/zones_override.json', reload);
+}
+
+async function loadZoneOverrides() {
+    let zoneOverrideResponse = await getZoneOverride();
+    let zoneOverrideJson = await zoneOverrideResponse.json();
+    const zoneOverrideId = zoneOverrideJson.override;
+
+    let zoneTypesResponse = await getZoneTypes();
+    let zoneTypesJson = await zoneTypesResponse.json();
+    const none = { id: 'none', name: 'Aucun', class: 'primary' }
+    const zoneTypesJsonAll = [none, ...zoneTypesJson.zone_types];
+
+    let templateLabel = {
+        '<>': 'label',
+        'class': 'btn btn-outline-${class} w-100',
+        'for': 'oz_${id}',
+        'html': '${name}',
+        onclick: function (el) {
+            changeZoneOverrides(el.obj.id);
+        }
+    };
+
+    let templateInput = {
+        '<>': 'input',
+        'type': 'radio',
+        'class': 'btn-check w-100',
+        'name': 'overrideZones',
+        'id': 'oz_${id}',
+        'autocomplete': 'off',
+        onclick: function (el) {
+        }
+    };
+
+    let templateInputChecked = { ...templateInput, 'checked': true };
+
+    let templateMaster = {
+        '<>': 'div', 'class': 'col-sm-auto mb-3', 'html': function (element) {
+            return $.json2html(this, [
+                (this.id == zoneOverrideId ? templateInputChecked : templateInput),
+                templateLabel
+            ]);
+        }
+    };
+
+    $('#zoneOverride').json2html(zoneTypesJsonAll, templateMaster);
+}
+
+async function ofp_init() {
+    Promise.all([
+        loadZoneOverrides()
+    ]).catch(logError);
+
+    /*
+        onload_hardware();
+        onload_accounts();
+        onload_planning();
+        onload_zones();
+    */
+}
+
+window.onload = ofp_init
+
