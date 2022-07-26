@@ -140,6 +140,19 @@ function onload_planning() {
 
 function onload_zones_override() {
     console.log("onload_zone_override");
+    fetch('/samples/zones_override.json')
+        .then(handleHttpErrors)
+        .then(res => res.json())
+        .then(function (json) {
+            let id = json.override;
+            let el = document.getElementById(`oz_${id}`);
+            el.checked = true;
+            updateStatus('zoneOverride', 'statusZoneOverride');
+        })
+        .catch(function (err) {
+            updateStatus('zoneOverride', 'statusZoneOverride',
+                `Impossible de r&eacute;cup&eacute;rer les for&ccedil;ages (${err})`, 'bg-warning');
+        });
 }
 
 function onload_zones_config() {
