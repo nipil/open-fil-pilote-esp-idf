@@ -1,3 +1,26 @@
+
+function updateStatus(id_element, id_status, status_message = null, status_bg_class = null) {
+    if (status_message === null) {
+        // ok
+        let el = document.getElementById(id_status);
+        el.className = 'invisible';
+        el.innerHTML = '';
+
+        el = document.getElementById(id_element);
+        el.classList.remove('invisible');
+    }
+    else {
+        // fail
+        let el = document.getElementById(id_status);
+        el.className = 'md-3 p-3';
+        el.classList.add(status_bg_class)
+        el.innerHTML = status_message
+
+        el = document.getElementById(id_element);
+        el.classList.add('invisible');
+    }
+}
+
 function handleHttpErrors(response) {
     if (!response.ok) {
         throw Error(response.status);
@@ -24,19 +47,19 @@ function onload_hardware_types() {
             };
             let element = document.getElementById('hardwareTypeSelect');
             element.innerHTML = json2html.render(json.supported_types, template);
+
+            updateStatus('hardwareSupported', 'statusHardwareSupported');
         })
         .catch(function (err) {
-            let el = document.getElementById('collapseHardware');
-            el.innerHTML = `Impossible de r&eacute;cup&eacute;rer les types de mat&eacute;riel support&eacute;s (${err})`
-            el.classList.add("bg-danger");
-            el.classList.add("p-3");
+            updateStatus('hardwareSupported', 'statusHardwareSupported',
+                `Impossible de r&eacute;cup&eacute;rer les types de mat&eacute;riel support&eacute;s (${err})`, 'bg-warning');
         });
 }
 
 function onload_hardware() {
     // console.log("onload_hardware");
     onload_hardware_types();
-    // onload_hardware_parameters();
+    onload_hardware_parameters();
 }
 
 function onload_accounts() {
@@ -51,24 +74,24 @@ function onload_accounts() {
                     { '<>': 'td', 'html': '${type}' },
                     {
                         '<>': 'td', 'html': [
-                            { '<>': 'button', 'class': 'btn btn-primary', 'onclick': function(e) { account_reset(e.obj.id); }, 'html': 'R&eacute;initialiser' }, ,
+                            { '<>': 'button', 'class': 'btn btn-primary', 'onclick': function (e) { account_reset(e.obj.id); }, 'html': 'R&eacute;initialiser' }, ,
                         ]
                     },
                     {
                         '<>': 'td', 'html': [
-                            { '<>': 'button', 'class': 'btn btn-danger', 'onclick': function(e) { account_delete(e.obj.id); }, 'html': 'Supprimer' }, ,
+                            { '<>': 'button', 'class': 'btn btn-danger', 'onclick': function (e) { account_delete(e.obj.id); }, 'html': 'Supprimer' }, ,
                         ]
                     }
                 ]
             };
             $('#accountListTable').json2html(json.accounts, template);
+            updateStatus('accountList', 'statusAccountList');
+
         })
-        .catch (function (err) {
-    let el = document.getElementById('accountListDiv');
-    el.innerHTML = `Impossible de r&eacute;cup&eacute;rer les comptes utilisateur (${err})`
-    el.classList.add("bg-danger");
-    el.classList.add("p-3");
-});
+        .catch(function (err) {
+            updateStatus('accountList', 'statusAccountList',
+                `Impossible de r&eacute;cup&eacute;rer les comptes utilisateur (${err})`, 'bg-warning');
+        });
 }
 
 // TODO popup + post
@@ -81,15 +104,40 @@ function account_delete(account_name) {
     console.log("account_delete", account_name);
 }
 
-function onload_body() {
-    console.log("onload_body");
-    // onload_hardware();
-    onload_accounts();
-    // onload_planning();
-    // onload_zones();
+function planning_rename() {
+    let select = document.getElementById('planningSelect');
+    var value = select.options[select.selectedIndex].value;
+    console.log("planning_rename", value);
+    // TODO: rename (or change with post button and text input... ?)
 }
 
-/*
+function onload_planning_list() {
+    console.log("onload_planning_list");
+    fetch('/samples/planningList.json')
+        .then(handleHttpErrors)
+        .then(res => res.json())
+        .then(function (json) {
+            let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
+            let el = document.getElementById('planningSelect');
+            el.innerHTML = json2html.render(json.plannings, template);
+            updateStatus('planningListDiv', 'statusPlanningList');
+        })
+        .catch(function (err) {
+            updateStatus('planningListDiv', 'statusPlanningList',
+                `Impossible de r&eacute;cup&eacute;rer les plannings (${err})`, 'bg-warning');
+        });
+}
+
+function onload_planning_definition() {
+    console.log("onload_planning_definition");
+}
+
+function onload_planning() {
+    console.log("onload_planning");
+    onload_planning_list();
+    onload_planning_definition();
+}
+
 function onload_zones_override() {
     console.log("onload_zone_override");
 }
@@ -104,23 +152,15 @@ function onload_zones() {
     onload_zones_config();
 }
 
-function onload_planning_list() {
-    console.log("onload_planning_list");
-}
-
-function onload_planning_definition() {
-    console.log("onload_planning_definition");
-}
-
-function onload_planning() {
-    console.log("onload_planning");
-    onload_planning_list();
-    onload_planning_definition();
-}
-
-
 function onload_hardware_parameters() {
     console.log("onload_hardware_parameters");
 }
 
-*/
+function onload_body() {
+    console.log("onload_body");
+    onload_hardware();
+    onload_accounts();
+    onload_planning();
+    onload_zones();
+}
+

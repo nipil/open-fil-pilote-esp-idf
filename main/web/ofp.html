@@ -40,7 +40,11 @@
           <div class="accordion-body">
 
             <h5>Forcer l'&eacute;tat de toutes les zones</h5>
-            <div class="row">
+            <div id="statusZoneOverride">
+              Chargement des for&ccedil;ages ...
+            </div>
+            <div class="row" id="zoneOverride">
+              <!-- TODO onload check current -->
               <div class="col-sm-auto mb-3">
                 <!-- TODO onClick -->
                 <input type="radio" class="btn-check w-100" name="overrideZones" id="oz_none" autocomplete="off"
@@ -82,9 +86,12 @@
 
               <h5>Configurer les zones</h5>
               <!-- TODO onLoad -->
-              <div class="mb-3" id="zones">
+              <div id="statusZoneList">
                 Chargement des zones et radiateurs ...
               </div>
+              <div class="mb-3" id="zoneList">
+              </div>
+
             </div>
           </div>
         </div>
@@ -115,22 +122,29 @@
               <hr>
 
               <h5>G&eacute;rer la programmation</h5>
-              <div class="mb-3" id="planningSelect">
-                <!-- TODO onChange -->
-                <select class="form-select" aria-label="Planning">
-                  <!-- TODO onLoad -->
-                  <option value="0" selected>piece de vie</option>
-                  <option value="1">chambres</option>
-                  <option value="2">bureau</option>
-                </select>
+              <div id="statusPlanningList">
+                Chargement de la liste des programmes ...
+              </div>
+              <div class="row mb-3" id="planningListDiv">
+                <div class="col-sm-auto">
+                  <!-- TODO onChange -->
+                  <select class="form-select" aria-label="Planning" id="planningSelect">
+                  </select>
+                </div>
+                <div class="col-sm">
+                  <button class="btn btn-warning mb-3" onclick="planning_rename();">Renommer</button>
+                </div>
               </div>
 
               <hr>
 
               <!-- TODO onLoad (from above select) -->
-              <form id="planningParameters" method="post">
+              <div id="statusPlanningDetails">
+                Chargement de la programmation ...
+              </div>
+              <form id="planningDetails" method="post">
                 <div class="mb-3">
-                  Chargement de la programmation ...
+                  Pouet
                 </div>
               </form>
 
@@ -169,8 +183,11 @@
 
               <hr>
               <h5 class="mb-3">G&eacute;rer les comptes</h5>
+              <div id="statusAccountList">
+                Chargement des comptes ...
+              </div>
               <!-- TODO onLoad -->
-              <div class="mb-3" id="accountListDiv">
+              <div class="mb-3" id="accountList">
                 <table class="table table-striped table-bordered align-middle" id="accountListTable">
                   <tr>
                     <th>Utilisateur</th>
@@ -196,30 +213,40 @@
             data-bs-parent="#accordionApp">
             <div class="accordion-body">
 
-              <form action="/api/hardware/type" method="post">
-                <div class="row">
-                  <div class="col-sm-auto">
-                    <select class="form-select" aria-label="Type de mat&zacute;riel" id="hardwareTypeSelect">
-                    </select>
+              <div id="statusHardwareSupported">
+                Chargement des matériels supportés ...
+              </div>
+
+              <div class="mb-3" id="hardwareSupported">
+                <form action="/api/hardware/type" method="post">
+                  <div class="row">
+                    <div class="col-sm-auto">
+                      <select class="form-select" aria-label="Type de mat&zacute;riel" id="hardwareTypeSelect">
+                      </select>
+                    </div>
+                    <div class="col-sm-auto">
+                      <!-- TODO -->
+                      <button type="submit" class="btn btn-primary mb-3">Sélectionner</button>
+                    </div>
                   </div>
-                  <div class="col-sm-auto">
-                    <!-- TODO -->
-                    <button type="submit" class="btn btn-primary mb-3">Sélectionner</button>
+                  <div class="row bg-danger text-light p-3 mb-3">
+                    Attention : Sélectionner un matériel différent réinitialisera l'ensemble des zones (nom et état)
                   </div>
-                </div>
-                <div class="row bg-danger text-light p-3 mb-3">
-                  Attention : Sélectionner un matériel différent réinitialisera l'ensemble des zones (nom et état)
-                </div>
-              </form>
+                </form>
+              </div>
 
               <hr>
 
               <!-- TODO onLoad (from above select) -->
-              <form action="/api/hardware/parameters" method="post">
-                <div class="row" id="hardwareParameters">
-                  Chargement des paramètres du matériel...
-                </div>
-              </form>
+              <div id="statusHardwareParameters">
+                Chargement des matériels supportés ...
+              </div>
+
+              <div class="row" id="hardwareParameters">
+                <form action="/api/hardware/parameters" method="post">
+                  pouet
+                </form>
+              </div>
 
             </div>
           </div>
