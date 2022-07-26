@@ -1,0 +1,34 @@
+{
+    "zone_types": [
+        {
+            "id": "offload",
+            "name": "Arr&ecirc;t / D&eacute;lestage",
+            "class": "secondary"
+        },
+        {
+            "id": "nofreeze",
+            "name": "Hors-gel",
+            "class": "info"
+        },
+        {
+            "id": "eco",
+            "name": "Economie",
+            "class": "secondary"
+        },
+        {
+            "id": "cozyminus1",
+            "name": "Confort-1&deg;",
+            "class": "warning"
+        },
+        {
+            "id": "cozyminus2",
+            "name": "Confort-2&deg;",
+            "class": "warning"
+        },
+        {
+            "id": "cozy",
+            "name": "Confort",
+            "class": "danger"
+        }
+    ]
+}

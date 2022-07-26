@@ -6,8 +6,10 @@ function updateStatus(id_element, id_status, status_message = null, status_bg_cl
         el.className = 'invisible';
         el.innerHTML = '';
 
-        el = document.getElementById(id_element);
-        el.classList.remove('invisible');
+        if (id_element) {
+            el = document.getElementById(id_element);
+            el.classList.remove('invisible');
+        }
     }
     else {
         // fail
@@ -16,8 +18,10 @@ function updateStatus(id_element, id_status, status_message = null, status_bg_cl
         el.classList.add(status_bg_class)
         el.innerHTML = status_message
 
-        el = document.getElementById(id_element);
-        el.classList.add('invisible');
+        if (id_element) {
+            el = document.getElementById(id_element);
+            el.classList.add('invisible');
+        }
     }
 }
 
@@ -57,13 +61,12 @@ function onload_hardware_types() {
 }
 
 function onload_hardware() {
-    // console.log("onload_hardware");
+    console.log("onload_hardware");
     onload_hardware_types();
     onload_hardware_parameters();
 }
 
 function onload_accounts() {
-    console.log("onload_accounts");
     fetch('/samples/accounts.json')
         .then(handleHttpErrors)
         .then(res => res.json())
@@ -112,7 +115,6 @@ function planning_rename() {
 }
 
 function onload_planning_list() {
-    console.log("onload_planning_list");
     fetch('/samples/planningList.json')
         .then(handleHttpErrors)
         .then(res => res.json())
@@ -138,8 +140,32 @@ function onload_planning() {
     onload_planning_definition();
 }
 
+function onload_zone_types() {
+    console.log("onload_zone_types");
+    fetch('/samples/zoneTypes.json')
+        .then(handleHttpErrors)
+        .then(res => res.json())
+        .then(function (json) {
+
+            let zoneTypes = {
+                "list": json.zone_types,
+                "by_id": {}
+            };
+            zoneTypes.list.forEach(zoneType => {
+                zoneTypes.by_id[zoneType.id] = zoneType;
+            });
+            // build global variable holding available zone types
+            window.ofpZoneTypes = zoneTypes;
+
+            updateStatus(null, 'statusZoneTypes');
+        })
+        .catch(function (err) {
+            updateStatus(null, 'statusZoneTypes',
+                `Impossible de r&eacute;cup&eacute;rer les types d'ordre fil-pilote support&eacute;s (${err})`, 'bg-warning');
+        });
+}
+
 function onload_zones_override() {
-    console.log("onload_zone_override");
     fetch('/samples/zones_override.json')
         .then(handleHttpErrors)
         .then(res => res.json())
@@ -155,12 +181,42 @@ function onload_zones_override() {
         });
 }
 
+function zone_set_mode(zone_id, mode) {
+    console.log('zone_set_mode', zone_id, mode);
+}
+
+function zone_set_value(zone_id, value) {
+    console.log('zone_set_value', zone_id, value);
+}
+
 function onload_zones_config() {
     console.log("onload_zones_config");
+
+    fetch('/samples/zonesConfig.json')
+        .then(handleHttpErrors)
+        .then(res => res.json())
+        .then(function (json) {
+            let template = {
+                '<>': 'div', 'class': 'row mb-3', 'html': [
+                    { '<>': 'div', 'class': 'col-sm', 'html': '${id}' },
+                    { '<>': 'div', 'class': 'col-sm', 'html': '${desc}' },
+                    { '<>': 'div', 'class': 'col-sm', 'html': 'rename' },
+                    { '<>': 'div', 'class': 'col-sm', 'html': '${mode}' },
+                    { '<>': 'div', 'class': 'col-sm', 'html': '${value}' }
+                ]
+            };
+            $('#zoneList').json2html(json.zones, template);
+            updateStatus('zoneList', 'statusZoneList');
+        })
+        .catch(function (err) {
+            updateStatus('zoneList', 'statusZoneList',
+                `Impossible de r&eacute;cup&eacute;rer la configuration des zones (${err})`, 'bg-warning');
+        });
 }
 
 function onload_zones() {
     console.log("onload_zones");
+    onload_zone_types();
     onload_zones_override();
     onload_zones_config();
 }
@@ -176,4 +232,3 @@ function onload_body() {
     onload_planning();
     onload_zones();
 }
-
