@@ -13,7 +13,7 @@
         {
             "id": "economy",
             "name": "Economie",
-            "class": "secondary"
+            "class": "success"
         },
         {
             "id": "cozyminus1",
