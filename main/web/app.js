@@ -122,22 +122,6 @@ function planning_rename() {
     // TODO: rename (or change with post button and text input... ?)
 }
 
-function onload_planning_list() {
-    fetch('/samples/planningList.json')
-        .then(handleHttpErrors)
-        .then((res) => res.json())
-        .then(function (json) {
-            let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
-            let el = document.getElementById('planningSelect');
-            el.innerHTML = json2html.render(json.plannings, template);
-            updateStatus('planningListDiv', 'statusPlanningList');
-        })
-        .catch(function (err) {
-            updateStatus('planningListDiv', 'statusPlanningList',
-                `Impossible de r&eacute;cup&eacute;rer les plannings (${err})`, 'bg-warning');
-        });
-}
-
 function onload_planning_definition() {
 }
 
@@ -168,7 +152,6 @@ function logError(message) {
     el.className = 'mb-3 p-3 bg-warning';
 }
 
-
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
 }
@@ -195,9 +178,8 @@ async function loadZoneOverrides(reload = false) {
         '<>': 'label',
         'class': 'btn btn-outline-${class} w-100',
         'for': 'override_zones_${id}',
-        'onclick': function (el) {
-            console.log("label click");
-            changeZoneOverrides(el.obj.id);
+        'onclick': function (e) {
+            changeZoneOverrides(e.obj.id);
         },
         'html': '${name}'
     };
@@ -208,11 +190,7 @@ async function loadZoneOverrides(reload = false) {
         'class': 'btn-check w-100',
         'name': 'overrideZones',
         'id': 'override_zones_${id}',
-        'autocomplete': 'off',
-        'onclick': function (el) {
-            console.log("input click");
-            changeZoneOverrides(el.obj.id);
-        },
+        'autocomplete': 'off'
     };
 
     let templateMaster = {
@@ -274,8 +252,8 @@ async function loadZoneConfiguration(reload = false) {
                     {
                         '<>': 'button',
                         'class': 'btn btn-warning btn',
-                        'onclick': function (el) {
-                            changeZoneDescription(el.obj.id);
+                        'onclick': function (e) {
+                            changeZoneDescription(e.obj.id);
                         },
                         'html': 'Renommer'
                     },
@@ -287,8 +265,8 @@ async function loadZoneConfiguration(reload = false) {
                         '<>': 'select',
                         'class': 'form-select',
                         'id': 'select_zone_${id}',
-                        'onchange': function (el) {
-                            changeZoneValue(el.obj.id, el.event.currentTarget.value);
+                        'onchange': function (e) {
+                            changeZoneValue(e.obj.id, e.event.currentTarget.value);
                         },
                         'html': optionsHtml
                     }
@@ -305,10 +283,53 @@ async function loadZoneConfiguration(reload = false) {
     });
 }
 
+async function getPlanningList(reload = false) {
+    return getUrl('/samples/plannings.json', reload);
+}
+
+function renamePlanning(id) {
+    console.log('renamePlanning', id);
+}
+
+function deletePlanning(id) {
+    console.log('deletePlanning', id);
+}
+
+function loadPlanningDetails(planningId) {
+    console.log('loadPlanningDetails', planningId);
+}
+
+async function loadPlanningList(reload = false) {
+    let planningListResponse = await getPlanningList(reload);
+    let planningListJson = await planningListResponse.json();
+    const planningList = planningListJson.plannings;
+
+    let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
+
+    let el = document.getElementById('planningSelect');
+    el.innerHTML = json2html.render(planningList, template);
+    el.onchange = function (e) {
+        loadPlanningDetails(this.value);
+    };
+
+    el = document.getElementById('planningRenameButton');
+    el.onclick = function (e) {
+        let el = document.getElementById('planningSelect');
+        renamePlanning(el.value);
+    };
+
+    el = document.getElementById('planningDeleteButton');
+    el.onclick = function (e) {
+        let el = document.getElementById('planningSelect');
+        deletePlanning(el.value);
+    };
+}
+
 async function ofp_init() {
     Promise.all([
         loadZoneOverrides(),
-        loadZoneConfiguration()
+        loadZoneConfiguration(),
+        loadPlanningList()
     ]).catch(logError);
 }
 

@@ -81,17 +81,17 @@
             <hr>
 
             <h5>G&eacute;rer la programmation</h5>
-            <div id="statusPlanningList">
-              Chargement de la liste des programmes ...
-            </div>
-            <div class="row mb-3" id="planningListDiv">
+            <div class="row mb-3">
               <div class="col-sm-auto">
                 <!-- TODO onChange -->
-                <select class="form-select" aria-label="Planning" id="planningSelect">
+                <select class="form-select" id="planningSelect">
                 </select>
               </div>
-              <div class="col-sm">
-                <button class="btn btn-warning mb-3" onclick="planning_rename();">Renommer</button>
+              <div class="col-sm-auto">
+                <button type="button" class="btn btn-warning mb-3" id="planningRenameButton">Renommer</button>
+              </div>
+              <div class="col-sm-auto">
+                <button type="button" class="btn btn-danger mb-3" id="planningDeleteButton">Supprimer</button>
               </div>
             </div>
 
