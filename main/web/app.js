@@ -194,8 +194,9 @@ async function loadZoneOverrides(reload = false) {
     let templateLabel = {
         '<>': 'label',
         'class': 'btn btn-outline-${class} w-100',
-        'for': 'oz_${id}',
+        'for': 'override_zones_${id}',
         'onclick': function (el) {
+            console.log("label click");
             changeZoneOverrides(el.obj.id);
         },
         'html': '${name}'
@@ -206,22 +207,25 @@ async function loadZoneOverrides(reload = false) {
         'type': 'radio',
         'class': 'btn-check w-100',
         'name': 'overrideZones',
-        'id': 'oz_${id}',
-        'autocomplete': 'off'
+        'id': 'override_zones_${id}',
+        'autocomplete': 'off',
+        'onclick': function (el) {
+            console.log("input click");
+            changeZoneOverrides(el.obj.id);
+        },
     };
 
-    let templateInputChecked = { ...templateInput, 'checked': true };
-
     let templateMaster = {
-        '<>': 'div', 'class': 'col-sm-auto mb-3', 'html': function (element) {
-            return $.json2html(this, [
-                (this.id == zoneOverrideId ? templateInputChecked : templateInput),
-                templateLabel
-            ]);
-        }
+        '<>': 'div', 'class': 'col-sm-auto mb-3', 'html': [
+            templateInput,
+            templateLabel
+        ]
     };
 
     $('#zoneOverride').json2html(overrideTypesJsonAll, templateMaster);
+
+    let el = document.getElementById(`override_zones_${zoneOverrideId}`)
+    el.toggleAttribute("checked", true);
 }
 
 async function getPlanningList(reload = false) {
