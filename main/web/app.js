@@ -260,7 +260,7 @@ async function loadZoneConfiguration(reload = false) {
     let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
         + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Planning: ${name}' });
 
-    let templateMaster = {
+    let template = {
         '<>': 'div', 'class': 'row mb-3', 'html': [
             {
                 '<>': 'div', 'class': 'col mb-3', 'html': '(${id}) ${desc}'
@@ -282,6 +282,7 @@ async function loadZoneConfiguration(reload = false) {
                     {
                         '<>': 'select',
                         'class': 'form-select',
+                        'id': 'select_zone_${id}',
                         'onchange': function (el) {
                             changeZoneValue(el.obj.id, el.event.currentTarget.value);
                         },
@@ -292,7 +293,12 @@ async function loadZoneConfiguration(reload = false) {
         ]
     }
 
-    $('#zoneList').json2html(zoneConfig, templateMaster);
+    $('#zoneList').json2html(zoneConfig, template);
+
+    zoneConfig.forEach((zone) => {
+        let el = document.getElementById(`select_zone_${zone.id}`);
+        el.value = zone.value;
+    });
 }
 
 async function ofp_init() {
