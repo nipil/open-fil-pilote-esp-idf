@@ -146,35 +146,6 @@ function onload_planning() {
     onload_planning_definition();
 }
 
-function zone_set_mode(zone_id, mode) {
-}
-
-function zone_set_value(zone_id, value) {
-}
-
-function onload_zones_config() {
-    fetch('/samples/zonesConfig.json')
-        .then(handleHttpErrors)
-        .then((res) => res.json())
-        .then(function (json) {
-            let template = {
-                '<>': 'div', 'class': 'row mb-3', 'html': [
-                    { '<>': 'div', 'class': 'col-sm', 'html': '${id}' },
-                    { '<>': 'div', 'class': 'col-sm', 'html': '${desc}' },
-                    { '<>': 'div', 'class': 'col-sm', 'html': 'rename' },
-                    { '<>': 'div', 'class': 'col-sm', 'html': '${mode}' },
-                    { '<>': 'div', 'class': 'col-sm', 'html': '${value}' }
-                ]
-            };
-            $('#zoneList').json2html(json.zones, template);
-            updateStatus('zoneList', 'statusZoneList');
-        })
-        .catch(function (err) {
-            updateStatus('zoneList', 'statusZoneList',
-                `Impossible de r&eacute;cup&eacute;rer la configuration des zones (${err})`, 'bg-warning');
-        });
-}
-
 function onload_zones() {
     console.log("onload_zones");
     onload_zone_types();
@@ -197,36 +168,37 @@ function logError(message) {
     el.className = 'mb-3 p-3 bg-warning';
 }
 
-async function changeZoneOverrides(newOverride) {
-    console.log("changeZoneOverrides", newOverride);
+
+async function changeZoneOverrides(override) {
+    console.log("changeZoneOverrides", override);
 }
 
-function getZoneTypes(reload = false) {
-    return getUrl('/samples/zoneTypes.json', reload);
+async function getOrderTypes(reload = false) {
+    return getUrl('/samples/orders.json', reload);
 }
 
-function getZoneOverride(reload = false) {
+async function getZoneOverride(reload = false) {
     return getUrl('/samples/zones_override.json', reload);
 }
 
-async function loadZoneOverrides() {
-    let zoneOverrideResponse = await getZoneOverride();
+async function loadZoneOverrides(reload = false) {
+    let zoneOverrideResponse = await getZoneOverride(reload);
     let zoneOverrideJson = await zoneOverrideResponse.json();
     const zoneOverrideId = zoneOverrideJson.override;
 
-    let zoneTypesResponse = await getZoneTypes();
-    let zoneTypesJson = await zoneTypesResponse.json();
-    const none = { id: 'none', name: 'Aucun', class: 'primary' }
-    const zoneTypesJsonAll = [none, ...zoneTypesJson.zone_types];
+    let orderTypesResponse = await getOrderTypes(reload);
+    let orderTypesJson = await orderTypesResponse.json();
+    const noOverride = { id: 'none', name: 'Aucun for&ccedil;age', class: 'primary' }
+    const overrideTypesJsonAll = [noOverride, ...orderTypesJson.orders];
 
     let templateLabel = {
         '<>': 'label',
         'class': 'btn btn-outline-${class} w-100',
         'for': 'oz_${id}',
-        'html': '${name}',
-        onclick: function (el) {
+        'onclick': function (el) {
             changeZoneOverrides(el.obj.id);
-        }
+        },
+        'html': '${name}'
     };
 
     let templateInput = {
@@ -235,9 +207,7 @@ async function loadZoneOverrides() {
         'class': 'btn-check w-100',
         'name': 'overrideZones',
         'id': 'oz_${id}',
-        'autocomplete': 'off',
-        onclick: function (el) {
-        }
+        'autocomplete': 'off'
     };
 
     let templateInputChecked = { ...templateInput, 'checked': true };
@@ -251,20 +221,85 @@ async function loadZoneOverrides() {
         }
     };
 
-    $('#zoneOverride').json2html(zoneTypesJsonAll, templateMaster);
+    $('#zoneOverride').json2html(overrideTypesJsonAll, templateMaster);
+}
+
+async function getPlanningList(reload = false) {
+    return getUrl('/samples/plannings.json', reload);
+}
+
+async function changeZoneDescription(zoneId) {
+    console.log("changeZoneDescription", zoneId);
+}
+
+async function changeZoneMode(zoneId, mode) {
+    console.log("changeZoneMode", zoneId, mode);
+}
+
+async function changeZoneValue(zoneId, value) {
+    console.log("changeZoneValue", zoneId, value);
+}
+
+async function getZoneConfig(reload = false) {
+    return getUrl('/samples/zones.json', reload);
+}
+
+async function loadZoneConfiguration(reload = false) {
+    let zoneConfigResponse = await getZoneConfig(reload);
+    let zoneConfigJson = await zoneConfigResponse.json();
+    const zoneConfig = zoneConfigJson.zones;
+
+    let orderTypesResponse = await getOrderTypes(reload);
+    let orderTypesJson = await orderTypesResponse.json();
+    const orderTypes = orderTypesJson.orders;
+
+    let planningListResponse = await getPlanningList(reload);
+    let planningListJson = await planningListResponse.json();
+    const planningList = planningListJson.plannings;
+
+    let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
+        + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Planning: ${name}' });
+
+    let templateMaster = {
+        '<>': 'div', 'class': 'row mb-3', 'html': [
+            {
+                '<>': 'div', 'class': 'col mb-3', 'html': '(${id}) ${desc}'
+            },
+            {
+                '<>': 'div', 'class': 'col-auto mb-3', 'html': [
+                    {
+                        '<>': 'button',
+                        'class': 'btn btn-warning btn',
+                        'onclick': function (el) {
+                            changeZoneDescription(el.obj.id);
+                        },
+                        'html': 'Renommer'
+                    },
+                ]
+            },
+            {
+                '<>': 'div', 'class': 'col-sm mb-3', 'html': [
+                    {
+                        '<>': 'select',
+                        'class': 'form-select',
+                        'onchange': function (el) {
+                            changeZoneValue(el.obj.id, el.event.currentTarget.value);
+                        },
+                        'html': optionsHtml
+                    }
+                ]
+            },
+        ]
+    }
+
+    $('#zoneList').json2html(zoneConfig, templateMaster);
 }
 
 async function ofp_init() {
     Promise.all([
-        loadZoneOverrides()
+        loadZoneOverrides(),
+        loadZoneConfiguration()
     ]).catch(logError);
-
-    /*
-        onload_hardware();
-        onload_accounts();
-        onload_planning();
-        onload_zones();
-    */
 }
 
 window.onload = ofp_init

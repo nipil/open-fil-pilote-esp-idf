@@ -45,8 +45,8 @@
         {
             "id": "e2z3",
             "desc": "salle de bain",
-            "mode": "variable",
-            "value": "pieces d'eau"
+            "mode": "planning",
+            "value": 1
         },
         {
             "id": "e2z4",
