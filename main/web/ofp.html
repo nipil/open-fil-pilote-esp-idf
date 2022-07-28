@@ -66,17 +66,14 @@
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
-            <form action="/api/planning" method="post">
-              <h5>Cr&eacute;er une programmation</h5>
-              <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="newPlanning">
-                <label for="newPlanning">Nom de la programmation</label>
-              </div>
-              <div class="mb-3">
-                <!-- TODO submit -->
-                <button type="submit" class="btn btn-primary mb-3">Cr&eacute;er</button>
-              </div>
-            </form>
+            <h5>Cr&eacute;er une programmation</h5>
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control" id="planningCreateEdit">
+              <label for="newPlanning">Nom de la programmation</label>
+            </div>
+            <div class="mb-3">
+              <button type="button" class="btn btn-primary mb-3" id="planningCreateButton">Cr&eacute;er</button>
+            </div>
 
             <hr>
 

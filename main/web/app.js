@@ -116,19 +116,6 @@ function account_reset(account_name) {
 function account_delete(account_name) {
 }
 
-function planning_rename() {
-    let select = document.getElementById('planningSelect');
-    var value = select.options[select.selectedIndex].value;
-    // TODO: rename (or change with post button and text input... ?)
-}
-
-function onload_planning_definition() {
-}
-
-function onload_planning() {
-    onload_planning_list();
-    onload_planning_definition();
-}
 
 function onload_zones() {
     console.log("onload_zones");
@@ -154,6 +141,7 @@ function logError(message) {
 
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
+    // TODO
 }
 
 async function getOrderTypes(reload = false) {
@@ -212,14 +200,17 @@ async function getPlanningList(reload = false) {
 
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
+    // TODO
 }
 
 async function changeZoneMode(zoneId, mode) {
     console.log("changeZoneMode", zoneId, mode);
+    // TODO
 }
 
 async function changeZoneValue(zoneId, value) {
     console.log("changeZoneValue", zoneId, value);
+    // TODO
 }
 
 async function getZoneConfig(reload = false) {
@@ -283,20 +274,36 @@ async function loadZoneConfiguration(reload = false) {
     });
 }
 
+async function initPlanningCreate() {
+    let b = document.getElementById('planningCreateButton');
+    b.onclick = function (e) {
+        let t = document.getElementById('planningCreateEdit');
+        createPlanning(t.value);
+    }
+}
+
 async function getPlanningList(reload = false) {
     return getUrl('/samples/plannings.json', reload);
 }
 
+function createPlanning(name)  {
+    console.log('createPlanning', name);
+    // TODO
+}
+
 function renamePlanning(id) {
     console.log('renamePlanning', id);
+    // TODO
 }
 
 function deletePlanning(id) {
     console.log('deletePlanning', id);
+    // TODO
 }
 
 function loadPlanningDetails(planningId) {
     console.log('loadPlanningDetails', planningId);
+    // TODO
 }
 
 async function loadPlanningList(reload = false) {
@@ -329,6 +336,7 @@ async function ofp_init() {
     Promise.all([
         loadZoneOverrides(),
         loadZoneConfiguration(),
+        initPlanningCreate(),
         loadPlanningList()
     ]).catch(logError);
 }
