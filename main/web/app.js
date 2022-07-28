@@ -45,7 +45,7 @@ function getUrl(url, reload = false) {
 /*******************************************************************************/
 
 function onload_hardware_types() {
-    fetch('/samples/hardware_types.json')
+    fetch('samples/hardware_types.json')
         .then(handleHttpErrors)
         .then((res) => res.json())
         .then(function (json) {
@@ -78,7 +78,7 @@ function onload_hardware() {
 }
 
 function onload_accounts() {
-    fetch('/samples/accounts.json')
+    fetch('samples/accounts.json')
         .then(handleHttpErrors)
         .then((res) => res.json())
         .then(function (json) {
@@ -145,11 +145,11 @@ async function changeZoneOverrides(override) {
 }
 
 async function getOrderTypes(reload = false) {
-    return getUrl('/samples/orders.json', reload);
+    return getUrl('samples/orders.json', reload);
 }
 
 async function getZoneOverride(reload = false) {
-    return getUrl('/samples/zones_override.json', reload);
+    return getUrl('samples/zones_override.json', reload);
 }
 
 async function loadZoneOverrides(reload = false) {
@@ -195,7 +195,7 @@ async function loadZoneOverrides(reload = false) {
 }
 
 async function getPlanningList(reload = false) {
-    return getUrl('/samples/plannings.json', reload);
+    return getUrl('samples/plannings.json', reload);
 }
 
 async function changeZoneDescription(zoneId) {
@@ -214,7 +214,7 @@ async function changeZoneValue(zoneId, value) {
 }
 
 async function getZoneConfig(reload = false) {
-    return getUrl('/samples/zones.json', reload);
+    return getUrl('samples/zones.json', reload);
 }
 
 async function loadZoneConfiguration(reload = false) {
@@ -283,7 +283,7 @@ async function initPlanningCreate() {
 }
 
 async function getPlanningList(reload = false) {
-    return getUrl('/samples/plannings.json', reload);
+    return getUrl('samples/plannings.json', reload);
 }
 
 function createPlanning(name)  {
