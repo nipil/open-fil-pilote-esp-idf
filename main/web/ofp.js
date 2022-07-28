@@ -285,7 +285,7 @@ async function initPlanningCreate() {
 }
 
 
-function createPlanning(name)  {
+function createPlanning(name) {
     console.log('createPlanning', name);
     // TODO
 }
@@ -425,12 +425,27 @@ async function loadPlanningDetails(planningId, reload = false) {
     };
 }
 
+async function accountCreate(userId, cleartextPassword) {
+    console.log('accountCreate', userId, cleartextPassword);
+    // TODO
+}
+
+async function initAccountCreate() {
+    let el = document.getElementById('newAccountButton');
+    el.onclick = function (e) {
+        let e1 = document.getElementById('newAccountId');
+        let e2 = document.getElementById('newAccountPass');
+        accountCreate(e1.value, e2.value);
+    };
+}
+
 async function ofp_init() {
     Promise.all([
         loadZoneOverrides(),
         loadZoneConfiguration(),
         initPlanningCreate(),
-        loadPlanningList()
+        loadPlanningList(),
+        initAccountCreate()
     ]).catch(logError);
 }
 

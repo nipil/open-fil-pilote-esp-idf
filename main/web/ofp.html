@@ -38,7 +38,7 @@
             Zones et radiateurs
           </button>
         </h2>
-        <div id="collapseHeaters" class="accordion-collapse collapse show" aria-labelledby="headingHeaters"
+        <div id="collapseHeaters" class="accordion-collapse collapse" aria-labelledby="headingHeaters"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
@@ -110,27 +110,24 @@
             Utilisateurs et permissions
           </button>
         </h2>
-        <div id="collapseAccounts" class="accordion-collapse collapse" aria-labelledby="headingAccounts"
+        <div id="collapseAccounts" class="accordion-collapse collapse show" aria-labelledby="headingAccounts"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
-            <!-- TODO submit -->
-            <form action="/api/account" method="post">
-              <div class="row">
-                <h5 class="mb-3">Cr&eacute;er un compte</h5>
-                <div class="mb-3">
-                  <label class="form-label" for="newAccountId">Identifiant</label>
-                  <input type="text" class="form-control" id="newAccountId">
-                </div>
-                <div class="mb-3">
-                  <label class="form-label" for="newAccountPass">Mot de passe</label>
-                  <input type="password" class="form-control" id="newAccountPass">
-                </div>
-                <div>
-                  <button type="submit" class="btn btn-primary">Ajouter</button>
-                </div>
+            <div class="row">
+              <h5 class="mb-3">Cr&eacute;er un compte</h5>
+              <div class="mb-3">
+                <label class="form-label" for="newAccountId">Identifiant</label>
+                <input type="text" class="form-control" id="newAccountId">
               </div>
-            </form>
+              <div class="mb-3">
+                <label class="form-label" for="newAccountPass">Mot de passe</label>
+                <input type="password" class="form-control" id="newAccountPass">
+              </div>
+              <div>
+                <button type="button" class="btn btn-primary" id="newAccountButton">Ajouter</button>
+              </div>
+            </div>
 
             <hr>
             <h5 class="mb-3">G&eacute;rer les comptes</h5>
