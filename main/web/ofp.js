@@ -415,7 +415,6 @@ async function loadPlanningDetails(planningId, reload = false) {
     $('#planningDetails').json2html(slots, template);
 
     slots.forEach(function (slot) {
-        console.log(slot);
         let e = document.getElementById(`planningDetailSelect_${slot.start}`);
         e.value = `:fixed:${slot.order}`;
     });
