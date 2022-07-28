@@ -98,7 +98,10 @@ function onload_accounts() {
                     }
                 ]
             };
+
+            // NOTE: json2html requires jquery to insert event handlers
             $('#accountListTable').json2html(json.accounts, template);
+
             updateStatus('accountList', 'statusAccountList');
 
         })
@@ -189,6 +192,7 @@ async function loadZoneOverrides(reload = false) {
         ]
     };
 
+    // NOTE: json2html requires jquery to insert event handlers
     $('#zoneOverride').json2html(overrideTypesJsonAll, templateMaster);
 
     let el = document.getElementById(`zoneOverride_${zoneOverrideId}`)
@@ -264,6 +268,7 @@ async function loadZoneConfiguration(reload = false) {
         ]
     }
 
+    // NOTE: json2html requires jquery to insert event handlers
     $('#zoneList').json2html(zoneConfig, template);
 
     zoneConfig.forEach((zone) => {
