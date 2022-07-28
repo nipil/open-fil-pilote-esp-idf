@@ -230,10 +230,9 @@ async function loadZoneConfiguration(reload = false) {
     let zoneConfig = await apiGetZoneConfigJson(reload);
     let orderTypes = await apiGetOrderTypesJson(reload);
     let planningList = await apiGetPlanningListJson(reload);
-    console.log('loadZoneConfiguration', planningList);
 
     let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
-        + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Planning: ${name}' });
+        + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Programmation: ${name}' });
 
     let template = {
         '<>': 'div', 'class': 'row mb-3', 'html': [
@@ -244,7 +243,7 @@ async function loadZoneConfiguration(reload = false) {
                 '<>': 'div', 'class': 'col-auto mb-3', 'html': [
                     {
                         '<>': 'button',
-                        'class': 'btn btn-warning btn', 
+                        'class': 'btn btn-warning btn',
                         'onclick': function (e) {
                             changeZoneDescription(e.obj.id);
                         },
@@ -308,7 +307,7 @@ function getSelectedPlanning() {
 
 async function loadPlanningList(reload = false) {
     let planningList = await apiGetPlanningListJson(reload);
-    
+
     let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
 
     let el = document.getElementById('planningSelect');
@@ -368,7 +367,6 @@ async function loadPlanningDetails(planningId, reload = false) {
 
     let orderTypes = await apiGetOrderTypesJson(reload);
 
-    // TODO: factor reuse order template
     let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
 
     let template = {
