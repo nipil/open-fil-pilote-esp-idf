@@ -296,9 +296,9 @@ function deletePlanning(id) {
     // TODO
 }
 
-function loadPlanningDetails(planningId) {
-    console.log('loadPlanningDetails', planningId);
-    // TODO
+function getSelectedPlanning() {
+    let el = document.getElementById('planningSelect');
+    return el.value;
 }
 
 async function loadPlanningList(reload = false) {
@@ -309,7 +309,8 @@ async function loadPlanningList(reload = false) {
     let el = document.getElementById('planningSelect');
     el.innerHTML = json2html.render(planningList, template);
     el.onchange = function (e) {
-        loadPlanningDetails(this.value);
+        // action after initial loading : ignore cache for fresh data
+        loadPlanningDetails(this.value, true);
     };
 
     el = document.getElementById('planningRenameButton');
@@ -322,6 +323,103 @@ async function loadPlanningList(reload = false) {
     el.onclick = function (e) {
         let el = document.getElementById('planningSelect');
         deletePlanning(el.value);
+    };
+
+    let planningId = getSelectedPlanning();
+    if (planningId) {
+        // action during initial loading : use cache if possible
+        loadPlanningDetails(planningId);
+    }
+}
+
+async function apiGetPlanningDetailsJson(reload = false) {
+    let planningDetailsResponse = await getUrl('samples/planning_details.json', reload);
+    let planningDetailsJson = await planningDetailsResponse.json();
+    return planningDetailsJson.slots;
+}
+
+async function changePlanningDetailOrder(planningId, start, newOrder) {
+    console.log('changePlanningDetailOrder', planningId, start, newOrder);
+    // TODO
+}
+
+async function changePlanningDetailStart(planningId, start, newStart) {
+    console.log('changePlanningDetailStart', planningId, start, newStart);
+    // TODO
+}
+
+async function deletePlanningDetail(planningId, value) {
+    console.log('deletePlanningDetail', planningId, value);
+    // TODO
+}
+
+async function addPlanningDetailSlot(planningId) {
+    console.log('addPlanningDetailSlot', planningId);
+    // TODO
+}
+
+async function loadPlanningDetails(planningId, reload = false) {
+    let slots = await apiGetPlanningDetailsJson();
+
+    let orderTypes = await apiGetOrderTypesJson(reload);
+
+    // TODO: factor reuse order template
+    let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
+
+    let template = {
+        '<>': 'div', 'class': 'row mb-3', 'html': [
+            {
+                '<>': 'div', 'class': 'col', 'html': [
+                    {
+                        '<>': 'input',
+                        'class': 'form-control',
+                        'type': 'text',
+                        'value': '${start}',
+                        'onchange': function (e) {
+                            changePlanningDetailStart(planningId, e.obj.start, e.event.currentTarget.value);
+                        }
+                    },
+                ]
+            },
+            {
+                '<>': 'div', 'class': 'col', 'html': [
+                    {
+                        '<>': 'select',
+                        'id': 'planningDetailSelect_${start}',
+                        'class': 'form-select',
+                        'onchange': function (e) {
+                            changePlanningDetailOrder(planningId, e.obj.start, e.event.currentTarget.value);
+                        },
+                        'html': optionsHtml
+                    }
+                ]
+            },
+            {
+                '<>': 'div', 'class': 'col', 'html': [
+                    {
+                        '<>': 'button', 'class': 'btn btn-danger',
+                        'onclick': function (e) {
+                            deletePlanningDetail(planningId, e.obj.start);
+                        },
+                        'html': 'Supprimer'
+                    }
+                ]
+            }
+        ]
+    };
+
+    // NOTE: json2html requires jquery to insert event handlers
+    $('#planningDetails').json2html(slots, template);
+
+    slots.forEach(function (slot) {
+        console.log(slot);
+        let e = document.getElementById(`planningDetailSelect_${slot.start}`);
+        e.value = `:fixed:${slot.order}`;
+    });
+
+    let el = document.getElementById('planningDetailsAdd');
+    el.onclick = function (e) {
+        addPlanningDetailSlot(planningId);
     };
 }
 

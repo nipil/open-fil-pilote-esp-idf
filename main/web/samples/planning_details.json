@@ -1,0 +1,28 @@
+{
+    "slots": [
+        {
+            "start": "00:00",
+            "order": "nofreeze"
+        },
+        {
+            "start": "05:00",
+            "order": "economy"
+        },
+        {
+            "start": "07:00",
+            "order": "cozy"
+        },
+        {
+            "start": "09:00",
+            "order": "economy"
+        },
+        {
+            "start": "17:00",
+            "order": "cozy"
+        },
+        {
+            "start": "21:00",
+            "order": "nofreeze"
+        }
+    ]
+}

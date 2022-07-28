@@ -38,7 +38,7 @@
             Zones et radiateurs
           </button>
         </h2>
-        <div id="collapseHeaters" class="accordion-collapse collapse show" aria-labelledby="headingHeaters"
+        <div id="collapseHeaters" class="accordion-collapse collapse" aria-labelledby="headingHeaters"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
@@ -63,7 +63,7 @@
             Planning et programmation
           </button>
         </h2>
-        <div id="collapsePlanning" class="accordion-collapse collapse" aria-labelledby="headingPlanning"
+        <div id="collapsePlanning" class="accordion-collapse collapse show" aria-labelledby="headingPlanning"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
@@ -92,15 +92,12 @@
 
             <hr>
 
-            <!-- TODO onLoad (from above select) -->
-            <div id="statusPlanningDetails">
-              Chargement de la programmation ...
+            <h5>D&eacute;tails de la programmation</h5>
+            <div class="mb-3" id="planningDetails">
             </div>
-            <form id="planningDetails" method="post">
-              <div class="mb-3">
-                Pouet
-              </div>
-            </form>
+            <div class="mb-3">
+              <button class='btn btn-primary' id='planningDetailsAdd'>Ajouter un créneau</button>
+            </div>
 
           </div>
         </div>
