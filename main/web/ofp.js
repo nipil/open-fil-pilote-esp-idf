@@ -237,7 +237,7 @@ async function loadZoneConfiguration(reload = false) {
     let template = {
         '<>': 'div', 'class': 'row mb-3', 'html': [
             {
-                '<>': 'div', 'class': 'col mb-3', 'html': '(${id}) ${desc}'
+                '<>': 'div', 'class': 'col mb-3', 'html': '${desc} (${id})'
             },
             {
                 '<>': 'div', 'class': 'col-auto mb-3', 'html': [
