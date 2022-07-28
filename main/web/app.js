@@ -144,23 +144,24 @@ async function changeZoneOverrides(override) {
     // TODO
 }
 
-async function getOrderTypes(reload = false) {
-    return getUrl('samples/orders.json', reload);
+async function apiGetOrderTypesJson(reload = false) {
+    let orderTypesResponse = await getUrl('samples/orders.json', reload);
+    let orderTypesJson = await orderTypesResponse.json();
+    return orderTypesJson.orders;
 }
 
-async function getZoneOverride(reload = false) {
-    return getUrl('samples/zones_override.json', reload);
+async function apiGetZoneOverrideJson(reload = false) {
+    let zoneOverrideResponse = await getUrl('samples/zones_override.json', reload);
+    let zoneOverrideJson = await zoneOverrideResponse.json();
+    return zoneOverrideJson.override;
 }
 
 async function loadZoneOverrides(reload = false) {
-    let zoneOverrideResponse = await getZoneOverride(reload);
-    let zoneOverrideJson = await zoneOverrideResponse.json();
-    const zoneOverrideId = zoneOverrideJson.override;
+    let zoneOverrideId = await apiGetZoneOverrideJson(reload);
+    let orderTypesSupported = await apiGetOrderTypesJson(reload);
 
-    let orderTypesResponse = await getOrderTypes(reload);
-    let orderTypesJson = await orderTypesResponse.json();
-    const noOverride = { id: 'none', name: 'Aucun for&ccedil;age', class: 'primary' }
-    const overrideTypesJsonAll = [noOverride, ...orderTypesJson.orders];
+    let noOverride = { id: 'none', name: 'Aucun for&ccedil;age', class: 'primary' }
+    let overrideTypesJsonAll = [noOverride, ...orderTypesSupported];
 
     let templateLabel = {
         '<>': 'label',
@@ -194,8 +195,10 @@ async function loadZoneOverrides(reload = false) {
     el.toggleAttribute("checked", true);
 }
 
-async function getPlanningList(reload = false) {
-    return getUrl('samples/plannings.json', reload);
+async function apiGetPlanningListJson(reload = false) {
+    let planningListResponse = await getUrl('samples/plannings.json', reload);
+    let planningListJson = await planningListResponse.json();
+    return planningListJson.plannings;
 }
 
 async function changeZoneDescription(zoneId) {
@@ -213,22 +216,17 @@ async function changeZoneValue(zoneId, value) {
     // TODO
 }
 
-async function getZoneConfig(reload = false) {
-    return getUrl('samples/zones.json', reload);
+async function apiGetZoneConfigJson(reload = false) {
+    let zoneConfigResponse = await getUrl('samples/zones.json', reload);
+    let zoneConfigJson = await zoneConfigResponse.json();
+    return zoneConfigJson.zones;
 }
 
 async function loadZoneConfiguration(reload = false) {
-    let zoneConfigResponse = await getZoneConfig(reload);
-    let zoneConfigJson = await zoneConfigResponse.json();
-    const zoneConfig = zoneConfigJson.zones;
-
-    let orderTypesResponse = await getOrderTypes(reload);
-    let orderTypesJson = await orderTypesResponse.json();
-    const orderTypes = orderTypesJson.orders;
-
-    let planningListResponse = await getPlanningList(reload);
-    let planningListJson = await planningListResponse.json();
-    const planningList = planningListJson.plannings;
+    let zoneConfig = await apiGetZoneConfigJson(reload);
+    let orderTypes = await apiGetOrderTypesJson(reload);
+    let planningList = await apiGetPlanningListJson(reload);
+    console.log('loadZoneConfiguration', planningList);
 
     let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
         + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Planning: ${name}' });
@@ -242,7 +240,7 @@ async function loadZoneConfiguration(reload = false) {
                 '<>': 'div', 'class': 'col-auto mb-3', 'html': [
                     {
                         '<>': 'button',
-                        'class': 'btn btn-warning btn',
+                        'class': 'btn btn-warning btn', 
                         'onclick': function (e) {
                             changeZoneDescription(e.obj.id);
                         },
@@ -282,9 +280,6 @@ async function initPlanningCreate() {
     }
 }
 
-async function getPlanningList(reload = false) {
-    return getUrl('samples/plannings.json', reload);
-}
 
 function createPlanning(name)  {
     console.log('createPlanning', name);
@@ -307,10 +302,8 @@ function loadPlanningDetails(planningId) {
 }
 
 async function loadPlanningList(reload = false) {
-    let planningListResponse = await getPlanningList(reload);
-    let planningListJson = await planningListResponse.json();
-    const planningList = planningListJson.plannings;
-
+    let planningList = await apiGetPlanningListJson(reload);
+    
     let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
 
     let el = document.getElementById('planningSelect');
