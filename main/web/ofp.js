@@ -77,56 +77,6 @@ function onload_hardware() {
     onload_hardware_parameters();
 }
 
-function onload_accounts() {
-    fetch('samples/accounts.json')
-        .then(handleHttpErrors)
-        .then((res) => res.json())
-        .then(function (json) {
-            let template = {
-                '<>': 'tr', 'html': [
-                    { '<>': 'th', 'html': '${id}' },
-                    { '<>': 'td', 'html': '${type}' },
-                    {
-                        '<>': 'td', 'html': [
-                            { '<>': 'button', 'class': 'btn btn-primary', 'onclick': function (e) { account_reset(e.obj.id); }, 'html': 'R&eacute;initialiser' }, ,
-                        ]
-                    },
-                    {
-                        '<>': 'td', 'html': [
-                            { '<>': 'button', 'class': 'btn btn-danger', 'onclick': function (e) { account_delete(e.obj.id); }, 'html': 'Supprimer' }, ,
-                        ]
-                    }
-                ]
-            };
-
-            // NOTE: json2html requires jquery to insert event handlers
-            $('#accountListTable').json2html(json.accounts, template);
-
-            updateStatus('accountList', 'statusAccountList');
-
-        })
-        .catch(function (err) {
-            updateStatus('accountList', 'statusAccountList',
-                `Impossible de r&eacute;cup&eacute;rer les comptes utilisateur (${err})`, 'bg-warning');
-        });
-}
-
-// TODO popup + post
-function account_reset(account_name) {
-}
-
-// TODO popup + delete
-function account_delete(account_name) {
-}
-
-
-function onload_zones() {
-    console.log("onload_zones");
-    onload_zone_types();
-    onload_zones_override();
-    onload_zones_config();
-}
-
 function onload_hardware_parameters() {
 }
 
@@ -439,13 +389,85 @@ async function initAccountCreate() {
     };
 }
 
+async function apiGetAccountsJson(reload = false) {
+    let accountsResponse = await getUrl('samples/accounts.json', reload);
+    let accountsJson = await accountsResponse.json();
+    return accountsJson.accounts;
+}
+
+async function accountDelete(userId) {
+    console.log('accountDelete', userId);
+    // TODO
+}
+
+async function accountPasswordReset(userId) {
+    console.log('accountPasswordReset', userId);
+    // TODO
+}
+
+async function loadAccounts() {
+    let accounts = await apiGetAccountsJson();
+
+    let template = {
+        '<>': 'tr', 'html': [
+            { '<>': 'th', 'html': '${id}' },
+            { '<>': 'td', 'html': '${type}' },
+            {
+                '<>': 'td', 'html': [
+                    {
+                        '<>': 'button', 'class': 'btn btn-warning',
+                        'onclick': function (e) {
+                            accountPasswordReset(e.obj.id);
+                        },
+                        'html': 'R&eacute;initialiser'
+                    }
+                ]
+            },
+            {
+                '<>': 'td', 'html': [
+                    {
+                        '<>': 'button', 'class': 'btn btn-danger',
+                        'onclick': function (e) {
+                            accountDelete(e.obj.id);
+                        },
+                        'html': 'Supprimer'
+                    }
+                ]
+            }
+        ]
+    };
+
+    let el = document.getElementById('accountListTable');
+    el.innerHTML = '<tr><th>Utilisateur</th><th>Privil&egrave;ge</th><th>Mot de passe</th><th>Suppression</th></tr>';
+
+    // NOTE: json2html requires jquery to insert event handlers
+    $('#accountListTable').json2html(accounts, template);
+}
+
+async function apiGetAccountsJson(reload = false) {
+    let accountsResponse = await getUrl('samples/accounts.json', reload);
+    let accountsJson = await accountsResponse.json();
+    return accountsJson.accounts;
+}
+
+async function accountDelete(userId) {
+    console.log('accountDelete', userId);
+    // TODO
+}
+
+async function accountPasswordReset(userId) {
+    console.log('accountPasswordReset', userId);
+    // TODO
+}
+
 async function ofp_init() {
     Promise.all([
         loadZoneOverrides(),
         loadZoneConfiguration(),
         initPlanningCreate(),
         loadPlanningList(),
-        initAccountCreate()
+        initAccountCreate(),
+        loadAccounts(),
     ]).catch(logError);
 }
 
