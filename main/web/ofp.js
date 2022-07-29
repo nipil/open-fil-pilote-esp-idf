@@ -480,7 +480,17 @@ async function initHardwareParametersButtons() {
 }
 
 async function loadHardwareParameters() {
-    // TODO
+    let hardwareCurrent = await apiGetHardwareCurrentJson();
+
+    let template = {
+        '<>': 'div', 'class': 'form-floating mb-3', 'html': [
+            { '<>': 'input', 'type': '${type}', 'class': 'form-control', 'id': 'hardware_parameter_id_${id}', 'value': '${value}' },
+            { '<>': 'label', 'for': 'hardware_parameter_id_${id}', 'html': '${description}' }
+        ]
+    };
+
+    let el = document.getElementById('hardwareCurrentParameters');
+    el.innerHTML = json2html.render(hardwareCurrent.parameters, template);
 }
 
 async function ofp_init() {
