@@ -427,6 +427,25 @@ async function accountPasswordReset(userId) {
     // TODO
 }
 
+function uploadFirmware(filePath) {
+    console.log("uploadFirmware", filePath);
+    // TODO
+}
+
+function pickFirmware() {
+    console.log("pickFirmware");
+    // TODO
+}
+
+async function initFirmwareButtons() {
+    el = document.getElementById('updateUploadButton');
+    el.onclick = function (e) {
+        let t = document.getElementById('updateTextFilePath');
+        // TODO check file exists
+        uploadFirmware(t.value);
+    }
+}
+
 async function apiGetHardwareSupportedJson(reload = false) {
     let hardwareSupportedResponse = await getUrl('samples/hardware_supported.json', reload);
     let hardwareSupportedJson = await hardwareSupportedResponse.json();
@@ -461,6 +480,7 @@ async function loadHardwareSupported() {
 
 async function changeHardwareParameters(hardwareId) {
     console.log('changeHardwareParameters', hardwareId);
+    // TODO
 }
 
 async function initHardwareParametersButtons() {
@@ -501,6 +521,7 @@ async function ofp_init() {
         loadPlanningList(),
         initAccountCreate(),
         loadAccounts(),
+        initFirmwareButtons(),
         loadHardwareSupported(),
         initHardwareParametersButtons(),
         loadHardwareParameters(),
