@@ -1,7 +1,0 @@
-[
-    {
-        "id": "ext_count",
-        "description": "Nombre de cartes d'extension E1",
-        "type": "int"
-    }
-]

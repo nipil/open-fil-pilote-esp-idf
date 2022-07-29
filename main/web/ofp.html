@@ -110,7 +110,7 @@
             Utilisateurs et permissions
           </button>
         </h2>
-        <div id="collapseAccounts" class="accordion-collapse collapse show" aria-labelledby="headingAccounts"
+        <div id="collapseAccounts" class="accordion-collapse collapse" aria-labelledby="headingAccounts"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
@@ -147,30 +147,14 @@
             Configuration du mat&eacute;riel
           </button>
         </h2>
-        <div id="collapseHardware" class="accordion-collapse collapse" aria-labelledby="headingHardware"
+        <div id="collapseHardware" class="accordion-collapse collapse show" aria-labelledby="headingHardware"
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
-            <div id="statusHardwareSupported">
-              Chargement des matériels supportés ...
-            </div>
-
-            <div class="mb-3" id="hardwareSupported">
-              <form action="/api/hardware/type" method="post">
-                <div class="row">
-                  <div class="col-sm-auto">
-                    <select class="form-select" aria-label="Type de mat&zacute;riel" id="hardwareTypeSelect">
-                    </select>
-                  </div>
-                  <div class="col-sm-auto">
-                    <!-- TODO -->
-                    <button type="submit" class="btn btn-primary mb-3">Sélectionner</button>
-                  </div>
-                </div>
-                <div class="row bg-danger text-light p-3 mb-3">
-                  Attention : Sélectionner un matériel différent réinitialisera l'ensemble des zones (nom et état)
-                </div>
-              </form>
+              <h5>Type de mat&eacute;riel</h5>
+            <div class="mb-3">
+              <select class="form-select" id="hardwareSupportedSelect">
+              </select>
             </div>
 
             <hr>

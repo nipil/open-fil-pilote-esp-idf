@@ -44,39 +44,6 @@ function getUrl(url, reload = false) {
 
 /*******************************************************************************/
 
-function onload_hardware_types() {
-    fetch('samples/hardware_types.json')
-        .then(handleHttpErrors)
-        .then((res) => res.json())
-        .then(function (json) {
-            // to enable selection of current hardware
-            let current_type_id = json.current_type_id;
-            // do a shallow clone and append 1 argument
-            let sub_template_short = { '<>': 'option', 'value': '${id}', 'html': '${id}: ${desc}' };
-            let sub_template_full = { ...sub_template_short };
-            sub_template_full.selected = true;
-            // special template because of optional argument
-            let template = {
-                'html': function () {
-                    return json2html.render(this, this.id == current_type_id ? sub_template_full : sub_template_short);
-                }
-            };
-            let element = document.getElementById('hardwareTypeSelect');
-            element.innerHTML = json2html.render(json.supported_types, template);
-
-            updateStatus('hardwareSupported', 'statusHardwareSupported');
-        })
-        .catch(function (err) {
-            updateStatus('hardwareSupported', 'statusHardwareSupported',
-                `Impossible de r&eacute;cup&eacute;rer les types de mat&eacute;riel support&eacute;s (${err})`, 'bg-warning');
-        });
-}
-
-function onload_hardware() {
-    onload_hardware_types();
-    onload_hardware_parameters();
-}
-
 function onload_hardware_parameters() {
 }
 
@@ -460,6 +427,45 @@ async function accountPasswordReset(userId) {
     // TODO
 }
 
+async function apiGetHardwareSupportedJson(reload = false) {
+    let hardwareSupportedResponse = await getUrl('samples/hardware_supported.json', reload);
+    let hardwareSupportedJson = await hardwareSupportedResponse.json();
+    return hardwareSupportedJson.supported;
+}
+
+async function changeHardwareCurrent(hardwareId) {
+    console.log('changeHardwareCurrent', hardwareId);
+}
+
+async function apiGetHardwareCurrentJson(reload = false) {
+    let hardwareCurrentResponse = await getUrl('samples/hardware_current.json', reload);
+    let hardwareCurrentJson = await hardwareCurrentResponse.json();
+    return hardwareCurrentJson;
+}
+
+async function loadHardwareSupported() {
+    let hardwareSupported = await apiGetHardwareSupportedJson();
+    let hardwareCurrent = await apiGetHardwareCurrentJson();
+
+    let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
+
+    let el = document.getElementById('hardwareSupportedSelect');
+    el.innerHTML = json2html.render(hardwareSupported, template);
+    el.onchange = function (e) {
+        // action after initial loading : ignore cache for fresh data
+        changeHardwareCurrent(this.value);
+    };
+    
+    el.value = hardwareCurrent.id;
+}
+
+    loadHardwareParameters(hardwareCurrent.id);
+}
+
+    el.value = hardwareType.current_type_id;
+    await loadHardwareParameters(hardwareType.current_type_id)
+}
+
 async function ofp_init() {
     Promise.all([
         loadZoneOverrides(),
@@ -468,6 +474,7 @@ async function ofp_init() {
         loadPlanningList(),
         initAccountCreate(),
         loadAccounts(),
+        loadHardwareSupported(),
     ]).catch(logError);
 }
 
