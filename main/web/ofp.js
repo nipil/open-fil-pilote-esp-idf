@@ -1,29 +1,3 @@
-function updateStatus(id_element, id_status, status_message = null, status_bg_class = null) {
-    if (status_message === null) {
-        // ok
-        let el = document.getElementById(id_status);
-        el.className = 'invisible';
-        el.innerHTML = '';
-
-        if (id_element) {
-            el = document.getElementById(id_element);
-            el.classList.remove('invisible');
-        }
-    }
-    else {
-        // fail
-        let el = document.getElementById(id_status);
-        el.className = 'md-3 p-3';
-        el.classList.add(status_bg_class)
-        el.innerHTML = status_message
-
-        if (id_element) {
-            el = document.getElementById(id_element);
-            el.classList.add('invisible');
-        }
-    }
-}
-
 /*******************************************************************************/
 
 function handleHttpErrors(response) {
@@ -44,11 +18,6 @@ function getUrl(url, reload = false) {
 
 /*******************************************************************************/
 
-function onload_hardware_parameters() {
-}
-
-/* ************************************************************************** */
-
 function logError(message) {
     let msg = document.createElement("div");
     let txt = document.createTextNode(message);
@@ -58,6 +27,8 @@ function logError(message) {
     el.appendChild(msg);
     el.className = 'mb-3 p-3 bg-warning';
 }
+
+/*******************************************************************************/
 
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
