@@ -151,25 +151,26 @@
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
+            <form action="/api/hardware/parameters" method="post" id="hardwareCurrentForm">
               <h5>Type de mat&eacute;riel</h5>
-            <div class="mb-3">
-              <select class="form-select" id="hardwareSupportedSelect">
-              </select>
-            </div>
+              <div class="mb-3">
+                <select class="form-select" id="hardwareSupportedSelect">
+                </select>
+              </div>
 
-            <hr>
+              <hr>
 
-            <!-- TODO onLoad (from above select) -->
-            <div id="statusHardwareParameters">
-              Chargement des matériels supportés ...
-            </div>
+              <h5>Configuration des param&egrave;tres</h5>
 
-            <div class="row" id="hardwareParameters">
-              <form action="/api/hardware/parameters" method="post">
-                pouet
-              </form>
-            </div>
+              <button type="button" class="btn btn-warning mb-3" id="hardwareCurrentReloadButton">Recharger les
+                paramètres</button>
 
+              <div class="mb-3" id="HardwareCurrentParameters">
+              </div>
+
+              <button type="button" class="btn btn-danger mb-3" id="hardwareCurrentApplyButton">Appliquer et
+                red&eacute;marrer</button>
+            </form>
           </div>
         </div>
       </div>

@@ -455,15 +455,32 @@ async function loadHardwareSupported() {
         // action after initial loading : ignore cache for fresh data
         changeHardwareCurrent(this.value);
     };
-    
+
     el.value = hardwareCurrent.id;
 }
 
-    loadHardwareParameters(hardwareCurrent.id);
+async function changeHardwareParameters(hardwareId) {
+    console.log('changeHardwareParameters', hardwareId);
 }
 
-    el.value = hardwareType.current_type_id;
-    await loadHardwareParameters(hardwareType.current_type_id)
+async function initHardwareParametersButtons() {
+    let el = document.getElementById('hardwareCurrentReloadButton');
+    el.onclick = function (e) {
+        loadHardwareParameters();
+    }
+
+    el = document.getElementById('hardwareCurrentApplyButton');
+    el.onclick = function (e) {
+        let status = confirm('La centrale de chauffage doit red\u00E9marrer pour prendre en compte les nouveux param\u00EAtres mat\u00E9riels.');
+        if (status === true) {
+            let f = document.getElementById('hardwareCurrentForm');
+            f.submit();
+        }
+    }
+}
+
+async function loadHardwareParameters() {
+    // TODO
 }
 
 async function ofp_init() {
@@ -475,8 +492,9 @@ async function ofp_init() {
         initAccountCreate(),
         loadAccounts(),
         loadHardwareSupported(),
+        initHardwareParametersButtons(),
+        loadHardwareParameters(),
     ]).catch(logError);
 }
 
 window.onload = ofp_init
-
