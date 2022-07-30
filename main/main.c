@@ -48,16 +48,18 @@ void monitoring_task(void *pvParameter)
 		char strftime_buf[64];
 		struct tm timeinfo;
 		time(&now);
+		ESP_LOGI(TAG, "The current clock value is: %lu", now);
+
 		setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);
 		tzset();
 		localtime_r(&now, &timeinfo);
 		strftime(strftime_buf, sizeof(strftime_buf), "%c %z %Z", &timeinfo);
-		ESP_LOGI(TAG, "The current date/time in Europe/Paris is: %s", strftime_buf);
+		ESP_LOGI(TAG, "The time in Europe/Paris is: %s", strftime_buf);
 
 		is_clock_valid = (timeinfo.tm_year + 1900 > 2000);
 		ESP_LOGI(TAG, "SNTP network time synchronization status: %s", is_clock_valid ? "OK" : "WAIT");
 
-		vTaskDelay(pdMS_TO_TICKS(10000));
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
