@@ -369,12 +369,6 @@ async function initAccountCreate() {
     };
 }
 
-async function apiGetAccountsJson(reload = false) {
-    let accountsResponse = await getUrl('samples/accounts.json', reload);
-    let accountsJson = await accountsResponse.json();
-    return accountsJson.accounts;
-}
-
 async function accountDelete(userId) {
     console.log('accountDelete', userId);
     // TODO
