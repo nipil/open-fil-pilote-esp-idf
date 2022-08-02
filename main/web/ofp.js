@@ -59,11 +59,11 @@ async function loadStatus() {
     let el = document.getElementById('status');
 
     let d = document.createElement('div');
-    d.innerHTML = `Syst&egrave;me d&eacute;mar&eacute; depuis ${secondsToDuration(status.sytem_uptime)}`;
+    d.innerHTML = `Syst\u00E8me d\u00E9mar\u00E9 depuis ${secondsToDuration(status.sytem_uptime)}`;
     el.appendChild(d);
 
     d = document.createElement('div');
-    d.innerHTML = `Connecté au Wifi depuis ${secondsToDuration(status.connection_uptime)}`;
+    d.innerText = `Connect\u00E9 au Wifi depuis ${secondsToDuration(status.connection_uptime)}`;
     el.appendChild(d);
 }
 
