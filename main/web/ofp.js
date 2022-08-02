@@ -109,7 +109,7 @@ async function changeZoneValue(zoneId, value) {
 }
 
 async function apiGetZoneConfigJson(reload = false) {
-    let zoneConfigResponse = await getUrl('samples/zones.json', reload);
+    let zoneConfigResponse = await getUrl('samples/zones_config.json', reload);
     let zoneConfigJson = await zoneConfigResponse.json();
     return zoneConfigJson.zones;
 }
