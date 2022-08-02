@@ -23,7 +23,7 @@ function logError(message) {
     let txt = document.createTextNode(message);
     msg.appendChild(txt);
 
-    let el = document.getElementById('status');
+    let el = document.getElementById('errors');
     el.appendChild(msg);
     el.className = 'mb-3 p-3 bg-warning';
 }
