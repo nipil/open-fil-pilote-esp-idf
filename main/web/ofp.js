@@ -30,6 +30,43 @@ function logError(message) {
 
 /*******************************************************************************/
 
+function secondsToDuration(s) {
+    const d = Math.floor(s / (3600 * 24));
+    s -= d * 3600 * 24;
+    const h = Math.floor(s / 3600);
+    s -= h * 3600;
+    const m = Math.floor(s / 60);
+    s -= m * 60;
+    const tmp = [];
+    (d) && tmp.push(d + 'j');
+    (d || h) && tmp.push(h + 'h');
+    (d || h || m) && tmp.push(m + 'm');
+    tmp.push(s + 's');
+    return tmp.join(' ');
+}
+
+/*******************************************************************************/
+
+async function apiGetStatus(reload = false) {
+    let statusResponse = await getUrl('samples/status.json', reload);
+    let statusJson = await statusResponse.json();
+    return statusJson;
+}
+
+async function loadStatus() {
+    let status = await apiGetStatus();
+
+    let el = document.getElementById('status');
+
+    let d = document.createElement('div');
+    d.innerHTML = `Syst&egrave;me d&eacute;mar&eacute; depuis ${secondsToDuration(status.sytem_uptime)}`;
+    el.appendChild(d);
+
+    d = document.createElement('div');
+    d.innerHTML = `Connecté au Wifi depuis ${secondsToDuration(status.connection_uptime)}`;
+    el.appendChild(d);
+}
+
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
     // TODO
@@ -486,6 +523,7 @@ async function loadHardwareParameters() {
 
 async function ofp_init() {
     Promise.all([
+        loadStatus(),
         loadZoneOverrides(),
         loadZoneConfiguration(),
         initPlanningCreate(),
