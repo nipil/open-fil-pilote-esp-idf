@@ -52,14 +52,14 @@ function secondsToDuration(s) {
 
 /*******************************************************************************/
 
-async function apiGetStatus(reload = false) {
+async function apiGetStatusJson(reload = false) {
     let statusResponse = await getUrl('samples/status.json', reload);
     let statusJson = await statusResponse.json();
     return statusJson;
 }
 
 async function loadStatus() {
-    let status = await apiGetStatus();
+    let status = await apiGetStatusJson();
 
     let el = document.getElementById('status');
 
