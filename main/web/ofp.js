@@ -7,13 +7,18 @@ function handleHttpErrors(response) {
     return response;
 }
 
-function getUrl(url, reload = false) {
+async function getUrl(url, reload = false) {
     let options = {}
     if (reload) {
         options = { cache: "reload" }
     }
-    return fetch(url, options)
-        .then(handleHttpErrors);
+    
+    try {
+        return await fetch(url, options).then(handleHttpErrors);
+    }
+    catch (err) {
+        throw new Error(`Erreur lors de la r\u00E9cup\u00E9ration de l'URL "${url}" : ${err}`);
+    }
 }
 
 /*******************************************************************************/
