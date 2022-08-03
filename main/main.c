@@ -199,29 +199,6 @@ void sntp_callback(struct timeval *tv)
 			 tv->tv_usec % 1000);
 }
 
-esp_err_t my_wifimanager_httpd_custom_get_handler(httpd_req_t *req)
-{
-	esp_err_t ret = ESP_OK;
-
-	ESP_LOGI(TAG, "WM GET %s", req->uri);
-
-	if (!httpd_basic_auth(req, "http", "http") == ESP_OK)
-	{
-		httpd_basic_auth_resp_send_401(req);
-		httpd_resp_sendstr(req, "Not Authorized");
-		return ESP_FAIL;
-	}
-
-	const static char buff[] = "{ \"message\": \"pouet\" }";
-	httpd_resp_set_status(req, "200 OK");
-	httpd_resp_set_type(req, "application/json");
-	httpd_resp_set_hdr(req, "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
-	httpd_resp_set_hdr(req, "Pragma", "no-cache");
-	httpd_resp_send(req, buff, strlen(buff));
-
-	return ret;
-}
-
 void cb_connection_ok_handler(void *pvParameter)
 {
 	ip_event_got_ip_t *param = (ip_event_got_ip_t *)pvParameter;
@@ -230,9 +207,6 @@ void cb_connection_ok_handler(void *pvParameter)
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
 	ESP_LOGI(TAG, "I have a connection and my IP is %s!", str_ip);
-
-	/* add our handler on wifi-manager HTTP webserver */
-	http_app_set_handler_hook(HTTP_GET, my_wifimanager_httpd_custom_get_handler);
 
 	/* start ou own HTTPS webserver */
 	if (app_server == NULL)
