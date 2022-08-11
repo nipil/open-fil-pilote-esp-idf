@@ -12,7 +12,7 @@ async function getUrl(url, reload = false) {
     if (reload) {
         options = { cache: "reload" }
     }
-    
+
     try {
         return await fetch(url, options).then(handleHttpErrors);
     }
@@ -157,6 +157,7 @@ async function apiGetZoneConfigJson(reload = false) {
 }
 
 async function loadZoneConfiguration(reload = false) {
+    let orderTypesSupported = await apiGetOrderTypesJson(reload);
     let zoneConfig = await apiGetZoneConfigJson(reload);
     let orderTypes = await apiGetOrderTypesJson(reload);
     let planningList = await apiGetPlanningListJson(reload);
@@ -165,9 +166,18 @@ async function loadZoneConfiguration(reload = false) {
         + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Programmation: ${name}' });
 
     let template = {
-        '<>': 'div', 'class': 'row mb-3', 'html': [
+        '<>': 'div', 'class': 'row mb-3 d-flex align-items-center', 'html': [
             {
-                '<>': 'div', 'class': 'col mb-3', 'html': '${desc} (${id})'
+                '<>': 'div', 'class': 'col mb-3', 'html': '<b>${desc}</b> (${id})'
+            },
+            {
+                '<>': 'div', 'class': function () {
+                    let o = orderTypesSupported.find(el => el.id === this.current);
+                    return `col mb-3 bg-${o.class}`;
+                }, 'html': function () {
+                    let o = orderTypesSupported.find(el => el.id === this.current);
+                    return `Etat actuel: ${o.name}`;
+                }
             },
             {
                 '<>': 'div', 'class': 'col-auto mb-3', 'html': [
@@ -188,7 +198,7 @@ async function loadZoneConfiguration(reload = false) {
                         'class': 'form-select',
                         'id': 'select_zone_${id}',
                         'onchange': function (e) {
-                            changeZoneValue(e.obj.id, e.event.currentTarget.value);
+                            changeZoneValue(e.obj.id, e.event.currentTarget.config);
                         },
                         'html': optionsHtml
                     }
@@ -202,7 +212,7 @@ async function loadZoneConfiguration(reload = false) {
 
     zoneConfig.forEach((zone) => {
         let el = document.getElementById(`select_zone_${zone.id}`);
-        el.value = zone.value;
+        el.value = zone.config;
     });
 }
 
