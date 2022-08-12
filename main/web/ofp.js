@@ -21,6 +21,19 @@ async function getUrl(url, reload = false) {
     }
 }
 
+async function postUrl(url, json, headers = {}) {
+    try {
+        return await fetch(url, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(json)
+        });
+    }
+    catch (err) {
+        throw new Error(`Erreur lors de l'envoi de l'URL "${url}" : ${err}`);
+    }
+}
+
 /*******************************************************************************/
 
 function logError(message) {
