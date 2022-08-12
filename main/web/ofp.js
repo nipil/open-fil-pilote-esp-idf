@@ -87,7 +87,13 @@ async function loadStatus() {
 
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
-    // TODO
+    try {
+        let r = await postUrl('/api/v1/override', { order: override });
+        await loadZoneOverrides();
+    }
+    catch (err) {
+        logError(err);
+    }
 }
 
 async function apiGetOrderTypesJson(reload = false) {
@@ -134,6 +140,9 @@ async function loadZoneOverrides(reload = false) {
             templateLabel
         ]
     };
+
+    // clear content
+    document.getElementById('zoneOverride').textContent = '';
 
     // NOTE: json2html requires jquery to insert event handlers
     $('#zoneOverride').json2html(overrideTypesJsonAll, templateMaster);
