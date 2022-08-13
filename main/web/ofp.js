@@ -159,8 +159,8 @@ async function loadZoneOverrides() {
         '<>': 'label',
         'class': 'btn btn-outline-${class} w-100',
         'for': 'zoneOverride_${id}',
-        'onclick': function (e) {
-            changeZoneOverrides(e.obj.id);
+        'onclick': async function (e) {
+            await changeZoneOverrides(e.obj.id);
         },
         'html': '${name}'
     };
@@ -251,8 +251,8 @@ async function loadZoneConfiguration() {
                     {
                         '<>': 'button',
                         'class': 'btn btn-warning btn',
-                        'onclick': function (e) {
-                            changeZoneDescription(e.obj.id);
+                        'onclick': async function (e) {
+                            await changeZoneDescription(e.obj.id);
                         },
                         'html': 'Renommer'
                     },
@@ -264,8 +264,8 @@ async function loadZoneConfiguration() {
                         '<>': 'select',
                         'class': 'form-select',
                         'id': 'select_zone_${id}',
-                        'onchange': function (e) {
-                            changeZoneValue(e.obj.id, e.event.currentTarget.value);
+                        'onchange': async function (e) {
+                            await changeZoneValue(e.obj.id, e.event.currentTarget.value);
                         },
                         'html': optionsHtml
                     }
@@ -293,7 +293,9 @@ async function apiGetPlanningListJson() {
 
 async function initPlanningCreate() {
     let b = document.getElementById('planningCreateButton');
-    b.onclick = createPlanning;
+    b.onclick = async function() {
+        await createPlanning();
+    }
 }
 
 async function createPlanning() {
@@ -328,27 +330,27 @@ async function loadPlanningList() {
 
     let el = document.getElementById('planningSelect');
     el.innerHTML = json2html.render(planningList, template);
-    el.onchange = function (e) {
+    el.onchange = async function (e) {
         // action after initial loading : ignore cache for fresh data
-        loadPlanningDetails(this.value, true);
+        await loadPlanningDetails(this.value, true);
     };
 
     el = document.getElementById('planningRenameButton');
-    el.onclick = function (e) {
+    el.onclick = async function (e) {
         let el = document.getElementById('planningSelect');
-        renamePlanning(el.value);
+        await renamePlanning(el.value);
     };
 
     el = document.getElementById('planningDeleteButton');
-    el.onclick = function (e) {
+    el.onclick = async function (e) {
         let el = document.getElementById('planningSelect');
-        deletePlanning(el.value);
+        await deletePlanning(el.value);
     };
 
     let planningId = getSelectedPlanning();
     if (planningId) {
         // action during initial loading : use cache if possible
-        loadPlanningDetails(planningId);
+        await loadPlanningDetails(planningId);
     }
 }
 
