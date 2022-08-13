@@ -2,3 +2,5 @@
 POST /api/v1/override
     { order: "nofreeze" }
 
+POST /api/v1/zone/${zoneId}/description
+    { description: "wxc" }

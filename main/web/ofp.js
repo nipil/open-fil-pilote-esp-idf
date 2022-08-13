@@ -162,7 +162,9 @@ async function apiGetPlanningListJson(reload = false) {
 
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
-    // TODO
+    let name = promptNonEmptyString(`Entrez le nouveu nom de la zone '${zoneId}'`);
+    postUrl(`/api/v1/zone/${zoneId}/description`, { description: name }).catch(logError);
+    loadZoneConfiguration().catch(logError);
 }
 
 async function changeZoneMode(zoneId, mode) {
