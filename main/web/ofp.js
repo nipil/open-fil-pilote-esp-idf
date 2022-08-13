@@ -189,13 +189,13 @@ async function loadZoneOverrides() {
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
     let name = promptNonEmptyString(`Entrez le nouveu nom de la zone '${zoneId}'`);
-    patchUrlJson(`/api/v1/zone/${zoneId}`, { desc: name }).catch(logError);
+    patchUrlJson(`/api/v1/zones/${zoneId}`, { desc: name }).catch(logError);
     loadZoneConfiguration().catch(logError);
 }
 
 async function changeZoneValue(zoneId, value) {
     console.log("changeZoneValue", zoneId, value);
-    patchUrlJson(`/api/v1/zone/${zoneId}`, { mode: value }).catch(logError);
+    patchUrlJson(`/api/v1/zones/${zoneId}`, { mode: value }).catch(logError);
     loadZoneConfiguration().catch(logError);
 }
 
@@ -287,20 +287,20 @@ async function initPlanningCreate() {
 async function createPlanning() {
     console.log('createPlanning');
     let name = promptNonEmptyString('Entrez le nom du nouveau planning');
-    postUrlJson(`/api/v1/planning`, { name: name }).catch(logError);
+    postUrlJson(`/api/v1/plannings`, { name: name }).catch(logError);
     loadPlanningList().catch(logError);
 }
 
 async function renamePlanning(id) {
     console.log('renamePlanning', id);
     let name = promptNonEmptyString('Entrez le nouveau nom du planning');
-    patchUrlJson(`/api/v1/planning/${id}`, { name: name }).catch(logError);
+    patchUrlJson(`/api/v1/plannings/${id}`, { name: name }).catch(logError);
     loadPlanningList().catch(logError);
 }
 
 async function deletePlanning(id) {
     console.log('deletePlanning', id);
-    deleteUrl(`/api/v1/planning/${id}`).catch(logError);
+    deleteUrl(`/api/v1/plannings/${id}`).catch(logError);
     loadPlanningList().catch(logError);
 }
 
@@ -349,27 +349,27 @@ async function apiGetPlanningDetailsJson() {
 async function changePlanningDetailMode(planningId, start, newMode) {
     console.log('changePlanningDetailMode', planningId, start, newMode);
     let startId = start.replace(':', '');
-    postUrlJson(`/api/v1/planning/${planningId}/details/${startId}/mode`, { mode: newMode }).catch(logError);
+    postUrlJson(`/api/v1/plannings/${planningId}/details/${startId}/mode`, { mode: newMode }).catch(logError);
     loadPlanningDetails(planningId).catch(logError);
 }
 
 async function changePlanningDetailStart(planningId, start, newStart) {
     console.log('changePlanningDetailStart', planningId, start, newStart);
     let startId = start.replace(':', '');
-    postUrlJson(`/api/v1/planning/${planningId}/details/${startId}/start`, { new_start: newStart }).catch(logError);
+    postUrlJson(`/api/v1/plannings/${planningId}/details/${startId}/start`, { new_start: newStart }).catch(logError);
     loadPlanningDetails(planningId).catch(logError);
 }
 
 async function deletePlanningDetail(planningId, start) {
     console.log('deletePlanningDetail', planningId, start);
     let startId = start.replace(':', '');
-    deleteUrl(`/api/v1/planning/${planningId}/details/${startId}`).catch(logError);
+    deleteUrl(`/api/v1/plannings/${planningId}/details/${startId}`).catch(logError);
     loadPlanningDetails().catch(logError);
 }
 
 async function addPlanningDetailSlot(planningId) {
     console.log('addPlanningDetailSlot', planningId);
-    postUrlJson(`/api/v1/planning/${planningId}/append`).catch(logError);
+    postUrlJson(`/api/v1/plannings/${planningId}/append`).catch(logError);
     loadPlanningDetails().catch(logError);
 }
 
@@ -460,14 +460,14 @@ async function accountDelete(userId) {
     console.log('accountDelete', userId);
     userId = userId.trim();
     if (userId.length === 0) return null;
-    deleteUrl(`/api/v1/user/${userId}`).catch(logError);
+    deleteUrl(`/api/v1/users/${userId}`).catch(logError);
     loadAccounts().catch(logError);
 }
 
 async function accountPasswordReset(userId) {
     console.log('accountPasswordReset', userId);
     let password = promptNonEmptyString(`Entrez le nouveu password du compte '${userId}'`);
-    patchUrlJson(`/api/v1/user/${userId}`, { password: password }).catch(logError);
+    patchUrlJson(`/api/v1/users/${userId}`, { password: password }).catch(logError);
 }
 
 async function loadAccounts() {

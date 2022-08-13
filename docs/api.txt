@@ -2,7 +2,8 @@
 PUT /api/v1/override
     { order: "nofreeze" }
 
-PATCH /api/v1/zone/${zoneId}
+
+PATCH /api/v1/zones/${zoneId}
     { desc: "wxc" }
     { mode: ":fixed:offload" }
     { mode: ":planning:1" }
@@ -10,30 +11,32 @@ PATCH /api/v1/zone/${zoneId}
 POST /api/v1/planning
     { name: "qsd" }
 
-PATCH /api/v1/planning/${planningId}
+PATCH /api/v1/plannings/${planningId}
     { name: "toto" }
 
-DELETE /api/v1/planning/${planningId}
+DELETE /api/v1/plannings/${planningId}
 
-POST /api/v1/planning/${planningId}/details/${startId}/mode
+
+POST /api/v1/plannings/${planningId}/details/${startId}/mode
     { mode: ":fixed:cozyminus2" }
     --> startId is clock HH:MM without :  ie. HHMM
 
-POST /api/v1/planning/${planningId}/details/${startId}/start
+POST /api/v1/plannings/${planningId}/details/${startId}/start
     { new_start: "00:53" }
     --> startId is clock HH:MM without :  ie. HHMM
 
-DELETE /api/v1/planning/${planningId}/details/${startId}
+DELETE /api/v1/plannings/${planningId}/details/${startId}
     --> startId is clock HH:MM without :  ie. HHMM
 
-POST /api/v1/planning/${planningId}/append
+POST /api/v1/plannings/${planningId}/append
+
 
 POST /api/v1/user
     { "id": "toto", "password": "pouet" }
 
-DELETE /api/v1/user/${userId}
+DELETE /api/v1/users/${userId}
 
-PATCH /api/v1/user/${userId}
+PATCH /api/v1/users/${userId}
     { "password": "pouet" }
 
 POST /api/v1/upgrade
