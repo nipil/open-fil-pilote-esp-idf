@@ -525,14 +525,16 @@ async function apiGetHardwareSupportedJson(reload = false) {
     return hardwareSupportedJson.supported;
 }
 
-async function changeHardwareType(hardwareId) {
-    console.log('changeHardwareType', hardwareId);
-}
-
 async function apiGetHardwareCurrentJson(reload = false) {
     let hardwareCurrentResponse = await getUrl('samples/hardware_current.json', reload);
     let hardwareCurrentJson = await hardwareCurrentResponse.json();
     return hardwareCurrentJson;
+}
+
+async function apiGetHardwareParamsJson(hardwareId, reload = false) {
+    let hardwareParamsResponse = await getUrl('samples/hardware_params.json', reload);
+    let hardwareParamsJson = await hardwareParamsResponse.json();
+    return hardwareParamsJson;
 }
 
 async function loadHardwareSupported() {
@@ -545,21 +547,17 @@ async function loadHardwareSupported() {
     el.innerHTML = json2html.render(hardwareSupported, template);
     el.onchange = function (e) {
         // action after initial loading : ignore cache for fresh data
-        changeHardwareType(this.value);
+        loadHardwareParameters(this.value);
     };
 
     el.value = hardwareCurrent.id;
-}
-
-async function changeHardwareParameters(hardwareId) {
-    console.log('changeHardwareParameters', hardwareId);
-    // TODO
+    loadHardwareParameters(hardwareCurrent.id);
 }
 
 async function initHardwareParametersButtons() {
     let el = document.getElementById('hardwareCurrentReloadButton');
     el.onclick = function (e) {
-        loadHardwareParameters();
+        loadHardwareSupported();
     }
 
     el = document.getElementById('hardwareCurrentApplyButton');
@@ -572,8 +570,10 @@ async function initHardwareParametersButtons() {
     }
 }
 
-async function loadHardwareParameters() {
-    let hardwareCurrent = await apiGetHardwareCurrentJson();
+async function loadHardwareParameters(hardwareId) {
+    console.log('loadHardwareParameters', hardwareId);
+
+    let hardwareParams = await apiGetHardwareParamsJson(hardwareId);
 
     let template = {
         '<>': 'div', 'class': 'form-floating mb-3', 'html': [
@@ -583,7 +583,7 @@ async function loadHardwareParameters() {
     };
 
     let el = document.getElementById('hardwareCurrentParameters');
-    el.innerHTML = json2html.render(hardwareCurrent.parameters, template);
+    el.innerHTML = json2html.render(hardwareParams.parameters, template);
 }
 
 async function ofp_init() {
@@ -598,7 +598,6 @@ async function ofp_init() {
         initFirmwareButtons(),
         loadHardwareSupported(),
         initHardwareParametersButtons(),
-        loadHardwareParameters(),
     ]).catch(logError);
 }
 

@@ -1,11 +1,3 @@
 {
-    "id": "M1E1",
-    "parameters": [
-        {
-            "id": "ext_count",
-            "description": "Nombre de cartes d'extension E1",
-            "type": "number",
-            "value": 3
-        }
-    ]
+    "id": "M1E1"
 }
