@@ -250,7 +250,7 @@ async function loadZoneConfiguration(reload = false) {
 
     zoneConfig.forEach((zone) => {
         let el = document.getElementById(`select_zone_${zone.id}`);
-        el.value = zone.config;
+        el.value = zone.mode;
     });
 }
 
