@@ -7,6 +7,8 @@ function handleHttpErrors(response) {
     return response;
 }
 
+/*******************************************************************************/
+
 async function getUrl(url, reload = false) {
     let options = {}
     if (reload) {
@@ -189,6 +191,7 @@ async function loadZoneOverrides(reload = false) {
     el.toggleAttribute("checked", true);
 }
 
+/*******************************************************************************/
 
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
@@ -280,6 +283,8 @@ async function loadZoneConfiguration(reload = false) {
     });
 }
 
+/*******************************************************************************/
+
 async function apiGetPlanningListJson(reload = false) {
     let planningListResponse = await getUrl('samples/plannings.json', reload);
     let planningListJson = await planningListResponse.json();
@@ -346,6 +351,8 @@ async function loadPlanningList(reload = false) {
         loadPlanningDetails(planningId);
     }
 }
+
+/*******************************************************************************/
 
 async function apiGetPlanningDetailsJson(reload = false) {
     let planningDetailsResponse = await getUrl('samples/planning_details.json', reload);
@@ -443,6 +450,8 @@ async function loadPlanningDetails(planningId, reload = false) {
     };
 }
 
+/**************************************************************************/
+
 async function accountCreate(userId, cleartextPassword) {
     console.log('accountCreate', userId, cleartextPassword);
     userId = userId.trim();
@@ -523,6 +532,8 @@ async function apiGetAccountsJson(reload = false) {
     return accountsJson.accounts;
 }
 
+/*******************************************************************************/
+
 async function uploadFirmware(file) {
     console.log("uploadFirmware", file);
     let formData = new FormData();
@@ -538,6 +549,8 @@ async function initFirmwareButtons() {
         uploadFirmware(t.files[0]);
     }
 }
+
+/*******************************************************************************/
 
 async function apiGetHardwareSupportedJson(reload = false) {
     let hardwareSupportedResponse = await getUrl('samples/hardware_supported.json', reload);
@@ -605,6 +618,8 @@ async function loadHardwareParameters(hardwareId) {
     let el = document.getElementById('hardwareCurrentParameters');
     el.innerHTML = json2html.render(hardwareParams.parameters, template);
 }
+
+/*******************************************************************************/
 
 async function ofp_init() {
     Promise.all([
