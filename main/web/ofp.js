@@ -34,6 +34,18 @@ async function postUrl(url, json, headers = {}) {
     }
 }
 
+async function deleteUrl(url, headers = {}) {
+    try {
+        return await fetch(url, {
+            method: 'DELETE',
+            headers: headers,
+        }).then(handleHttpErrors);
+    }
+    catch (err) {
+        throw new Error(`Erreur lors de la suppression de l'URL "${url}" : ${err}`);
+    }
+}
+
 function promptNonEmptyString(message) {
     let result = window.prompt(message);
     if (result === null) return null;
@@ -271,7 +283,8 @@ function renamePlanning(id) {
 
 function deletePlanning(id) {
     console.log('deletePlanning', id);
-    // TODO
+    deleteUrl(`/api/v1/planning/${id}`).catch(logError);
+    loadPlanningList().catch(logError);
 }
 
 function getSelectedPlanning() {

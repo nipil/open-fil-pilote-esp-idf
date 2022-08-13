@@ -14,3 +14,5 @@ POST /api/v1/planning
 
 POST /api/v1/planning/${planningId}/name
     { name: "toto" }
+
+DELETE /api/v1/planning/${planningId}
