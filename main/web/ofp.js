@@ -135,9 +135,7 @@ async function changeZoneOverrides(override) {
 }
 
 async function apiGetOrderTypesJson() {
-    let orderTypesResponse = await getUrl('samples/orders.json');
-    let orderTypesJson = await orderTypesResponse.json();
-    return orderTypesJson.orders;
+    return await getUrlJson('samples/orders.json');
 }
 
 async function apiGetZoneOverrideJson() {
@@ -148,10 +146,9 @@ async function apiGetZoneOverrideJson() {
 
 async function loadZoneOverrides() {
     let zoneOverrideId = await apiGetZoneOverrideJson();
-    let orderTypesSupported = await apiGetOrderTypesJson();
-
+    let { orders } = await apiGetOrderTypesJson();
     let noOverride = { id: 'none', name: 'Aucun for&ccedil;age', class: 'primary' }
-    let overrideTypesJsonAll = [noOverride, ...orderTypesSupported];
+    let overrideTypesJsonAll = [noOverride, ...orders];
 
     let templateLabel = {
         '<>': 'label',
@@ -217,17 +214,16 @@ async function apiGetZoneStateJson() {
 }
 
 async function loadZoneConfiguration() {
-    let orderTypesSupported = await apiGetOrderTypesJson();
+    let { orders } = await apiGetOrderTypesJson();
     let zoneConfig = await apiGetZoneConfigJson();
     let zoneState = await apiGetZoneStateJson();
-    let orderTypes = await apiGetOrderTypesJson();
     let planningList = await apiGetPlanningListJson();
 
-    let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
+    let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
         + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Programmation: ${name}' });
 
     let orderById = function (id) {
-        return orderTypesSupported.find(el => el.id === zoneState[id]);
+        return orders.find(el => el.id === zoneState[id]);
     }
 
     let template = {
@@ -390,9 +386,9 @@ async function addPlanningDetailSlot(planningId) {
 async function loadPlanningDetails(planningId) {
     let slots = await apiGetPlanningDetailsJson();
 
-    let orderTypes = await apiGetOrderTypesJson();
+    let { orders } = await apiGetOrderTypesJson();
 
-    let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
+    let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
 
     let template = {
         '<>': 'div', 'class': 'row mb-3', 'html': [
