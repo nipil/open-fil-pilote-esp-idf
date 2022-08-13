@@ -1,12 +1,16 @@
+---------------------------------------------------------------------
 
 PUT /api/v1/override
     { order: "nofreeze" }
 
+---------------------------------------------------------------------
 
 PATCH /api/v1/zones/${zoneId}
     { desc: "wxc" }
     { mode: ":fixed:offload" }
     { mode: ":planning:1" }
+
+---------------------------------------------------------------------
 
 POST /api/v1/planning
     { name: "qsd" }
@@ -16,6 +20,7 @@ PATCH /api/v1/plannings/${planningId}
 
 DELETE /api/v1/plannings/${planningId}
 
+---------------------------------------------------------------------
 
 POST /api/v1/plannings/${planningId}/details/${startId}/mode
     { mode: ":fixed:cozyminus2" }
@@ -30,6 +35,7 @@ DELETE /api/v1/plannings/${planningId}/details/${startId}
 
 POST /api/v1/plannings/${planningId}/append
 
+---------------------------------------------------------------------
 
 POST /api/v1/user
     { "id": "toto", "password": "pouet" }
@@ -38,6 +44,8 @@ DELETE /api/v1/users/${userId}
 
 PATCH /api/v1/users/${userId}
     { "password": "pouet" }
+
+---------------------------------------------------------------------
 
 POST /api/v1/upgrade
     FormData : "file"
@@ -71,3 +79,5 @@ POST /api/v1/upgrade
                 Content-Type: application/octet-stream\r\n\r\n
                 Data (999 bytes)
             Last boundary: \r\n------WebKitFormBoundaryt1eGNHgSa8nagq4F--\r\n
+
+---------------------------------------------------------------------
