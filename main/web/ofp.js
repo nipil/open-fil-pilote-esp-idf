@@ -69,6 +69,23 @@ async function putUrl(url, body, headers = {}) {
     }
 }
 
+async function patchUrlJson(url, json, headers = {}) {
+    return await patchUrl(url, JSON.stringify(json), headers);
+}
+
+async function patchUrl(url, body, headers = {}) {
+    try {
+        return await fetch(url, {
+            method: 'PATCH',
+            headers: headers,
+            body: body
+        }).then(handleHttpErrors);
+    }
+    catch (err) {
+        throw new Error(`Erreur lors de la mise \u00E0 jour partielle de l'URL "${url}" : ${err}`);
+    }
+}
+
 /*******************************************************************************/
 
 function promptNonEmptyString(message) {
