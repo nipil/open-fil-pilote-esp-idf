@@ -213,13 +213,13 @@ async function loadZoneOverrides(reload = false) {
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
     let name = promptNonEmptyString(`Entrez le nouveu nom de la zone '${zoneId}'`);
-    postUrlJson(`/api/v1/zone/${zoneId}/description`, { description: name }).catch(logError);
+    patchUrlJson(`/api/v1/zone/${zoneId}`, { desc: name }).catch(logError);
     loadZoneConfiguration().catch(logError);
 }
 
 async function changeZoneValue(zoneId, value) {
     console.log("changeZoneValue", zoneId, value);
-    postUrlJson(`/api/v1/zone/${zoneId}/mode`, { mode: value }).catch(logError);
+    patchUrlJson(`/api/v1/zone/${zoneId}`, { mode: value }).catch(logError);
     loadZoneConfiguration().catch(logError);
 }
 
