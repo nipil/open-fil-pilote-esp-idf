@@ -27,7 +27,7 @@ async function postUrl(url, json, headers = {}) {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(json)
-        });
+        }).then(handleHttpErrors);
     }
     catch (err) {
         throw new Error(`Erreur lors de l'envoi de l'URL "${url}" : ${err}`);
