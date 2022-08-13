@@ -252,10 +252,7 @@ async function loadZoneConfiguration(reload = false) {
 
 async function initPlanningCreate() {
     let b = document.getElementById('planningCreateButton');
-    b.onclick = function (e) {
-        let t = document.getElementById('planningCreateEdit');
-        createPlanning(t.value);
-    }
+    b.onclick = createPlanning;
 }
 
 
