@@ -294,7 +294,7 @@ async function createPlanning() {
 async function renamePlanning(id) {
     console.log('renamePlanning', id);
     let name = promptNonEmptyString('Entrez le nouveau nom du planning');
-    postUrlJson(`/api/v1/planning/${id}/name`, { name: name }).catch(logError);
+    patchUrlJson(`/api/v1/planning/${id}`, { name: name }).catch(logError);
     loadPlanningList().catch(logError);
 }
 
@@ -467,7 +467,7 @@ async function accountDelete(userId) {
 async function accountPasswordReset(userId) {
     console.log('accountPasswordReset', userId);
     let password = promptNonEmptyString(`Entrez le nouveu password du compte '${userId}'`);
-    postUrlJson(`/api/v1/user/${userId}/password`, { password: password }).catch(logError);
+    patchUrlJson(`/api/v1/user/${userId}`, { password: password }).catch(logError);
 }
 
 async function loadAccounts() {

@@ -10,7 +10,7 @@ PATCH /api/v1/zone/${zoneId}
 POST /api/v1/planning
     { name: "qsd" }
 
-POST /api/v1/planning/${planningId}/name
+PATCH /api/v1/planning/${planningId}
     { name: "toto" }
 
 DELETE /api/v1/planning/${planningId}
@@ -33,7 +33,7 @@ POST /api/v1/user
 
 DELETE /api/v1/user/${userId}
 
-POST /api/v1/user/${userId}/password
+PATCH /api/v1/user/${userId}
     { "password": "pouet" }
 
 POST /api/v1/upgrade
