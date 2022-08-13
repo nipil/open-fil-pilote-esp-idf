@@ -21,12 +21,16 @@ async function getUrl(url, reload = false) {
     }
 }
 
-async function postUrl(url, json, headers = {}) {
+async function postUrlJson(url, json, headers = {}) {
+    await postUrl(url, JSON.stringify(json), headers);
+}
+
+async function postUrl(url, body, headers = {}) {
     try {
         return await fetch(url, {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify(json)
+            body: body
         }).then(handleHttpErrors);
     }
     catch (err) {
@@ -107,7 +111,7 @@ async function loadStatus() {
 
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
-    postUrl('/api/v1/override', { order: override }).catch(logError);
+    postUrlJson('/api/v1/override', { order: override }).catch(logError);
     loadZoneOverrides().catch(logError);
 }
 
@@ -175,13 +179,13 @@ async function apiGetPlanningListJson(reload = false) {
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
     let name = promptNonEmptyString(`Entrez le nouveu nom de la zone '${zoneId}'`);
-    postUrl(`/api/v1/zone/${zoneId}/description`, { description: name }).catch(logError);
+    postUrlJson(`/api/v1/zone/${zoneId}/description`, { description: name }).catch(logError);
     loadZoneConfiguration().catch(logError);
 }
 
 async function changeZoneValue(zoneId, value) {
     console.log("changeZoneValue", zoneId, value);
-    postUrl(`/api/v1/zone/${zoneId}/mode`, { mode: value }).catch(logError);
+    postUrlJson(`/api/v1/zone/${zoneId}/mode`, { mode: value }).catch(logError);
     loadZoneConfiguration().catch(logError);
 }
 
@@ -270,14 +274,14 @@ async function initPlanningCreate() {
 function createPlanning() {
     console.log('createPlanning');
     let name = promptNonEmptyString('Entrez le nom du nouveau planning');
-    postUrl(`/api/v1/planning`, { name: name }).catch(logError);
+    postUrlJson(`/api/v1/planning`, { name: name }).catch(logError);
     loadPlanningList().catch(logError);
 }
 
 function renamePlanning(id) {
     console.log('renamePlanning', id);
     let name = promptNonEmptyString('Entrez le nouveau nom du planning');
-    postUrl(`/api/v1/planning/${id}/name`, { name: name }).catch(logError);
+    postUrlJson(`/api/v1/planning/${id}/name`, { name: name }).catch(logError);
     loadPlanningList().catch(logError);
 }
 
@@ -332,14 +336,14 @@ async function apiGetPlanningDetailsJson(reload = false) {
 async function changePlanningDetailMode(planningId, start, newMode) {
     console.log('changePlanningDetailMode', planningId, start, newMode);
     let startId = start.replace(':', '');
-    postUrl(`/api/v1/planning/${planningId}/details/${startId}/mode`, { mode: newMode }).catch(logError);
+    postUrlJson(`/api/v1/planning/${planningId}/details/${startId}/mode`, { mode: newMode }).catch(logError);
     loadPlanningDetails(planningId).catch(logError);
 }
 
 async function changePlanningDetailStart(planningId, start, newStart) {
     console.log('changePlanningDetailStart', planningId, start, newStart);
     let startId = start.replace(':', '');
-    postUrl(`/api/v1/planning/${planningId}/details/${startId}/start`, { new_start: newStart }).catch(logError);
+    postUrlJson(`/api/v1/planning/${planningId}/details/${startId}/start`, { new_start: newStart }).catch(logError);
     loadPlanningDetails(planningId).catch(logError);
 }
 
@@ -352,7 +356,7 @@ async function deletePlanningDetail(planningId, start) {
 
 async function addPlanningDetailSlot(planningId) {
     console.log('addPlanningDetailSlot', planningId);
-    postUrl(`/api/v1/planning/${planningId}/append`).catch(logError);
+    postUrlJson(`/api/v1/planning/${planningId}/append`).catch(logError);
     loadPlanningDetails().catch(logError);
 }
 
@@ -425,7 +429,7 @@ async function accountCreate(userId, cleartextPassword) {
     if (userId.length === 0) return null;
     cleartextPassword = userId.trim();
     if (cleartextPassword.length === 0) return null;
-    postUrl('/api/v1/user', { id: userId, password: cleartextPassword }).catch(logError);
+    postUrlJson('/api/v1/user', { id: userId, password: cleartextPassword }).catch(logError);
     loadAccounts().catch(logError);
 }
 
@@ -449,7 +453,7 @@ async function accountDelete(userId) {
 async function accountPasswordReset(userId) {
     console.log('accountPasswordReset', userId);
     let password = promptNonEmptyString(`Entrez le nouveu password du compte '${userId}'`);
-    postUrl(`/api/v1/user/${userId}/password`, { password: password }).catch(logError);
+    postUrlJson(`/api/v1/user/${userId}/password`, { password: password }).catch(logError);
 }
 
 async function loadAccounts() {
