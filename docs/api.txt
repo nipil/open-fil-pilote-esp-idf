@@ -8,3 +8,6 @@ POST /api/v1/zone/${zoneId}/description
 POST /api/v1/zone/${zoneId}/mode
     { mode: ":fixed:offload" }
     { mode: ":planning:1" }
+
+POST /api/v1/planning
+    { name: "qsd" }

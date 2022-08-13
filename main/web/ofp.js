@@ -255,10 +255,11 @@ async function initPlanningCreate() {
     b.onclick = createPlanning;
 }
 
-
-function createPlanning(name) {
-    console.log('createPlanning', name);
-    // TODO
+function createPlanning() {
+    console.log('createPlanning');
+    let name = promptNonEmptyString('Entrez le nom du nouveau planning');
+    postUrl(`/api/v1/planning`, { name: name }).catch(logError);
+    loadPlanningList().catch(logError);
 }
 
 function renamePlanning(id) {
