@@ -1,14 +1,34 @@
 ---------------------------------------------------------------------
 
+GET /api/v1/override
+    { override: "none" }
+
 PUT /api/v1/override
-    { order: "nofreeze" }
+    { override: "nofreeze" }
 
 ---------------------------------------------------------------------
+
+GET /api/v1/zones
+{
+    "zones": [
+        {
+            "id": "e1z1",
+            "desc": "salon",
+            "mode": ":planning:${planningID}",
+            "current": "economy"
+        },
+        {
+            "id": "e1z2",
+            "desc": "chambre parents",
+            "mode": ":fixed:nofreeze",
+            "current": "nofreeze"
+        },        
+    ...
+}
 
 PATCH /api/v1/zones/${zoneId}
     { desc: "wxc" }
     { mode: ":fixed:offload" }
-    { mode: ":planning:1" }
 
 ---------------------------------------------------------------------
 

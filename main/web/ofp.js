@@ -128,9 +128,11 @@ async function loadStatus() {
     el.appendChild(d);
 }
 
+/*******************************************************************************/
+
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
-    putUrlJson('/api/v1/override', { order: override }).catch(logError);
+    putUrlJson('/api/v1/override', { override: override }).catch(logError);
     loadZoneOverrides().catch(logError);
 }
 
@@ -199,25 +201,23 @@ async function changeZoneValue(zoneId, value) {
     loadZoneConfiguration().catch(logError);
 }
 
-async function apiGetZoneConfigJson() {
-    return await getUrlJson('samples/zones_config.json');
-}
-
-async function apiGetZoneStateJson() {
-    return await getUrlJson('samples/zones_state.json');
+async function apiGetZonesJson() {
+    return await getUrlJson('samples/zones.json');
 }
 
 async function loadZoneConfiguration() {
     let { orders } = await apiGetOrderTypesJson();
-    let { zones } = await apiGetZoneConfigJson();
-    let { states } = await apiGetZoneStateJson();
+    let { zones } = await apiGetZonesJson();
     let { plannings } = await apiGetPlanningListJson();
 
     let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
         + json2html.render(plannings, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Programmation: ${name}' });
 
     let orderById = function (id) {
-        return orders.find(el => el.id === states[id]);
+        // find zone info according to iteration zoneId
+        let zone = zones.find(z => z.id === id);
+        // find order according to current orderId of zone
+        return orders.find(el => el.id === zone.current);
     }
 
     let template = {
