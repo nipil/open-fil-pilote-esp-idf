@@ -287,7 +287,7 @@ async function apiGetPlanningListJson() {
 
 async function initPlanningCreate() {
     let b = document.getElementById('planningCreateButton');
-    b.onclick = async function() {
+    b.onclick = async function () {
         await createPlanning();
     }
 }
