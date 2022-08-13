@@ -262,6 +262,9 @@ async function loadZoneConfiguration() {
         ]
     }
 
+    // clear content
+    document.getElementById('zoneList').textContent = '';
+
     // NOTE: json2html requires jquery to insert event handlers
     $('#zoneList').json2html(zones, template);
 
@@ -423,6 +426,9 @@ async function loadPlanningDetails(planningId) {
             }
         ]
     };
+
+    // clear content
+    document.getElementById('planningDetails').textContent = '';
 
     // NOTE: json2html requires jquery to insert event handlers
     $('#planningDetails').json2html(slots, template);
