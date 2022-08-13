@@ -29,6 +29,7 @@ GET /api/v1/zones
 PATCH /api/v1/zones/${zoneId}
     { desc: "wxc" }
     { mode: ":fixed:offload" }
+    { mode: ":planning:${planningId}" }
 
 ---------------------------------------------------------------------
 
