@@ -525,8 +525,8 @@ async function apiGetHardwareSupportedJson(reload = false) {
     return hardwareSupportedJson.supported;
 }
 
-async function changeHardwareCurrent(hardwareId) {
-    console.log('changeHardwareCurrent', hardwareId);
+async function changeHardwareType(hardwareId) {
+    console.log('changeHardwareType', hardwareId);
 }
 
 async function apiGetHardwareCurrentJson(reload = false) {
@@ -545,7 +545,7 @@ async function loadHardwareSupported() {
     el.innerHTML = json2html.render(hardwareSupported, template);
     el.onchange = function (e) {
         // action after initial loading : ignore cache for fresh data
-        changeHardwareCurrent(this.value);
+        changeHardwareType(this.value);
     };
 
     el.value = hardwareCurrent.id;
