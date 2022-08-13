@@ -462,15 +462,17 @@ async function loadAccounts() {
                 ]
             },
             {
-                '<>': 'td', 'html': [
-                    {
+                '<>': 'td', 'html': function () {
+                    if (this.type === 'admin') return;
+                    // NOTE: json2html requires jquery to insert event handlers
+                    return $.json2html(this, {
                         '<>': 'button', 'class': 'btn btn-danger',
                         'onclick': function (e) {
                             accountDelete(e.obj.id);
                         },
                         'html': [{ '<>': 'span', 'class': 'bi bi-trash' }]
+                    });
                     }
-                ]
             }
         ]
     };
