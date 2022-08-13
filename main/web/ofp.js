@@ -458,7 +458,7 @@ async function accountCreate(userId, cleartextPassword) {
     if (userId.length === 0) return null;
     cleartextPassword = userId.trim();
     if (cleartextPassword.length === 0) return null;
-    postUrlJson('/api/v1/users', { id: userId, password: cleartextPassword }).catch(logError);
+    postUrlJson('/api/v1/accounts', { id: userId, password: cleartextPassword }).catch(logError);
     loadAccounts().catch(logError);
 }
 
@@ -475,14 +475,14 @@ async function accountDelete(userId) {
     console.log('accountDelete', userId);
     userId = userId.trim();
     if (userId.length === 0) return null;
-    deleteUrl(`/api/v1/users/${userId}`).catch(logError);
+    deleteUrl(`/api/v1/accounts/${userId}`).catch(logError);
     loadAccounts().catch(logError);
 }
 
 async function accountPasswordReset(userId) {
     console.log('accountPasswordReset', userId);
     let password = promptNonEmptyString(`Entrez le nouveu password du compte '${userId}'`);
-    patchUrlJson(`/api/v1/users/${userId}`, { password: password }).catch(logError);
+    patchUrlJson(`/api/v1/accounts/${userId}`, { password: password }).catch(logError);
 }
 
 async function loadAccounts() {

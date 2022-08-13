@@ -100,7 +100,7 @@ DELETE /api/v1/plannings/${planningId}/slots/${startId}
 
 ---------------------------------------------------------------------
 
-GET /api/v1/users
+GET /api/v1/accounts
     {
         "accounts": [
             {
@@ -115,12 +115,12 @@ GET /api/v1/users
         ]
     }
 
-POST /api/v1/users
+POST /api/v1/accounts
     { "id": "toto", "password": "pouet" }
 
-DELETE /api/v1/users/${userId}
+DELETE /api/v1/accounts/${userId}
 
-PATCH /api/v1/users/${userId}
+PATCH /api/v1/accounts/${userId}
     { "password": "pouet" }
 
 ---------------------------------------------------------------------
