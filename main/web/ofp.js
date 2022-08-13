@@ -352,30 +352,26 @@ async function apiGetPlanningDetailsJson() {
     return await getUrlJson('samples/planning_details.json');
 }
 
-async function changePlanningDetailMode(planningId, start, newMode) {
-    console.log('changePlanningDetailMode', planningId, start, newMode);
-    let startId = start.replace(':', '');
+async function changePlanningDetailMode(planningId, startId, newMode) {
+    console.log('changePlanningDetailMode', planningId, startId, newMode);
     putUrlJson(`/api/v1/plannings/${planningId}/details/${startId}`, { mode: newMode }).catch(logError);
     loadPlanningDetails(planningId).catch(logError);
 }
 
-async function changePlanningDetailStart(planningId, start, newStart) {
-    console.log('changePlanningDetailStart', planningId, start, newStart);
-    let startId = start.replace(':', '');
+async function changePlanningDetailStart(planningId, startId, newStart) {
+    console.log('changePlanningDetailStart', planningId, startId, newStart);
     putUrlJson(`/api/v1/plannings/${planningId}/details/${startId}`, { start: newStart }).catch(logError);
     loadPlanningDetails(planningId).catch(logError);
 }
 
-async function deletePlanningDetail(planningId, start) {
-    console.log('deletePlanningDetail', planningId, start);
-    let startId = start.replace(':', '');
+async function deletePlanningDetail(planningId, startId) {
+    console.log('deletePlanningDetail', planningId, startId);
     deleteUrl(`/api/v1/plannings/${planningId}/details/${startId}`).catch(logError);
     loadPlanningDetails().catch(logError);
 }
 
-async function addPlanningDetailSlot(planningId, start, order) {
-    console.log('addPlanningDetailSlot', planningId, start, order);
-    let startId = start.replace(':', '');
+async function addPlanningDetailSlot(planningId, startId, order) {
+    console.log('addPlanningDetailSlot', planningId, startId, order);
     postUrlJson(`/api/v1/plannings/${planningId}/details`, { start: startId, mode: order}).catch(logError);
     loadPlanningDetails().catch(logError);
 }
