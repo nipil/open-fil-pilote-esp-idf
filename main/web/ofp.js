@@ -178,14 +178,25 @@ async function apiGetZoneConfigJson(reload = false) {
     return zoneConfigJson.zones;
 }
 
+async function apiGetZoneStateJson(reload = false) {
+    let zoneStateResponse = await getUrl('samples/zones_state.json', reload);
+    let zoneStateJson = await zoneStateResponse.json();
+    return zoneStateJson;
+}
+
 async function loadZoneConfiguration(reload = false) {
     let orderTypesSupported = await apiGetOrderTypesJson(reload);
     let zoneConfig = await apiGetZoneConfigJson(reload);
+    let zoneState = await apiGetZoneStateJson(reload);
     let orderTypes = await apiGetOrderTypesJson(reload);
     let planningList = await apiGetPlanningListJson(reload);
 
     let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
         + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Programmation: ${name}' });
+
+    let orderById = function (id) {
+        return orderTypesSupported.find(el => el.id === zoneState[id]);
+    }
 
     let template = {
         '<>': 'div', 'class': 'row mb-3 d-flex align-items-center', 'html': [
@@ -194,10 +205,10 @@ async function loadZoneConfiguration(reload = false) {
             },
             {
                 '<>': 'div', 'class': function () {
-                    let o = orderTypesSupported.find(el => el.id === this.current);
+                    let o = orderById(this.id);
                     return `col mb-3 bg-${o.class}`;
                 }, 'html': function () {
-                    let o = orderTypesSupported.find(el => el.id === this.current);
+                    let o = orderById(this.id);
                     return `Etat actuel: ${o.name}`;
                 }
             },

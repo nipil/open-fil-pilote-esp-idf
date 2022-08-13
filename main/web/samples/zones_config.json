@@ -3,50 +3,42 @@
         {
             "id": "e1z1",
             "desc": "salon",
-            "config": ":planning:0",
-            "current": "economy"
+            "config": ":planning:0"
         },
         {
             "id": "e1z2",
             "desc": "chambre parents",
-            "config": ":fixed:nofreeze",
-            "current": "nofreeze"
+            "config": ":fixed:nofreeze"
         },
         {
             "id": "e1z3",
             "desc": "e1z3",
-            "config": ":fixed:economy",
-            "current": "economy"
+            "config": ":fixed:economy"
         },
         {
             "id": "e1z4",
             "desc": "bureau cecile",
-            "config": ":fixed:cozyminus2",
-            "current": "cozyminus2"
+            "config": ":fixed:cozyminus2"
         },
         {
             "id": "e2z1",
             "desc": "e2z1",
-            "config": ":fixed:cozyminus1",
-            "current": "cozyminus1"
+            "config": ":fixed:cozyminus1"
         },
         {
             "id": "e2z2",
             "desc": "e2z2",
-            "config": ":fixed:cozy",
-            "current": "cozy"
+            "config": ":fixed:cozy"
         },
         {
             "id": "e2z3",
             "desc": "salle de bain",
-            "config": ":planning:1",
-            "current": "offload"
+            "config": ":planning:1"
         },
         {
             "id": "e2z4",
             "desc": "inutilisé",
-            "config": ":fixed:offload",
-            "current": "offload"
+            "config": ":fixed:offload"
         }
     ]
 }
