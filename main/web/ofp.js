@@ -349,7 +349,7 @@ async function loadPlanningList() {
 /*******************************************************************************/
 
 async function apiGetPlanningDetailsJson() {
-    return await getUrlJson('samples/planning_details.json');
+    return await getUrlJson('/api/v1/planning_details.json'); // TODO: fixme MOCK
 }
 
 async function changePlanningDetailMode(planningId, startId, newMode) {
@@ -555,7 +555,7 @@ async function apiGetHardwareTypesJson() {
 }
 
 async function apiGetHardwareParamsJson(hardwareId) {
-    return await getUrlJson('samples/hardware_params.json');
+    return await getUrlJson('/api/v1/hardware_params.json'); // TODO: fixme MOCK
 }
 
 async function loadHardwareSupported() {
