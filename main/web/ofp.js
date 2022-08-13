@@ -280,13 +280,16 @@ async function apiGetPlanningListJson() {
 async function initPlanningCreate() {
     let b = document.getElementById('planningCreateButton');
     b.onclick = async function () {
-        await createPlanning();
+        let el = document.getElementById('newPlanningInput');
+        let name = el.value.trim();
+        if (name.length === 0) return;
+        await createPlanning(name);
+        el.value = '';
     }
 }
 
-async function createPlanning() {
-    console.log('createPlanning');
-    let name = promptNonEmptyString('Entrez le nom du nouveau planning');
+async function createPlanning(name) {
+    console.log('createPlanning', name);
     postUrlJson(`/api/v1/plannings`, { name: name }).catch(logError);
     loadPlanningList().catch(logError);
 }
