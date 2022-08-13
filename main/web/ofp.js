@@ -349,14 +349,14 @@ async function apiGetPlanningDetailsJson() {
 async function changePlanningDetailMode(planningId, start, newMode) {
     console.log('changePlanningDetailMode', planningId, start, newMode);
     let startId = start.replace(':', '');
-    postUrlJson(`/api/v1/plannings/${planningId}/details/${startId}/mode`, { mode: newMode }).catch(logError);
+    putUrlJson(`/api/v1/plannings/${planningId}/details/${startId}`, { mode: newMode }).catch(logError);
     loadPlanningDetails(planningId).catch(logError);
 }
 
 async function changePlanningDetailStart(planningId, start, newStart) {
     console.log('changePlanningDetailStart', planningId, start, newStart);
     let startId = start.replace(':', '');
-    postUrlJson(`/api/v1/plannings/${planningId}/details/${startId}/start`, { new_start: newStart }).catch(logError);
+    putUrlJson(`/api/v1/plannings/${planningId}/details/${startId}`, { start: newStart }).catch(logError);
     loadPlanningDetails(planningId).catch(logError);
 }
 
