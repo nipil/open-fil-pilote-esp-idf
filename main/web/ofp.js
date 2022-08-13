@@ -22,7 +22,7 @@ async function getUrl(url, reload = false) {
 }
 
 async function postUrlJson(url, json, headers = {}) {
-    await postUrl(url, JSON.stringify(json), headers);
+    return await postUrl(url, JSON.stringify(json), headers);
 }
 
 async function postUrl(url, body, headers = {}) {
