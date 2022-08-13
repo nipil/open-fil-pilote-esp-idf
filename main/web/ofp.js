@@ -111,9 +111,7 @@ function secondsToDuration(s) {
 /*******************************************************************************/
 
 async function apiGetStatusJson() {
-    let statusResponse = await getUrl('samples/status.json');
-    let statusJson = await statusResponse.json();
-    return statusJson;
+    return await getUrlJson('samples/status.json');
 }
 
 async function loadStatus() {
