@@ -490,16 +490,6 @@ async function apiGetAccountsJson(reload = false) {
     return accountsJson.accounts;
 }
 
-async function accountDelete(userId) {
-    console.log('accountDelete', userId);
-    // TODO
-}
-
-async function accountPasswordReset(userId) {
-    console.log('accountPasswordReset', userId);
-    // TODO
-}
-
 function uploadFirmware(filePath) {
     console.log("uploadFirmware", filePath);
     // TODO
