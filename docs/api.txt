@@ -16,3 +16,16 @@ POST /api/v1/planning/${planningId}/name
     { name: "toto" }
 
 DELETE /api/v1/planning/${planningId}
+
+POST /api/v1/planning/${planningId}/details/${startId}/mode
+    { mode: ":fixed:cozyminus2" }
+    --> startId is clock HH:MM without :  ie. HHMM
+
+POST /api/v1/planning/${planningId}/details/${startId}/start
+    { new_start: "00:53" }
+    --> startId is clock HH:MM without :  ie. HHMM
+
+DELETE /api/v1/planning/${planningId}/details/${startId}
+    --> startId is clock HH:MM without :  ie. HHMM
+
+POST /api/v1/planning/${planningId}/append

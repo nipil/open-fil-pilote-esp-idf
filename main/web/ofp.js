@@ -329,24 +329,30 @@ async function apiGetPlanningDetailsJson(reload = false) {
     return planningDetailsJson.slots;
 }
 
-async function changePlanningDetailOrder(planningId, start, newOrder) {
-    console.log('changePlanningDetailOrder', planningId, start, newOrder);
-    // TODO
+async function changePlanningDetailMode(planningId, start, newMode) {
+    console.log('changePlanningDetailMode', planningId, start, newMode);
+    let startId = start.replace(':', '');
+    postUrl(`/api/v1/planning/${planningId}/details/${startId}/mode`, { mode: newMode }).catch(logError);
+    loadPlanningDetails(planningId).catch(logError);
 }
 
 async function changePlanningDetailStart(planningId, start, newStart) {
     console.log('changePlanningDetailStart', planningId, start, newStart);
-    // TODO
+    let startId = start.replace(':', '');
+    postUrl(`/api/v1/planning/${planningId}/details/${startId}/start`, { new_start: newStart }).catch(logError);
+    loadPlanningDetails(planningId).catch(logError);
 }
 
-async function deletePlanningDetail(planningId, value) {
-    console.log('deletePlanningDetail', planningId, value);
-    // TODO
+async function deletePlanningDetail(planningId, start) {
+    console.log('deletePlanningDetail', planningId, start);
+    let startId = start.replace(':', '');
+    deleteUrl(`/api/v1/planning/${planningId}/details/${startId}`).catch(logError);
+    loadPlanningDetails().catch(logError);
 }
 
 async function addPlanningDetailSlot(planningId) {
     console.log('addPlanningDetailSlot', planningId);
-    // TODO
+    postUrl(`/api/v1/planning/${planningId}/append`).catch(logError);
 }
 
 async function loadPlanningDetails(planningId, reload = false) {
@@ -378,7 +384,7 @@ async function loadPlanningDetails(planningId, reload = false) {
                         'id': 'planningDetailSelect_${start}',
                         'class': 'form-select',
                         'onchange': function (e) {
-                            changePlanningDetailOrder(planningId, e.obj.start, e.event.currentTarget.value);
+                            changePlanningDetailMode(planningId, e.obj.start, e.event.currentTarget.value);
                         },
                         'html': optionsHtml
                     }
