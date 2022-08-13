@@ -236,7 +236,7 @@ async function loadZoneConfiguration(reload = false) {
                         'class': 'form-select',
                         'id': 'select_zone_${id}',
                         'onchange': function (e) {
-                            changeZoneValue(e.obj.id, e.event.currentTarget.config);
+                            changeZoneValue(e.obj.id, e.event.currentTarget.value);
                         },
                         'html': optionsHtml
                     }
