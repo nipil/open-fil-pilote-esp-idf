@@ -87,13 +87,8 @@ async function loadStatus() {
 
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
-    try {
-        let r = await postUrl('/api/v1/override', { order: override });
-        await loadZoneOverrides();
-    }
-    catch (err) {
-        logError(err);
-    }
+    postUrl('/api/v1/override', { order: override }).catch(logError);
+    loadZoneOverrides().catch(logError);
 }
 
 async function apiGetOrderTypesJson(reload = false) {
