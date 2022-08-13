@@ -353,6 +353,7 @@ async function deletePlanningDetail(planningId, start) {
 async function addPlanningDetailSlot(planningId) {
     console.log('addPlanningDetailSlot', planningId);
     postUrl(`/api/v1/planning/${planningId}/append`).catch(logError);
+    loadPlanningDetails().catch(logError);
 }
 
 async function loadPlanningDetails(planningId, reload = false) {
