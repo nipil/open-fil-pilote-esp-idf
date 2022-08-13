@@ -31,11 +31,11 @@ async function getUrlJson(url, options = {}) {
 async function getUrl(url, options = {}) {
     options.method = 'GET';
     return await doUrl(url, 'Erreur lors de la r\u00E9cup\u00E9ration', options);
-    }
+}
 
 async function postUrlJson(url, json, options = {}) {
     return await postUrl(url, JSON.stringify(json), options);
-    }
+}
 
 async function postUrl(url, body, options = {}) {
     options.method = 'POST';
