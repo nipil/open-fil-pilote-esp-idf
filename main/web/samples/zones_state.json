@@ -1,10 +1,12 @@
 {
-    "e1z1": "economy",
-    "e1z2": "nofreeze",
-    "e1z3": "economy",
-    "e1z4": "cozyminus2",
-    "e2z1": "cozyminus1",
-    "e2z2": "cozy",
-    "e2z3": "offload",
-    "e2z4": "offload"
+    "states": {
+        "e1z1": "economy",
+        "e1z2": "nofreeze",
+        "e1z3": "economy",
+        "e1z4": "cozyminus2",
+        "e2z1": "cozyminus1",
+        "e2z2": "cozy",
+        "e2z3": "offload",
+        "e2z4": "offload"
+    }
 }

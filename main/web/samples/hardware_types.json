@@ -1,5 +1,5 @@
 {
-    "supported": [
+    "types": [
         {
             "id": "ESP32",
             "name": "modules ou DevKit seul"

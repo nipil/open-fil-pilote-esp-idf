@@ -115,16 +115,16 @@ async function apiGetStatusJson() {
 }
 
 async function loadStatus() {
-    let status = await apiGetStatusJson();
+    let { uptime } = await apiGetStatusJson();
 
     let el = document.getElementById('status');
 
     let d = document.createElement('div');
-    d.innerHTML = `Syst\u00E8me d\u00E9mar\u00E9 depuis ${secondsToDuration(status.sytem_uptime)}`;
+    d.innerHTML = `Syst\u00E8me d\u00E9mar\u00E9 depuis ${secondsToDuration(uptime.system)}`;
     el.appendChild(d);
 
     d = document.createElement('div');
-    d.innerText = `Connect\u00E9 au Wifi depuis ${secondsToDuration(status.connection_uptime)}`;
+    d.innerText = `Connect\u00E9 au Wifi depuis ${secondsToDuration(uptime.wifi)}`;
     el.appendChild(d);
 }
 
@@ -139,13 +139,11 @@ async function apiGetOrderTypesJson() {
 }
 
 async function apiGetZoneOverrideJson() {
-    let zoneOverrideResponse = await getUrl('samples/zones_override.json');
-    let zoneOverrideJson = await zoneOverrideResponse.json();
-    return zoneOverrideJson.override;
+    return await getUrlJson('samples/zones_override.json');
 }
 
 async function loadZoneOverrides() {
-    let zoneOverrideId = await apiGetZoneOverrideJson();
+    let { override } = await apiGetZoneOverrideJson();
     let { orders } = await apiGetOrderTypesJson();
     let noOverride = { id: 'none', name: 'Aucun for&ccedil;age', class: 'primary' }
     let overrideTypesJsonAll = [noOverride, ...orders];
@@ -182,7 +180,7 @@ async function loadZoneOverrides() {
     // NOTE: json2html requires jquery to insert event handlers
     $('#zoneOverride').json2html(overrideTypesJsonAll, templateMaster);
 
-    let el = document.getElementById(`zoneOverride_${zoneOverrideId}`)
+    let el = document.getElementById(`zoneOverride_${override}`)
     el.toggleAttribute("checked", true);
 }
 
@@ -202,28 +200,24 @@ async function changeZoneValue(zoneId, value) {
 }
 
 async function apiGetZoneConfigJson() {
-    let zoneConfigResponse = await getUrl('samples/zones_config.json');
-    let zoneConfigJson = await zoneConfigResponse.json();
-    return zoneConfigJson.zones;
+    return await getUrlJson('samples/zones_config.json');
 }
 
 async function apiGetZoneStateJson() {
-    let zoneStateResponse = await getUrl('samples/zones_state.json');
-    let zoneStateJson = await zoneStateResponse.json();
-    return zoneStateJson;
+    return await getUrlJson('samples/zones_state.json');
 }
 
 async function loadZoneConfiguration() {
     let { orders } = await apiGetOrderTypesJson();
-    let zoneConfig = await apiGetZoneConfigJson();
-    let zoneState = await apiGetZoneStateJson();
-    let planningList = await apiGetPlanningListJson();
+    let { zones } = await apiGetZoneConfigJson();
+    let { states } = await apiGetZoneStateJson();
+    let { plannings } = await apiGetPlanningListJson();
 
     let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
-        + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Programmation: ${name}' });
+        + json2html.render(plannings, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Programmation: ${name}' });
 
     let orderById = function (id) {
-        return orders.find(el => el.id === zoneState[id]);
+        return orders.find(el => el.id === states[id]);
     }
 
     let template = {
@@ -269,9 +263,9 @@ async function loadZoneConfiguration() {
     }
 
     // NOTE: json2html requires jquery to insert event handlers
-    $('#zoneList').json2html(zoneConfig, template);
+    $('#zoneList').json2html(zones, template);
 
-    zoneConfig.forEach((zone) => {
+    zones.forEach((zone) => {
         let el = document.getElementById(`select_zone_${zone.id}`);
         el.value = zone.mode;
     });
@@ -280,9 +274,7 @@ async function loadZoneConfiguration() {
 /*******************************************************************************/
 
 async function apiGetPlanningListJson() {
-    let planningListResponse = await getUrl('samples/plannings.json');
-    let planningListJson = await planningListResponse.json();
-    return planningListJson.plannings;
+    return await getUrlJson('samples/plannings.json');
 }
 
 async function initPlanningCreate() {
@@ -318,12 +310,12 @@ function getSelectedPlanning() {
 }
 
 async function loadPlanningList() {
-    let planningList = await apiGetPlanningListJson();
+    let { plannings } = await apiGetPlanningListJson();
 
     let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
 
     let el = document.getElementById('planningSelect');
-    el.innerHTML = json2html.render(planningList, template);
+    el.innerHTML = json2html.render(plannings, template);
     el.onchange = async function (e) {
         // action after initial loading : ignore cache for fresh data
         await loadPlanningDetails(this.value, true);
@@ -351,9 +343,7 @@ async function loadPlanningList() {
 /*******************************************************************************/
 
 async function apiGetPlanningDetailsJson() {
-    let planningDetailsResponse = await getUrl('samples/planning_details.json');
-    let planningDetailsJson = await planningDetailsResponse.json();
-    return planningDetailsJson.slots;
+    return await getUrlJson('samples/planning_details.json');
 }
 
 async function changePlanningDetailMode(planningId, start, newMode) {
@@ -384,8 +374,7 @@ async function addPlanningDetailSlot(planningId) {
 }
 
 async function loadPlanningDetails(planningId) {
-    let slots = await apiGetPlanningDetailsJson();
-
+    let { slots } = await apiGetPlanningDetailsJson();
     let { orders } = await apiGetOrderTypesJson();
 
     let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
@@ -482,7 +471,7 @@ async function accountPasswordReset(userId) {
 }
 
 async function loadAccounts() {
-    let accounts = await apiGetAccountsJson();
+    let { accounts } = await apiGetAccountsJson();
 
     let template = {
         '<>': 'tr', 'html': [
@@ -523,9 +512,7 @@ async function loadAccounts() {
 }
 
 async function apiGetAccountsJson() {
-    let accountsResponse = await getUrl('samples/accounts.json');
-    let accountsJson = await accountsResponse.json();
-    return accountsJson.accounts;
+    return await getUrlJson('samples/accounts.json');
 }
 
 /*******************************************************************************/
@@ -548,39 +535,33 @@ async function initFirmwareButtons() {
 
 /*******************************************************************************/
 
-async function apiGetHardwareSupportedJson() {
-    let hardwareSupportedResponse = await getUrl('samples/hardware_supported.json');
-    let hardwareSupportedJson = await hardwareSupportedResponse.json();
-    return hardwareSupportedJson.supported;
+async function apiGetHardwareTypesJson() {
+    return await getUrlJson('samples/hardware_types.json');
 }
 
 async function apiGetHardwareCurrentJson() {
-    let hardwareCurrentResponse = await getUrl('samples/hardware_current.json');
-    let hardwareCurrentJson = await hardwareCurrentResponse.json();
-    return hardwareCurrentJson;
+    return await getUrlJson('samples/hardware_current.json');
 }
 
 async function apiGetHardwareParamsJson(hardwareId) {
-    let hardwareParamsResponse = await getUrl('samples/hardware_params.json');
-    let hardwareParamsJson = await hardwareParamsResponse.json();
-    return hardwareParamsJson;
+    return await getUrlJson('samples/hardware_params.json');
 }
 
 async function loadHardwareSupported() {
-    let hardwareSupported = await apiGetHardwareSupportedJson();
-    let hardwareCurrent = await apiGetHardwareCurrentJson();
+    let { types } = await apiGetHardwareTypesJson();
+    let { id } = await apiGetHardwareCurrentJson();
 
     let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
 
     let el = document.getElementById('hardwareSupportedSelect');
-    el.innerHTML = json2html.render(hardwareSupported, template);
+    el.innerHTML = json2html.render(types, template);
     el.onchange = function (e) {
         // action after initial loading : ignore cache for fresh data
         loadHardwareParameters(this.value);
     };
 
-    el.value = hardwareCurrent.id;
-    loadHardwareParameters(hardwareCurrent.id);
+    el.value = id;
+    loadHardwareParameters(id);
 }
 
 async function initHardwareParametersButtons() {
@@ -602,7 +583,7 @@ async function initHardwareParametersButtons() {
 async function loadHardwareParameters(hardwareId) {
     console.log('loadHardwareParameters', hardwareId);
 
-    let hardwareParams = await apiGetHardwareParamsJson(hardwareId);
+    let { parameters } = await apiGetHardwareParamsJson(hardwareId);
 
     let template = {
         '<>': 'div', 'class': 'form-floating mb-3', 'html': [
@@ -612,7 +593,7 @@ async function loadHardwareParameters(hardwareId) {
     };
 
     let el = document.getElementById('hardwareCurrentParameters');
-    el.innerHTML = json2html.render(hardwareParams.parameters, template);
+    el.innerHTML = json2html.render(parameters, template);
 }
 
 /*******************************************************************************/
