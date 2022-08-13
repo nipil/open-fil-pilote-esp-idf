@@ -22,9 +22,8 @@ DELETE /api/v1/plannings/${planningId}
 
 ---------------------------------------------------------------------
 
-POST /api/v1/plannings/${planningId}/details/${startId}/mode
-    { mode: ":fixed:cozyminus2" }
-    --> startId is clock HH:MM without :  ie. HHMM
+POST /api/v1/plannings/${planningId}/slots
+    { start: "00:53", mode: ":fixed:cozyminus2" }
 
 PUT /api/v1/plannings/${planningId}/slots/${startId}
     --> startId is clock HH:MM without :  ie. HHMM
@@ -33,8 +32,6 @@ PUT /api/v1/plannings/${planningId}/slots/${startId}
 
 DELETE /api/v1/plannings/${planningId}/slots/${startId}
     --> startId is clock HH:MM without :  ie. HHMM
-
-POST /api/v1/plannings/${planningId}/append
 
 ---------------------------------------------------------------------
 

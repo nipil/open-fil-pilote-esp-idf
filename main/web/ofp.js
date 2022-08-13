@@ -373,9 +373,10 @@ async function deletePlanningDetail(planningId, start) {
     loadPlanningDetails().catch(logError);
 }
 
-async function addPlanningDetailSlot(planningId) {
-    console.log('addPlanningDetailSlot', planningId);
-    postUrlJson(`/api/v1/plannings/${planningId}/append`).catch(logError);
+async function addPlanningDetailSlot(planningId, start, order) {
+    console.log('addPlanningDetailSlot', planningId, start, order);
+    let startId = start.replace(':', '');
+    postUrlJson(`/api/v1/plannings/${planningId}/details`, { start: startId, mode: order}).catch(logError);
     loadPlanningDetails().catch(logError);
 }
 
@@ -438,9 +439,18 @@ async function loadPlanningDetails(planningId) {
         e.value = `:fixed:${slot.order}`;
     });
 
-    let el = document.getElementById('planningDetailsAdd');
+    // setup new slot UI
+    let eli = document.getElementById('newSlotInput');
+    let els = document.getElementById('newSlotSelect');
+    els.innerHTML = optionsHtml;
+    el = document.getElementById('newSlotButton');
     el.onclick = function (e) {
-        addPlanningDetailSlot(planningId);
+        let start = eli.value.trim();
+        if (start.length === 0) return;
+        let order = els.value.trim();
+        if (order.length === 0) return;
+        eli.value = '';
+        addPlanningDetailSlot(planningId, start, order);
     };
 }
 
