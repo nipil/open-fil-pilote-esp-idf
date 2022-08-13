@@ -34,6 +34,14 @@ async function postUrl(url, json, headers = {}) {
     }
 }
 
+function promptNonEmptyString(message) {
+    let result = window.prompt(message);
+    if (result === null) return null;
+    result = result.trim();
+    if (result.length === 0) return null;
+    return result;
+}
+
 /*******************************************************************************/
 
 function logError(message) {
