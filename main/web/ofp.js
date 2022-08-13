@@ -170,11 +170,6 @@ async function loadZoneOverrides(reload = false) {
     el.toggleAttribute("checked", true);
 }
 
-async function apiGetPlanningListJson(reload = false) {
-    let planningListResponse = await getUrl('samples/plannings.json', reload);
-    let planningListJson = await planningListResponse.json();
-    return planningListJson.plannings;
-}
 
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
@@ -264,6 +259,12 @@ async function loadZoneConfiguration(reload = false) {
         let el = document.getElementById(`select_zone_${zone.id}`);
         el.value = zone.mode;
     });
+}
+
+async function apiGetPlanningListJson(reload = false) {
+    let planningListResponse = await getUrl('samples/plannings.json', reload);
+    let planningListJson = await planningListResponse.json();
+    return planningListJson.plannings;
 }
 
 async function initPlanningCreate() {
