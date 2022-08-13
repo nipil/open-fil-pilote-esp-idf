@@ -391,13 +391,13 @@ async function loadPlanningDetails(planningId, reload = false) {
                 ]
             },
             {
-                '<>': 'div', 'class': 'col', 'html': [
+                '<>': 'div', 'class': 'col-auto', 'html': [
                     {
                         '<>': 'button', 'class': 'btn btn-danger',
                         'onclick': function (e) {
                             deletePlanningDetail(planningId, e.obj.start);
                         },
-                        'html': 'Supprimer'
+                        'html': [{ '<>': 'span', 'class': 'bi bi-trash' }]
                     }
                 ]
             }
@@ -456,7 +456,7 @@ async function loadAccounts() {
                         'onclick': function (e) {
                             accountPasswordReset(e.obj.id);
                         },
-                        'html': 'R&eacute;initialiser'
+                        'html': [{ '<>': 'span', 'class': 'bi bi-pencil-square' }]
                     }
                 ]
             },
@@ -467,7 +467,7 @@ async function loadAccounts() {
                         'onclick': function (e) {
                             accountDelete(e.obj.id);
                         },
-                        'html': 'Supprimer'
+                        'html': [{ '<>': 'span', 'class': 'bi bi-trash' }]
                     }
                 ]
             }
@@ -475,7 +475,7 @@ async function loadAccounts() {
     };
 
     let el = document.getElementById('accountListTable');
-    el.innerHTML = '<tr><th>Utilisateur</th><th>Privil&egrave;ge</th><th>Mot de passe</th><th>Suppression</th></tr>';
+    el.innerHTML = '<tr><th>Nom</th><th>Type</th><th>MdP</th><th>Suppr.</th></tr>';
 
     // NOTE: json2html requires jquery to insert event handlers
     $('#accountListTable').json2html(accounts, template);
