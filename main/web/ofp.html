@@ -113,14 +113,16 @@
 
             <div class="row">
               <h5 class="mb-3">Cr&eacute;er un compte</h5>
-              <div class="mb-3">
-                <label class="form-label" for="newAccountId">Identifiant</label>
-                <input type="text" class="form-control" id="newAccountId">
-              </div>
-              <div class="mb-3">
-                <label class="form-label" for="newAccountPass">Mot de passe</label>
-                <input type="password" class="form-control" id="newAccountPass">
-              </div>
+              <form>
+                <div class="form-floating mb-3">
+                  <input type="text" class="form-control" id="newAccountId">
+                  <label for="newAccountId">Identifiant</label>
+                </div>
+                <div class="form-floating mb-3">
+                  <input type="password" class="form-control" id="newAccountPass">
+                  <label for="newAccountPass">Mot de passe</label>
+                </div>
+              </form>
               <div>
                 <button type="button" class="btn btn-primary" id="newAccountButton">Ajouter</button>
               </div>
