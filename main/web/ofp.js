@@ -9,81 +9,63 @@ function handleHttpErrors(response) {
 
 /*******************************************************************************/
 
-async function getUrl(url, reload = false) {
-    let options = {}
-    if (reload) {
-        options = { cache: "reload" }
-    }
-
+async function doUrl(url, errorMessage, options = {}) {
+    // let options = { method: 'POST' }
+    // if (body) options.body = body;
+    // if (headers) options.headers = headers;
+    // if (reload) options.cache = 'reload';
     try {
         return await fetch(url, options).then(handleHttpErrors);
     }
     catch (err) {
-        throw new Error(`Erreur lors de la r\u00E9cup\u00E9ration de l'URL "${url}" : ${err}`);
+        throw new Error(`${errorMessage} ${url} : ${err}`);
     }
 }
 
-async function postUrlJson(url, json, headers = {}) {
-    return await postUrl(url, JSON.stringify(json), headers);
+async function getUrlJson(url, options = {}) {
+    let result = await getUrl(url, options);
+    let json = await result.json();
+    return json;
 }
 
-async function postUrl(url, body, headers = {}) {
-    try {
-        return await fetch(url, {
-            method: 'POST',
-            headers: headers,
-            body: body
-        }).then(handleHttpErrors);
+async function getUrl(url, options = {}) {
+    options.method = 'GET';
+    return await doUrl(url, 'Erreur lors de la r\u00E9cup\u00E9ration', options);
     }
-    catch (err) {
-        throw new Error(`Erreur lors de l'envoi de l'URL "${url}" : ${err}`);
+
+async function postUrlJson(url, json, options = {}) {
+    return await postUrl(url, JSON.stringify(json), options);
     }
+
+async function postUrl(url, body, options = {}) {
+    options.method = 'POST';
+    options.body = body;
+    return await doUrl(url, 'Erreur lors de la cr\u00E9ation', options);
 }
 
-async function deleteUrl(url, headers = {}) {
-    try {
-        return await fetch(url, {
-            method: 'DELETE',
-            headers: headers,
-        }).then(handleHttpErrors);
-    }
-    catch (err) {
-        throw new Error(`Erreur lors de la suppression de l'URL "${url}" : ${err}`);
-    }
+async function deleteUrl(url, options = {}) {
+    options.method = 'DELETE';
+    return await doUrl(url, 'Erreur lors de la suppression', options);
 }
 
-async function putUrlJson(url, json, headers = {}) {
-    return await putUrl(url, JSON.stringify(json), headers);
+async function putUrlJson(url, json, options = {}) {
+    return await putUrl(url, JSON.stringify(json), options);
 }
 
-async function putUrl(url, body, headers = {}) {
-    try {
-        return await fetch(url, {
-            method: 'PUT',
-            headers: headers,
-            body: body
-        }).then(handleHttpErrors);
-    }
-    catch (err) {
-        throw new Error(`Erreur lors de la mise \u00E0 jour de l'URL "${url}" : ${err}`);
-    }
+async function putUrl(url, body, options = {}) {
+    options.method = 'PUT';
+    options.body = body;
+    return await doUrl(url, 'Erreur lors de la mise \u00E0 jour', options);
 }
 
-async function patchUrlJson(url, json, headers = {}) {
-    return await patchUrl(url, JSON.stringify(json), headers);
+async function patchUrlJson(url, json, options = {}) {
+    return await patchUrl(url, JSON.stringify(json), options);
 }
 
-async function patchUrl(url, body, headers = {}) {
-    try {
-        return await fetch(url, {
-            method: 'PATCH',
-            headers: headers,
-            body: body
-        }).then(handleHttpErrors);
-    }
-    catch (err) {
-        throw new Error(`Erreur lors de la mise \u00E0 jour partielle de l'URL "${url}" : ${err}`);
-    }
+async function patchUrl(url, body, options = {}) {
+    options.method = 'PATCH';
+    options.body = body;
+    return await doUrl(url, 'Erreur lors de la mise \u00E0 jour partielle', options);
 }
 
 /*******************************************************************************/
