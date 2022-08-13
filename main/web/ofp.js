@@ -98,9 +98,10 @@ function promptNonEmptyString(message) {
 
 /*******************************************************************************/
 
-function logError(message) {
+function logError(err) {
+    console.warn(err);
     let msg = document.createElement("div");
-    let txt = document.createTextNode(message);
+    let txt = document.createTextNode(err);
     msg.appendChild(txt);
 
     let el = document.getElementById('errors');
