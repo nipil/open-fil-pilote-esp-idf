@@ -111,7 +111,7 @@ function secondsToDuration(s) {
 /*******************************************************************************/
 
 async function apiGetStatusJson() {
-    return await getUrlJson('samples/status.json');
+    return await getUrlJson('/api/v1/status');
 }
 
 async function loadStatus() {
@@ -137,11 +137,11 @@ async function changeZoneOverrides(override) {
 }
 
 async function apiGetOrderTypesJson() {
-    return await getUrlJson('samples/orders.json');
+    return await getUrlJson('/api/v1/orders');
 }
 
 async function apiGetZoneOverrideJson() {
-    return await getUrlJson('samples/zones_override.json');
+    return await getUrlJson('/api/v1/override');
 }
 
 async function loadZoneOverrides() {
@@ -202,7 +202,7 @@ async function changeZoneValue(zoneId, value) {
 }
 
 async function apiGetZonesJson() {
-    return await getUrlJson('samples/zones.json');
+    return await getUrlJson('/api/v1/zones');
 }
 
 async function loadZoneConfiguration() {
@@ -277,7 +277,7 @@ async function loadZoneConfiguration() {
 /*******************************************************************************/
 
 async function apiGetPlanningListJson() {
-    return await getUrlJson('samples/plannings.json');
+    return await getUrlJson('/api/v1/plannings');
 }
 
 async function initPlanningCreate() {
@@ -458,7 +458,7 @@ async function accountCreate(userId, cleartextPassword) {
     if (userId.length === 0) return null;
     cleartextPassword = userId.trim();
     if (cleartextPassword.length === 0) return null;
-    postUrlJson('/api/v1/user', { id: userId, password: cleartextPassword }).catch(logError);
+    postUrlJson('/api/v1/users', { id: userId, password: cleartextPassword }).catch(logError);
     loadAccounts().catch(logError);
 }
 
@@ -527,7 +527,7 @@ async function loadAccounts() {
 }
 
 async function apiGetAccountsJson() {
-    return await getUrlJson('samples/accounts.json');
+    return await getUrlJson('/api/v1/accounts');
 }
 
 /*******************************************************************************/
@@ -551,11 +551,7 @@ async function initFirmwareButtons() {
 /*******************************************************************************/
 
 async function apiGetHardwareTypesJson() {
-    return await getUrlJson('samples/hardware_types.json');
-}
-
-async function apiGetHardwareCurrentJson() {
-    return await getUrlJson('samples/hardware_current.json');
+    return await getUrlJson('/api/v1/hardware');
 }
 
 async function apiGetHardwareParamsJson(hardwareId) {

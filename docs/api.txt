@@ -1,5 +1,29 @@
 ---------------------------------------------------------------------
 
+GET /api/v1/status
+    {
+        "uptime": {
+            "system": 43210,
+            "wifi": 3679
+        }
+    }
+
+---------------------------------------------------------------------
+
+GET /api/v1/orders
+    {
+        "orders": [
+            {
+                "id": "offload",
+                "name": "Arr&ecirc;t / D&eacute;lestage",
+                "class": "secondary"
+            },
+            ...
+        ]
+    }
+
+---------------------------------------------------------------------
+
 GET /api/v1/override
     { override: "none" }
 
@@ -9,22 +33,22 @@ PUT /api/v1/override
 ---------------------------------------------------------------------
 
 GET /api/v1/zones
-{
-    "zones": [
-        {
-            "id": "e1z1",
-            "desc": "salon",
-            "mode": ":planning:${planningID}",
-            "current": "economy"
-        },
-        {
-            "id": "e1z2",
-            "desc": "chambre parents",
-            "mode": ":fixed:nofreeze",
-            "current": "nofreeze"
-        },        
-    ...
-}
+    {
+        "zones": [
+            {
+                "id": "e1z1",
+                "desc": "salon",
+                "mode": ":planning:${planningID}",
+                "current": "economy"
+            },
+            {
+                "id": "e1z2",
+                "desc": "chambre parents",
+                "mode": ":fixed:nofreeze",
+                "current": "nofreeze"
+            },
+            ...
+    }
 
 PATCH /api/v1/zones/${zoneId}
     { desc: "wxc" }
@@ -33,13 +57,35 @@ PATCH /api/v1/zones/${zoneId}
 
 ---------------------------------------------------------------------
 
-POST /api/v1/planning
+GET /api/v1/plannings
+    {
+        "plannings": [
+            {
+                "id": 0,
+                "name": "Pi&egrave;ces de vie"
+            },
+            ...
+        ]
+    }
+
+POST /api/v1/plannings
     { name: "qsd" }
 
 PATCH /api/v1/plannings/${planningId}
     { name: "toto" }
 
 DELETE /api/v1/plannings/${planningId}
+
+GET /api/v1/plannings/${planningId}
+    {
+        "slots": [
+            {
+                "start": "00h00",
+                "order": "nofreeze"
+            },
+            ...
+        ]
+    }
 
 ---------------------------------------------------------------------
 
@@ -54,7 +100,22 @@ DELETE /api/v1/plannings/${planningId}/slots/${startId}
 
 ---------------------------------------------------------------------
 
-POST /api/v1/user
+GET /api/v1/users
+    {
+        "accounts": [
+            {
+                "id": "admin",
+                "type": "admin"
+            },
+            {
+                "id": "bob",
+                "type": "user"
+            },
+            ...
+        ]
+    }
+
+POST /api/v1/users
     { "id": "toto", "password": "pouet" }
 
 DELETE /api/v1/users/${userId}
@@ -98,3 +159,19 @@ POST /api/v1/upgrade
             Last boundary: \r\n------WebKitFormBoundaryt1eGNHgSa8nagq4F--\r\n
 
 ---------------------------------------------------------------------
+
+GET /api/v1/hardware
+    {
+        "current": "M1E1",
+        "supported": [
+            {
+                "id": "ESP32",
+                "name": "modules ou DevKit seul"
+            },
+            {
+                "id": "M1E1",
+                "name": "DevKit NodeMCU 30 pin + OFP M1 + OFP E1"
+            },
+            ...
+        ]
+    }

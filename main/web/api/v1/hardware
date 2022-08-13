@@ -1,5 +1,6 @@
 {
-    "types": [
+    "current": "M1E1",
+    "supported": [
         {
             "id": "ESP32",
             "name": "modules ou DevKit seul"
