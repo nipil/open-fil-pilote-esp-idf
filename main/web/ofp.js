@@ -264,7 +264,9 @@ function createPlanning() {
 
 function renamePlanning(id) {
     console.log('renamePlanning', id);
-    // TODO
+    let name = promptNonEmptyString('Entrez le nouveau nom du planning');
+    postUrl(`/api/v1/planning/${id}/name`, { name: name }).catch(logError);
+    loadPlanningList().catch(logError);
 }
 
 function deletePlanning(id) {

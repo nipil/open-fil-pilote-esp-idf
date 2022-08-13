@@ -11,3 +11,6 @@ POST /api/v1/zone/${zoneId}/mode
 
 POST /api/v1/planning
     { name: "qsd" }
+
+POST /api/v1/planning/${planningId}/name
+    { name: "toto" }
