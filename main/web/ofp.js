@@ -271,21 +271,21 @@ async function initPlanningCreate() {
     b.onclick = createPlanning;
 }
 
-function createPlanning() {
+async function createPlanning() {
     console.log('createPlanning');
     let name = promptNonEmptyString('Entrez le nom du nouveau planning');
     postUrlJson(`/api/v1/planning`, { name: name }).catch(logError);
     loadPlanningList().catch(logError);
 }
 
-function renamePlanning(id) {
+async function renamePlanning(id) {
     console.log('renamePlanning', id);
     let name = promptNonEmptyString('Entrez le nouveau nom du planning');
     postUrlJson(`/api/v1/planning/${id}/name`, { name: name }).catch(logError);
     loadPlanningList().catch(logError);
 }
 
-function deletePlanning(id) {
+async function deletePlanning(id) {
     console.log('deletePlanning', id);
     deleteUrl(`/api/v1/planning/${id}`).catch(logError);
     loadPlanningList().catch(logError);
