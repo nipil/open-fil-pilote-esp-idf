@@ -4,3 +4,7 @@ POST /api/v1/override
 
 POST /api/v1/zone/${zoneId}/description
     { description: "wxc" }
+
+POST /api/v1/zone/${zoneId}/mode
+    { mode: ":fixed:offload" }
+    { mode: ":planning:1" }

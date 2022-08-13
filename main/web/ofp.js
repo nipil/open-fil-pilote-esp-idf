@@ -167,14 +167,10 @@ async function changeZoneDescription(zoneId) {
     loadZoneConfiguration().catch(logError);
 }
 
-async function changeZoneMode(zoneId, mode) {
-    console.log("changeZoneMode", zoneId, mode);
-    // TODO
-}
-
 async function changeZoneValue(zoneId, value) {
     console.log("changeZoneValue", zoneId, value);
-    // TODO
+    postUrl(`/api/v1/zone/${zoneId}/mode`, { mode: value }).catch(logError);
+    loadZoneConfiguration().catch(logError);
 }
 
 async function apiGetZoneConfigJson(reload = false) {
