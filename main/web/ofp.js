@@ -503,22 +503,19 @@ async function apiGetAccountsJson(reload = false) {
     return accountsJson.accounts;
 }
 
-function uploadFirmware(filePath) {
-    console.log("uploadFirmware", filePath);
-    // TODO
-}
-
-function pickFirmware() {
-    console.log("pickFirmware");
-    // TODO
+async function uploadFirmware(file) {
+    console.log("uploadFirmware", file);
+    let formData = new FormData();
+    formData.set('file', file);
+    postUrl('/api/v1/upgrade', formData).catch(logError);
 }
 
 async function initFirmwareButtons() {
     el = document.getElementById('updateUploadButton');
     el.onclick = function (e) {
         let t = document.getElementById('updateTextFilePath');
-        // TODO check file exists
-        uploadFirmware(t.value);
+        if (t.files.length != 1) return;
+        uploadFirmware(t.files[0]);
     }
 }
 

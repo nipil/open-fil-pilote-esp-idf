@@ -37,3 +37,36 @@ DELETE /api/v1/user/${userId}
 
 POST /api/v1/user/${userId}/password
     { "password": "pouet" }
+
+POST /api/v1/upgrade
+    FormData : "file"
+        Hypertext Transfer Protocol
+            POST /api/v1/upgrade HTTP/1.1\r\n
+            Host: 127.0.0.1:5500\r\n
+            Connection: keep-alive\r\n
+            Content-Length: 1195\r\n
+            sec-ch-ua: "Chromium";v="104", " Not A;Brand";v="99", "Microsoft Edge";v="104"\r\n
+            sec-ch-ua-mobile: ?0\r\n
+            User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.81 Safari/537.36 Edg/104.0.1293.47\r\n
+            sec-ch-ua-platform: "Windows"\r\n
+            Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryt1eGNHgSa8nagq4F\r\n
+            Accept: */*\r\n
+            Origin: http://127.0.0.1:5500\r\n
+            Sec-Fetch-Site: same-origin\r\n
+            Sec-Fetch-Mode: cors\r\n
+            Sec-Fetch-Dest: empty\r\n
+            Referer: http://127.0.0.1:5500/ofp.html\r\n
+            Accept-Encoding: gzip, deflate, br\r\n
+            Accept-Language: fr,fr-FR;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6\r\n
+            \r\n
+            [Full request URI: http://127.0.0.1:5500/api/v1/upgrade]
+            [HTTP request 2/2]
+            File Data: 1195 bytes
+        MIME Multipart Media Encapsulation, Type: multipart/form-data, Boundary: "----WebKitFormBoundaryt1eGNHgSa8nagq4F"
+            [Type: multipart/form-data]
+            First boundary: ------WebKitFormBoundaryt1eGNHgSa8nagq4F\r\n
+            Encapsulated multipart part:  (application/octet-stream)
+                Content-Disposition: form-data; name="file"; filename=".viminfo"\r\n
+                Content-Type: application/octet-stream\r\n\r\n
+                Data (999 bytes)
+            Last boundary: \r\n------WebKitFormBoundaryt1eGNHgSa8nagq4F--\r\n
