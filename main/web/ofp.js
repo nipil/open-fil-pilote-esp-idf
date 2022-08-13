@@ -132,7 +132,7 @@ async function loadStatus() {
 
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
-    postUrlJson('/api/v1/override', { order: override }).catch(logError);
+    putUrlJson('/api/v1/override', { order: override }).catch(logError);
     loadZoneOverrides().catch(logError);
 }
 
