@@ -128,8 +128,8 @@ function secondsToDuration(s) {
 
 /*******************************************************************************/
 
-async function apiGetStatusJson(reload = false) {
-    let statusResponse = await getUrl('samples/status.json', reload);
+async function apiGetStatusJson() {
+    let statusResponse = await getUrl('samples/status.json');
     let statusJson = await statusResponse.json();
     return statusJson;
 }
@@ -154,21 +154,21 @@ async function changeZoneOverrides(override) {
     loadZoneOverrides().catch(logError);
 }
 
-async function apiGetOrderTypesJson(reload = false) {
-    let orderTypesResponse = await getUrl('samples/orders.json', reload);
+async function apiGetOrderTypesJson() {
+    let orderTypesResponse = await getUrl('samples/orders.json');
     let orderTypesJson = await orderTypesResponse.json();
     return orderTypesJson.orders;
 }
 
-async function apiGetZoneOverrideJson(reload = false) {
-    let zoneOverrideResponse = await getUrl('samples/zones_override.json', reload);
+async function apiGetZoneOverrideJson() {
+    let zoneOverrideResponse = await getUrl('samples/zones_override.json');
     let zoneOverrideJson = await zoneOverrideResponse.json();
     return zoneOverrideJson.override;
 }
 
-async function loadZoneOverrides(reload = false) {
-    let zoneOverrideId = await apiGetZoneOverrideJson(reload);
-    let orderTypesSupported = await apiGetOrderTypesJson(reload);
+async function loadZoneOverrides() {
+    let zoneOverrideId = await apiGetZoneOverrideJson();
+    let orderTypesSupported = await apiGetOrderTypesJson();
 
     let noOverride = { id: 'none', name: 'Aucun for&ccedil;age', class: 'primary' }
     let overrideTypesJsonAll = [noOverride, ...orderTypesSupported];
@@ -224,24 +224,24 @@ async function changeZoneValue(zoneId, value) {
     loadZoneConfiguration().catch(logError);
 }
 
-async function apiGetZoneConfigJson(reload = false) {
-    let zoneConfigResponse = await getUrl('samples/zones_config.json', reload);
+async function apiGetZoneConfigJson() {
+    let zoneConfigResponse = await getUrl('samples/zones_config.json');
     let zoneConfigJson = await zoneConfigResponse.json();
     return zoneConfigJson.zones;
 }
 
-async function apiGetZoneStateJson(reload = false) {
-    let zoneStateResponse = await getUrl('samples/zones_state.json', reload);
+async function apiGetZoneStateJson() {
+    let zoneStateResponse = await getUrl('samples/zones_state.json');
     let zoneStateJson = await zoneStateResponse.json();
     return zoneStateJson;
 }
 
-async function loadZoneConfiguration(reload = false) {
-    let orderTypesSupported = await apiGetOrderTypesJson(reload);
-    let zoneConfig = await apiGetZoneConfigJson(reload);
-    let zoneState = await apiGetZoneStateJson(reload);
-    let orderTypes = await apiGetOrderTypesJson(reload);
-    let planningList = await apiGetPlanningListJson(reload);
+async function loadZoneConfiguration() {
+    let orderTypesSupported = await apiGetOrderTypesJson();
+    let zoneConfig = await apiGetZoneConfigJson();
+    let zoneState = await apiGetZoneStateJson();
+    let orderTypes = await apiGetOrderTypesJson();
+    let planningList = await apiGetPlanningListJson();
 
     let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': 'Fixe: ${name}' })
         + json2html.render(planningList, { '<>': 'option', 'value': ':planning:${id}', 'html': 'Programmation: ${name}' });
@@ -303,8 +303,8 @@ async function loadZoneConfiguration(reload = false) {
 
 /*******************************************************************************/
 
-async function apiGetPlanningListJson(reload = false) {
-    let planningListResponse = await getUrl('samples/plannings.json', reload);
+async function apiGetPlanningListJson() {
+    let planningListResponse = await getUrl('samples/plannings.json');
     let planningListJson = await planningListResponse.json();
     return planningListJson.plannings;
 }
@@ -339,8 +339,8 @@ function getSelectedPlanning() {
     return el.value;
 }
 
-async function loadPlanningList(reload = false) {
-    let planningList = await apiGetPlanningListJson(reload);
+async function loadPlanningList() {
+    let planningList = await apiGetPlanningListJson();
 
     let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
 
@@ -372,8 +372,8 @@ async function loadPlanningList(reload = false) {
 
 /*******************************************************************************/
 
-async function apiGetPlanningDetailsJson(reload = false) {
-    let planningDetailsResponse = await getUrl('samples/planning_details.json', reload);
+async function apiGetPlanningDetailsJson() {
+    let planningDetailsResponse = await getUrl('samples/planning_details.json');
     let planningDetailsJson = await planningDetailsResponse.json();
     return planningDetailsJson.slots;
 }
@@ -405,10 +405,10 @@ async function addPlanningDetailSlot(planningId) {
     loadPlanningDetails().catch(logError);
 }
 
-async function loadPlanningDetails(planningId, reload = false) {
+async function loadPlanningDetails(planningId) {
     let slots = await apiGetPlanningDetailsJson();
 
-    let orderTypes = await apiGetOrderTypesJson(reload);
+    let orderTypes = await apiGetOrderTypesJson();
 
     let optionsHtml = json2html.render(orderTypes, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
 
@@ -544,8 +544,8 @@ async function loadAccounts() {
     $('#accountListTable').json2html(accounts, template);
 }
 
-async function apiGetAccountsJson(reload = false) {
-    let accountsResponse = await getUrl('samples/accounts.json', reload);
+async function apiGetAccountsJson() {
+    let accountsResponse = await getUrl('samples/accounts.json');
     let accountsJson = await accountsResponse.json();
     return accountsJson.accounts;
 }
@@ -570,20 +570,20 @@ async function initFirmwareButtons() {
 
 /*******************************************************************************/
 
-async function apiGetHardwareSupportedJson(reload = false) {
-    let hardwareSupportedResponse = await getUrl('samples/hardware_supported.json', reload);
+async function apiGetHardwareSupportedJson() {
+    let hardwareSupportedResponse = await getUrl('samples/hardware_supported.json');
     let hardwareSupportedJson = await hardwareSupportedResponse.json();
     return hardwareSupportedJson.supported;
 }
 
-async function apiGetHardwareCurrentJson(reload = false) {
-    let hardwareCurrentResponse = await getUrl('samples/hardware_current.json', reload);
+async function apiGetHardwareCurrentJson() {
+    let hardwareCurrentResponse = await getUrl('samples/hardware_current.json');
     let hardwareCurrentJson = await hardwareCurrentResponse.json();
     return hardwareCurrentJson;
 }
 
-async function apiGetHardwareParamsJson(hardwareId, reload = false) {
-    let hardwareParamsResponse = await getUrl('samples/hardware_params.json', reload);
+async function apiGetHardwareParamsJson(hardwareId) {
+    let hardwareParamsResponse = await getUrl('samples/hardware_params.json');
     let hardwareParamsJson = await hardwareParamsResponse.json();
     return hardwareParamsJson;
 }
