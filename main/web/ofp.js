@@ -421,7 +421,12 @@ async function loadPlanningDetails(planningId, reload = false) {
 
 async function accountCreate(userId, cleartextPassword) {
     console.log('accountCreate', userId, cleartextPassword);
-    // TODO
+    userId = userId.trim();
+    if (userId.length === 0) return null;
+    cleartextPassword = userId.trim();
+    if (cleartextPassword.length === 0) return null;
+    postUrl('/api/v1/user', { id: userId, password: cleartextPassword }).catch(logError);
+    loadAccounts().catch(logError);
 }
 
 async function initAccountCreate() {
@@ -435,12 +440,16 @@ async function initAccountCreate() {
 
 async function accountDelete(userId) {
     console.log('accountDelete', userId);
-    // TODO
+    userId = userId.trim();
+    if (userId.length === 0) return null;
+    deleteUrl(`/api/v1/user/${userId}`).catch(logError);
+    loadAccounts().catch(logError);
 }
 
 async function accountPasswordReset(userId) {
     console.log('accountPasswordReset', userId);
-    // TODO
+    let password = promptNonEmptyString(`Entrez le nouveu password du compte '${userId}'`);
+    postUrl(`/api/v1/user/${userId}/password`, { password: password }).catch(logError);
 }
 
 async function loadAccounts() {
@@ -472,7 +481,7 @@ async function loadAccounts() {
                         },
                         'html': [{ '<>': 'span', 'class': 'bi bi-trash' }]
                     });
-                    }
+                }
             }
         ]
     };

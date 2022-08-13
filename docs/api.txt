@@ -29,3 +29,11 @@ DELETE /api/v1/planning/${planningId}/details/${startId}
     --> startId is clock HH:MM without :  ie. HHMM
 
 POST /api/v1/planning/${planningId}/append
+
+POST /api/v1/user
+    { "id": "toto", "password": "pouet" }
+
+DELETE /api/v1/user/${userId}
+
+POST /api/v1/user/${userId}/password
+    { "password": "pouet" }
