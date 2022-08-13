@@ -50,6 +50,25 @@ async function deleteUrl(url, headers = {}) {
     }
 }
 
+async function putUrlJson(url, json, headers = {}) {
+    return await putUrl(url, JSON.stringify(json), headers);
+}
+
+async function putUrl(url, body, headers = {}) {
+    try {
+        return await fetch(url, {
+            method: 'PUT',
+            headers: headers,
+            body: body
+        }).then(handleHttpErrors);
+    }
+    catch (err) {
+        throw new Error(`Erreur lors de la mise \u00E0 jour de l'URL "${url}" : ${err}`);
+    }
+}
+
+/*******************************************************************************/
+
 function promptNonEmptyString(message) {
     let result = window.prompt(message);
     if (result === null) return null;
