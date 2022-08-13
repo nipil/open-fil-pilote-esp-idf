@@ -559,20 +559,19 @@ async function apiGetHardwareParamsJson(hardwareId) {
 }
 
 async function loadHardwareSupported() {
-    let { types } = await apiGetHardwareTypesJson();
-    let { id } = await apiGetHardwareCurrentJson();
+    let { current, supported } = await apiGetHardwareTypesJson();
 
     let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
 
     let el = document.getElementById('hardwareSupportedSelect');
-    el.innerHTML = json2html.render(types, template);
+    el.innerHTML = json2html.render(supported, template);
     el.onchange = function (e) {
         // action after initial loading : ignore cache for fresh data
         loadHardwareParameters(this.value);
     };
 
-    el.value = id;
-    loadHardwareParameters(id);
+    el.value = current;
+    loadHardwareParameters(current);
 }
 
 async function initHardwareParametersButtons() {
