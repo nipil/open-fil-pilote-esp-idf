@@ -1,0 +1,1 @@
+idf_component_register(EMBED_TXTFILES "cacert.pem" "prvtkey.pem")
