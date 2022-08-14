@@ -161,8 +161,26 @@ void stop_webserver(httpd_handle_t server)
 	httpd_ssl_stop(server);
 }
 
+/* converts time to localtime using timezone */
+void time_to_localtime(time_t *val, struct tm *timeinfo)
+{
+	setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1); // TODO: migrate TZ definition to menuconfig
+	tzset();
+	localtime_r(val, timeinfo);
+}
+
+/* format localtime */
+void localtime_to_string(struct tm *timeinfo, char *buf, int buf_len)
+{
+	strftime(buf, buf_len, "%c %z %Z", timeinfo);
+}
+
 void sntp_callback(struct timeval *tv)
 {
+	time_t now;
+	struct tm timeinfo;
+	char buf[40];
+
 	/* notify uptime handler ASAP to handle possible clock jump */
 	uptime_sync_check();
 
@@ -171,6 +189,12 @@ void sntp_callback(struct timeval *tv)
 			 (intmax_t)tv->tv_sec,
 			 tv->tv_usec / 1000,
 			 tv->tv_usec % 1000);
+
+	/* log new localized time */
+	time(&now);
+	time_to_localtime(&now, &timeinfo);
+	localtime_to_string(&timeinfo, buf, sizeof(buf));
+	ESP_LOGI(TAG_MAIN, "Current time is : %s", buf);
 }
 
 void cb_connection_ok_handler(void *pvParameter)
