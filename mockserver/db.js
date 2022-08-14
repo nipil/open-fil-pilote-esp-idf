@@ -1,4 +1,267 @@
 module.exports = {
+
+  "/ofp-api/v1/override": {
+    "override": "cozyminus1"
+  },
+
+  "/ofp-api/v1/zones": {
+    "zones": [
+      {
+        "id": "e1z1",
+        "desc": "salon",
+        "mode": ":planning:0",
+        "current": "economy"
+      },
+      {
+        "id": "e1z2",
+        "desc": "chambre parents",
+        "mode": ":fixed:nofreeze",
+        "current": "nofreeze"
+      },
+      {
+        "id": "e1z3",
+        "desc": "e1z3",
+        "mode": ":fixed:economy",
+        "current": "economy"
+      },
+      {
+        "id": "e1z4",
+        "desc": "bureau cecile",
+        "mode": ":fixed:cozyminus2",
+        "current": "cozyminus2"
+      },
+      {
+        "id": "e2z1",
+        "desc": "e2z1",
+        "mode": ":fixed:cozyminus1",
+        "current": "cozyminus1"
+      },
+      {
+        "id": "e2z2",
+        "desc": "e2z2",
+        "mode": ":fixed:cozy",
+        "current": "cozy"
+      },
+      {
+        "id": "e2z3",
+        "desc": "salle de bain",
+        "mode": ":planning:1",
+        "current": "offload"
+      },
+      {
+        "id": "e2z4",
+        "desc": "inutilisé",
+        "mode": ":fixed:offload",
+        "current": "offload"
+      }
+    ]
+  },
+
+  "/ofp-api/v1/orders": {
+    "orders": [
+      {
+        "id": "offload",
+        "name": "Arr&ecirc;t / D&eacute;lestage",
+        "class": "secondary"
+      },
+      {
+        "id": "nofreeze",
+        "name": "Hors-gel",
+        "class": "info"
+      },
+      {
+        "id": "economy",
+        "name": "Economie",
+        "class": "success"
+      },
+      {
+        "id": "cozyminus1",
+        "name": "Confort-1&deg;",
+        "class": "warning"
+      },
+      {
+        "id": "cozyminus2",
+        "name": "Confort-2&deg;",
+        "class": "warning"
+      },
+      {
+        "id": "cozy",
+        "name": "Confort",
+        "class": "danger"
+      }
+    ]
+  },
+
+  "/ofp-api/v1/accounts":
+  {
+    "accounts": [
+      {
+        "id": "admin",
+        "type": "admin"
+      },
+      {
+        "id": "nico",
+        "type": "user"
+      },
+      {
+        "id": "cecile",
+        "type": "user"
+      }
+    ]
+  },
+
+  "/ofp-api/v1/plannings": {
+    "plannings": [
+      {
+        "id": 0,
+        "name": "Pi&egrave;ces de vie"
+      },
+      {
+        "id": 1,
+        "name": "Bureaux"
+      },
+      {
+        "id": 2,
+        "name": "Chambres"
+      }
+    ]
+  },
+
+  "/ofp-api/v1/plannings/0": {
+    "slots": [
+      {
+        "start": "00h00",
+        "order": "nofreeze"
+      },
+      {
+        "start": "05h00",
+        "order": "economy"
+      },
+      {
+        "start": "07h00",
+        "order": "cozy"
+      },
+      {
+        "start": "09h00",
+        "order": "economy"
+      },
+      {
+        "start": "17h00",
+        "order": "cozy"
+      },
+      {
+        "start": "21h00",
+        "order": "nofreeze"
+      }
+    ]
+  },
+
+  "/ofp-api/v1/plannings/1": {
+    "slots": [
+      {
+        "start": "00h00",
+        "order": "economy"
+      },
+      {
+        "start": "17h00",
+        "order": "cozy"
+      }
+    ]
+  },
+
+  "/ofp-api/v1/plannings/2": {
+    "slots": [
+      {
+        "start": "00h00",
+        "order": "cozy"
+      },
+      {
+        "start": "09h00",
+        "order": "economy"
+      },
+      {
+        "start": "10h00",
+        "order": "nofreeze"
+      }
+    ]
+  },
+
+  "/ofp-api/v1/hardware": {
+    "current": "M1E1",
+    "supported": [
+      {
+        "id": "ESP32",
+        "name": "modules ou DevKit seul"
+      },
+      {
+        "id": "M1E1",
+        "name": "DevKit NodeMCU 30 pin + OFP M1 + OFP E1"
+      },
+      {
+        "id": "OFP-10Z",
+        "name": "Carte 10 zones avec afficheur et bouton"
+      }
+    ]
+  },
+  "/ofp-api/v1/hardware/ESP32": {
+    "parameters": [
+    ]
+  },
+
+  "/ofp-api/v1/hardware/M1E1": {
+    "parameters": [
+      {
+        "id": "ext_count",
+        "description": "Nombre de cartes d'extension E1",
+        "type": "number",
+        "value": 3
+      }
+    ]
+  },
+
+  "/ofp-api/v1/hardware/OFP-10Z": {
+    "parameters": [
+      {
+        "id": "dummy1",
+        "description": "dummy number",
+        "type": "number",
+        "value": 69
+      },
+      {
+        "id": "dummy2",
+        "description": "dummy string",
+        "type": "string",
+        "value": "blah"
+      }
+    ]
+  },
+
+  "/ofp-api/v1/status": {
+    "uptime": {
+      "system": 43210,
+      "wifi": 3679
+    }
+  },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   "/customMockData/1": {
     "description": "Since '_config' flag is not set to true. This whole object will be considered as a mock data. If you don't have any specific route configuration you can directly give the mock data to the route or please make sure you provide '_config' to true to set any route configuration.",
     "mock": [
