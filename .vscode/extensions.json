@@ -1,0 +1,6 @@
+{
+    "recommendations": [
+        "thinker.mock-server",
+        "espressif.esp-idf-extension"
+    ]
+}
