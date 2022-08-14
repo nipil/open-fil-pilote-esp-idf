@@ -1,0 +1,6 @@
+{
+    "mock-server.settings.paths": {
+        "root": "mockserver",
+        "staticDir": "../components/ofp-website"
+    },
+}
