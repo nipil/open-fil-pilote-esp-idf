@@ -25,8 +25,8 @@
 
 // #define TLS_REQ_CLIENT_CERT
 
-/* @brief tag used for ESP serial console messages */
-const char TAG[] = "main";
+/* @brief TAG_MAIN used for ESP serial console messages */
+const char TAG_MAIN[] = "main";
 
 /* HTTPS server handle */
 httpd_handle_t *app_server = NULL;
@@ -78,7 +78,7 @@ esp_err_t https_handler_private(httpd_req_t *req)
 	extern const unsigned char ofp_html_end[] asm("_binary_ofp_html_end");
 	size_t ofp_html_len = ofp_html_end - ofp_html_start;
 
-	ESP_LOGI(TAG, "%i bytes in HTML", ofp_html_len);
+	ESP_LOGI(TAG_MAIN, "%i bytes in HTML", ofp_html_len);
 	httpd_resp_set_type(req, "text/html");
 	httpd_resp_send(req, (const char *) ofp_html_start, ofp_html_len);
 
@@ -103,14 +103,14 @@ esp_err_t https_handler_root(httpd_req_t *req)
  */
 void https_server_user_callback(esp_https_server_user_cb_arg_t *user_cb)
 {
-	ESP_LOGI(TAG, "Session Created!");
+	ESP_LOGI(TAG_MAIN, "Session Created!");
 	const mbedtls_x509_crt *cert;
 
 	const size_t buf_size = 1024;
 	char *buf = calloc(buf_size, sizeof(char));
 	if (buf == NULL)
 	{
-		ESP_LOGE(TAG, "Out of memory - Callback execution failed!");
+		ESP_LOGE(TAG_MAIN, "Out of memory - Callback execution failed!");
 		return;
 	}
 
@@ -118,11 +118,11 @@ void https_server_user_callback(esp_https_server_user_cb_arg_t *user_cb)
 	if (cert != NULL)
 	{
 		mbedtls_x509_crt_info((char *)buf, buf_size - 1, "      ", cert);
-		ESP_LOGI(TAG, "Peer certificate info:\n%s", buf);
+		ESP_LOGI(TAG_MAIN, "Peer certificate info:\n%s", buf);
 	}
 	else
 	{
-		ESP_LOGW(TAG, "Could not obtain the peer certificate!");
+		ESP_LOGW(TAG_MAIN, "Could not obtain the peer certificate!");
 	}
 
 	free(buf);
@@ -135,7 +135,7 @@ httpd_handle_t start_webserver(void)
 	httpd_handle_t server = NULL;
 
 	// Start the httpd server
-	ESP_LOGI(TAG, "Starting server");
+	ESP_LOGI(TAG_MAIN, "Starting server");
 
 	httpd_ssl_config_t conf = HTTPD_SSL_CONFIG_DEFAULT();
 
@@ -160,12 +160,12 @@ httpd_handle_t start_webserver(void)
 	esp_err_t ret = httpd_ssl_start(&server, &conf);
 	if (ESP_OK != ret)
 	{
-		ESP_LOGI(TAG, "Error starting server!");
+		ESP_LOGI(TAG_MAIN, "Error starting server!");
 		return NULL;
 	}
 
 	// Set URI handlers
-	ESP_LOGI(TAG, "Registering URI handlers");
+	ESP_LOGI(TAG_MAIN, "Registering URI handlers");
 
 	// Register root URI handler
 	const httpd_uri_t root = {
@@ -206,7 +206,7 @@ void cb_connection_ok_handler(void *pvParameter)
 	/* transform IP to human readable string */
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
-	ESP_LOGI(TAG, "I have a connection and my IP is %s!", str_ip);
+	ESP_LOGI(TAG_MAIN, "I have a connection and my IP is %s!", str_ip);
 
 	/* start ou own HTTPS webserver */
 	if (app_server == NULL)
@@ -217,13 +217,13 @@ void cb_connection_ok_handler(void *pvParameter)
 	/* start network time synchronization */
 	sntp_set_time_sync_notification_cb(sntp_callback);
 	sntp_setservername(0, "pool.ntp.org");
-	ESP_LOGI(TAG, "Starting SNTP time configuration!");
+	ESP_LOGI(TAG_MAIN, "Starting SNTP time configuration!");
 	sntp_init();
 }
 
 void cb_disconnect_handler(void *pvParameter)
 {
-	ESP_LOGI(TAG, "STA Disconnected");
+	ESP_LOGI(TAG_MAIN, "STA Disconnected");
 
 	if (app_server)
 	{
@@ -231,7 +231,7 @@ void cb_disconnect_handler(void *pvParameter)
 		app_server = NULL;
 	}
 
-	ESP_LOGI(TAG, "Stopping SNTP synchronization");
+	ESP_LOGI(TAG_MAIN, "Stopping SNTP synchronization");
 	sntp_stop();
 }
 
