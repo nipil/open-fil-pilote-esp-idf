@@ -23,6 +23,8 @@
 /* menu autoconfig */
 #include "sdkconfig.h"
 
+#include "uptime.h"
+
 // #define TLS_REQ_CLIENT_CERT
 
 /* @brief TAG_MAIN used for ESP serial console messages */
@@ -161,7 +163,11 @@ void stop_webserver(httpd_handle_t server)
 
 void sntp_callback(struct timeval *tv)
 {
-	ESP_LOGI(TAG, "SNTP received time since epoch : = %jd sec: %li ms: %li us",
+	/* notify uptime handler ASAP to handle possible clock jump */
+	uptime_sync_check();
+
+	/* track SNTP messages */
+	ESP_LOGI(TAG_MAIN, "SNTP received time since epoch : = %jd sec: %li ms: %li us",
 			 (intmax_t)tv->tv_sec,
 			 tv->tv_usec / 1000,
 			 tv->tv_usec % 1000);
@@ -205,6 +211,9 @@ void cb_disconnect_handler(void *pvParameter)
 
 void app_main()
 {
+	// compensate uptime according to clock leap from SNTP
+	uptime_sync_start();
+
 	/* start the wifi manager */
 	wifi_manager_start();
 
