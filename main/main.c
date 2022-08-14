@@ -31,38 +31,6 @@ const char TAG_MAIN[] = "main";
 /* HTTPS server handle */
 httpd_handle_t *app_server = NULL;
 
-/* flag for SNTP time synchronization done */
-bool is_clock_valid = false;
-
-/**
- * @brief RTOS task that periodically prints the heap memory available.
- * @note Pure debug information, should not be ever started on production code! This is an example on how you can integrate your code with wifi-manager
- */
-void monitoring_task(void *pvParameter)
-{
-	for (;;)
-	{
-		ESP_LOGI(TAG, "free heap: %d", esp_get_free_heap_size());
-
-		time_t now;
-		char strftime_buf[64];
-		struct tm timeinfo;
-		time(&now);
-		ESP_LOGI(TAG, "The current clock value is: %lu", now);
-
-		setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);
-		tzset();
-		localtime_r(&now, &timeinfo);
-		strftime(strftime_buf, sizeof(strftime_buf), "%c %z %Z", &timeinfo);
-		ESP_LOGI(TAG, "The time in Europe/Paris is: %s", strftime_buf);
-
-		is_clock_valid = (timeinfo.tm_year + 1900 > 2000);
-		ESP_LOGI(TAG, "SNTP network time synchronization status: %s", is_clock_valid ? "OK" : "WAIT");
-
-		vTaskDelay(pdMS_TO_TICKS(1000));
-	}
-}
-
 /* An HTTP GET handler */
 esp_err_t https_handler_private(httpd_req_t *req)
 {
@@ -243,7 +211,4 @@ void app_main()
 	/* register a callback as an example to how you can integrate your code with the wifi manager */
 	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &cb_connection_ok_handler);
 	wifi_manager_set_callback(WM_EVENT_STA_DISCONNECTED, &cb_disconnect_handler);
-
-	/* your code should go here. Here we simply create a task on core 2 that monitors free heap memory */
-	xTaskCreatePinnedToCore(&monitoring_task, "monitoring_task", 2048, NULL, 1, NULL, 1);
 }
