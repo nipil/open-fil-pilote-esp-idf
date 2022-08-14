@@ -367,13 +367,13 @@ async function changePlanningDetailStart(planningId, startId, newStart) {
 async function deletePlanningDetail(planningId, startId) {
     console.log('deletePlanningDetail', planningId, startId);
     deleteUrl(`/ofp-api/v1/plannings/${planningId}/details/${startId}`).catch(logError);
-    loadPlanningDetails().catch(logError);
+    loadPlanningDetails(planningId).catch(logError);
 }
 
 async function addPlanningDetailSlot(planningId, startId, order) {
     console.log('addPlanningDetailSlot', planningId, startId, order);
     postUrlJson(`/ofp-api/v1/plannings/${planningId}/details`, { start: startId, mode: order}).catch(logError);
-    loadPlanningDetails().catch(logError);
+    loadPlanningDetails(planningId).catch(logError);
 }
 
 async function loadPlanningDetails(planningId) {
