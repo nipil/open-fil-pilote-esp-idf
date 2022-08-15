@@ -97,6 +97,26 @@ esp_err_t https_handler_delete(httpd_req_t *req)
 
 /***************************************************************************/
 
+esp_err_t https_handler_generic(httpd_req_t *req)
+{
+    // handle requests
+    if (req->method == HTTP_GET)
+        return https_handler_get(req);
+    if (req->method == HTTP_GET)
+        return https_handler_post(req);
+    if (req->method == HTTP_POST)
+        return https_handler_put(req);
+    if (req->method == HTTP_PATCH)
+        return https_handler_patch(req);
+    if (req->method == HTTP_DELETE)
+        return https_handler_delete(req);
+
+    // default
+    return httpd_resp_send_404(req);
+}
+
+/***************************************************************************/
+
 void webserver_register_wildcard_method(httpd_handle_t *new_server, httpd_method_t method, esp_err_t (*handler)(httpd_req_t *r))
 {
     // we can use a local variable as httpd_register_uri_handler copies the content of httpd_uri_t
@@ -110,11 +130,11 @@ void webserver_register_wildcard_method(httpd_handle_t *new_server, httpd_method
 void webserver_register_uri_handlers(httpd_handle_t new_server)
 {
     // use only generic handlers to avoid consuming too many handlers
-    webserver_register_wildcard_method(new_server, HTTP_GET, https_handler_get);
-    webserver_register_wildcard_method(new_server, HTTP_POST, https_handler_post);
-    webserver_register_wildcard_method(new_server, HTTP_PUT, https_handler_put);
-    webserver_register_wildcard_method(new_server, HTTP_PATCH, https_handler_patch);
-    webserver_register_wildcard_method(new_server, HTTP_DELETE, https_handler_delete);
+    webserver_register_wildcard_method(new_server, HTTP_GET, https_handler_generic);
+    webserver_register_wildcard_method(new_server, HTTP_POST, https_handler_generic);
+    webserver_register_wildcard_method(new_server, HTTP_PUT, https_handler_generic);
+    webserver_register_wildcard_method(new_server, HTTP_PATCH, https_handler_generic);
+    webserver_register_wildcard_method(new_server, HTTP_DELETE, https_handler_generic);
 }
 
 /***************************************************************************/
