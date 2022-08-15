@@ -88,5 +88,7 @@ void uptime_sync_task(void *pvParameter)
 void uptime_sync_start()
 {
     // TODO: reduce stack size to maximum possible
+    // I (1548) uptime: StackHighWaterMark min changed: cur=1360, max=-1, min=1360
+    // I (2548) uptime: StackHighWaterMark min changed: cur=432, max=-1, min=432
     xTaskCreatePinnedToCore(uptime_sync_task, "sync_system_task", 2048, NULL, 1, NULL, 1);
 }
