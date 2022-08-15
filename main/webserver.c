@@ -64,37 +64,27 @@ esp_err_t https_handler_get(httpd_req_t *req)
         return serve_from_asm(req, ofp_js_start, ofp_js_end, http_content_type_js);
     }
 
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, "{ }", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
+    return httpd_resp_send_404(req);
 }
 
 esp_err_t https_handler_post(httpd_req_t *req)
 {
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, "<h1>post</h1>", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
+    return httpd_resp_send_404(req);
 }
 
 esp_err_t https_handler_put(httpd_req_t *req)
 {
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, "<h1>put</h1>", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
+    return httpd_resp_send_404(req);
 }
 
 esp_err_t https_handler_patch(httpd_req_t *req)
 {
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, "<h1>patch</h1>", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
+    return httpd_resp_send_404(req);
 }
 
 esp_err_t https_handler_delete(httpd_req_t *req)
 {
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, "<h1>delete</h1>", HTTPD_RESP_USE_STRLEN);
-    return ESP_OK;
+    return httpd_resp_send_404(req);
 }
 
 /***************************************************************************/
