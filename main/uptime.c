@@ -64,10 +64,23 @@ bool uptime_sync_check()
 /* corrects system_time_start upon SNTP synchronization */
 void uptime_sync_task(void *pvParameter)
 {
+    UBaseType_t min = 0xFFFF, max = -1, cur;
+
     for (;;)
     {
         uptime_sync_check();
         vTaskDelay(pdMS_TO_TICKS(UPTIME_LOOP_WAIT_MILLISECONDS));
+        cur = uxTaskGetStackHighWaterMark(NULL);
+        if (cur < min)
+        {
+            min = cur;
+            ESP_LOGI(TAG_UPTIME, "StackHighWaterMark min changed: cur=%i, max=%i, min=%i", cur, max, min);
+        }
+        if (cur > max)
+        {
+            max = cur;
+            ESP_LOGI(TAG_UPTIME, "StackHighWaterMark max changed: cur=%i, max=%i, min=%i", cur, max, min);
+        }
     }
 }
 
