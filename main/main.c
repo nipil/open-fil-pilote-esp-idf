@@ -26,8 +26,6 @@
 #include "uptime.h"
 #include "utils.h"
 
-// #define TLS_REQ_CLIENT_CERT
-
 /* @brief TAG_MAIN used for ESP serial console messages */
 const char TAG_MAIN[] = "main";
 
@@ -68,42 +66,6 @@ esp_err_t https_handler_root(httpd_req_t *req)
 }
 
 /***************************************************************************/
-
-#ifdef TLS_REQ_CLIENT_CERT
-/**
- * Example callback function to get the certificate of connected clients,
- * whenever a new SSL connection is created
- *
- * Can also be used to other information like Socket FD, Connection state, etc.
- */
-void https_server_user_callback(esp_https_server_user_cb_arg_t *user_cb)
-{
-	ESP_LOGI(TAG_MAIN, "Session Created!");
-	const mbedtls_x509_crt *cert;
-
-	const size_t buf_size = 1024;
-	char *buf = calloc(buf_size, sizeof(char));
-	if (buf == NULL)
-	{
-		ESP_LOGE(TAG_MAIN, "Out of memory - Callback execution failed!");
-		return;
-	}
-
-	cert = mbedtls_ssl_get_peer_cert(&user_cb->tls->ssl);
-	if (cert != NULL)
-	{
-		mbedtls_x509_crt_info((char *)buf, buf_size - 1, "      ", cert);
-		ESP_LOGI(TAG_MAIN, "Peer certificate info:\n%s", buf);
-	}
-	else
-	{
-		ESP_LOGW(TAG_MAIN, "Could not obtain the peer certificate!");
-	}
-
-	free(buf);
-}
-
-#endif // TLS_REQ_CLIENT_CERT
 
 httpd_handle_t start_webserver(void)
 {
