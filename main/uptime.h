@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#define UPTIME_LEAP_TRIGGER_SECONDS (60)
+#define UPTIME_LEAP_TRIGGER_SECONDS (5)
 #define UPTIME_LOOP_WAIT_MILLISECONDS (1000)
 
 /* return corrected system uptime */
