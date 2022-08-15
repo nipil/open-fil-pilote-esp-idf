@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 
 /* converts time to localtime using timezone */
 void time_to_localtime(time_t *val, struct tm *timeinfo)
