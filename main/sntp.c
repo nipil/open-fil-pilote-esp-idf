@@ -32,9 +32,8 @@ void sntp_task_start()
 
     /* start network time synchronization */
     sntp_set_time_sync_notification_cb(sntp_task_callback);
-    char ntp_server[] = CONFIG_OFP_SNTP_SERVER_NAME;
-    sntp_setservername(0, ntp_server);
-    ESP_LOGI(TAG_SNTP, "Starting SNTP synchronization using %s", ntp_server);
+    sntp_setservername(0, CONFIG_OFP_SNTP_SERVER_NAME);
+    ESP_LOGI(TAG_SNTP, "Starting SNTP synchronization using %s", sntp_getservername(0));
     sntp_init();
 }
 
