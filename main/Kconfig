@@ -1,27 +1,36 @@
 menu "Open Fil Pilote"
 
-config OFP_SNTP_SERVER_NAME
-    string "Defines the NTP server used for time synchronization"
-    default "pool.ntp.org"
-    help
-    This parameter helps you select the SNTP server to use for time synchronization
+    config OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
+        bool "Authentice access to UI and API"
+        default "y"
+        help
+            You may disable authentication, for example if you have another means to filter access
+            For example, you are using a reverse-proxy, a firewall... or both !
 
-config OFP_LOCAL_TIMEZONE_SPEC
-    string "Defines the timezone spec to compute local time from standard time"
-    default "CET-1CEST,M3.5.0,M10.5.0/3"
-    help
-    The default value is for Europe/Paris. See https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html and https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for more information.
+    config OFP_LOCAL_TIMEZONE_SPEC
+        string "Local timezone specification"
+        default "CET-1CEST,M3.5.0,M10.5.0/3"
+        help
+            The default value is for Europe/Paris.
+            See https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html and
+            https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for more information.
 
-config OFP_UI_WEBSERVER_CONTROL_PORT
-    int "UDP control port for the UI HTTPD server. Must be different from any other HTTPD server instance running simultaneously. ESP-IDF default value is 32768."
-    default 32000
-    help
-    You may run multiple ones (wifimanager, ofp, others...) so you need to specify different values.
+    config OFP_SNTP_SERVER_NAME
+        string "SNTP server used for time synchronization"
+        default "pool.ntp.org"
+        help
+            This can be either an IP or a fully-qualified domain name
 
-config OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
-    bool "Require authentication to access user interface and API"
-    default "y"
-    help
-    You may disable authentication, for example if you have another means to filter access (reverse-proxy, firewall...)
-    
+    menu "Advanded options"
+
+        config OFP_UI_WEBSERVER_CONTROL_PORT
+            int "UDP control port for the UI HTTPD server"
+            default 32000
+            help
+                We are running multiple HTTPD servers simultaneously (wifimanager, ofp ui and api, others...)
+                We need to specify different control port for each server or these will not start
+                In any case, avoid the default ESP-IDF value of 32768.
+            
+    endmenu
+
 endmenu
