@@ -19,11 +19,11 @@ const char TAG_MAIN[] = "main";
 
 /***************************************************************************/
 
-void display_ip(ip_event_got_ip_t *param, char * msg)
+void display_ip(ip_event_got_ip_t *param, char *msg)
 {
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
-	ESP_LOGI(TAG_MAIN, "%s : %s",  msg, str_ip);
+	ESP_LOGI(TAG_MAIN, "%s : %s", msg, str_ip);
 }
 
 void wifi_manager_connected_callback(void *pvParameter)
