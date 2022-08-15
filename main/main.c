@@ -168,7 +168,7 @@ void stop_webserver(httpd_handle_t server)
 
 /***************************************************************************/
 
-void sntp_callback(struct timeval *tv)
+void sntp_task_callback(struct timeval *tv)
 {
 	time_t now;
 	struct tm timeinfo;
@@ -190,6 +190,15 @@ void sntp_callback(struct timeval *tv)
 	ESP_LOGI(TAG_MAIN, "Current time is : %s", buf);
 }
 
+void sntp_task_start()
+{
+	/* start network time synchronization */
+	sntp_set_time_sync_notification_cb(sntp_task_callback);
+	sntp_setservername(0, "pool.ntp.org");
+	ESP_LOGI(TAG_MAIN, "Starting SNTP time configuration!");
+	sntp_init();
+}
+
 /***************************************************************************/
 
 void cb_connection_ok_handler(void *pvParameter)
@@ -207,11 +216,8 @@ void cb_connection_ok_handler(void *pvParameter)
 		app_server = start_webserver();
 	}
 
-	/* start network time synchronization */
-	sntp_set_time_sync_notification_cb(sntp_callback);
-	sntp_setservername(0, "pool.ntp.org");
-	ESP_LOGI(TAG_MAIN, "Starting SNTP time configuration!");
-	sntp_init();
+	/* begin network time synchronization */
+	sntp_task_start();
 }
 
 void cb_disconnect_handler(void *pvParameter)
