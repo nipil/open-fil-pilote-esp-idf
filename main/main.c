@@ -26,7 +26,7 @@ void wifi_manager_connected_callback(void *pvParameter)
 	/* transform IP to human readable string */
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
-	ESP_LOGI(TAG_MAIN, "I have a connection and my IP is %s!", str_ip);
+	ESP_LOGI(TAG_MAIN, "I have a connection and my IP is %s", str_ip);
 
 	if (!webserver_start())
 	{

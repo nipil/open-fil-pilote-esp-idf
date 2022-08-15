@@ -37,7 +37,7 @@ void sntp_task_start()
     /* start network time synchronization */
     sntp_set_time_sync_notification_cb(sntp_task_callback);
     sntp_setservername(0, "pool.ntp.org");
-    ESP_LOGI(TAG_SNTP, "Starting SNTP time configuration!");
+    ESP_LOGI(TAG_SNTP, "Starting SNTP synchronization");
     sntp_init();
 }
 
