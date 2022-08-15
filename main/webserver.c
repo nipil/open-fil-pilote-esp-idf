@@ -2,6 +2,8 @@
 #include <esp_log.h>
 #include <esp_https_server.h>
 
+#include "httpd_basic_auth.h"
+
 #include "webserver.h"
 
 /* @brief TAG_MAIN used for ESP serial console messages */
@@ -97,8 +99,26 @@ esp_err_t https_handler_delete(httpd_req_t *req)
 
 /***************************************************************************/
 
+bool is_authentication_valid(httpd_req_t *req)
+{
+    return httpd_basic_auth(req, "admin", "admin") == ESP_OK;
+}
+
+esp_err_t authentication_reject(httpd_req_t *req)
+{
+    httpd_basic_auth_resp_send_401(req);
+    httpd_resp_sendstr(req, "Not Authorized");
+    return ESP_FAIL;
+}
+
+/***************************************************************************/
+
 esp_err_t https_handler_generic(httpd_req_t *req)
 {
+    // check credentials
+    if (!is_authentication_valid(req))
+        return authentication_reject(req);
+
     // handle requests
     if (req->method == HTTP_GET)
         return https_handler_get(req);
