@@ -48,6 +48,29 @@ esp_err_t https_handler_root(httpd_req_t *req)
 
 /***************************************************************************/
 
+void webserver_register_uri_handlers(httpd_handle_t *new_server)
+{
+    // Set URI handlers
+    ESP_LOGI(TAG_WEB, "Registering URI handlers");
+
+    // Register root URI handler
+    const httpd_uri_t root = {
+        .uri = "/",
+        .method = HTTP_GET,
+        .handler = https_handler_root};
+
+    ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &root));
+
+    const httpd_uri_t private = {
+        .uri = "/private",
+        .method = HTTP_GET,
+        .handler = https_handler_private};
+
+    ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &private));
+}
+
+/***************************************************************************/
+
 void webserver_start()
 {
     httpd_handle_t new_server = NULL;
@@ -79,23 +102,7 @@ void webserver_start()
     // E (9142) httpd: httpd_server_init: error in creating ctrl socket (112)
     ESP_ERROR_CHECK(httpd_ssl_start(&new_server, &conf));
 
-    // Set URI handlers
-    ESP_LOGI(TAG_WEB, "Registering URI handlers");
-
-    // Register root URI handler
-    const httpd_uri_t root = {
-        .uri = "/",
-        .method = HTTP_GET,
-        .handler = https_handler_root};
-
-    ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &root));
-
-    const httpd_uri_t private = {
-        .uri = "/private",
-        .method = HTTP_GET,
-        .handler = https_handler_private};
-
-    ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &private));
+    webserver_register_uri_handlers(&new_server);
 
     app_server = new_server;
 }
