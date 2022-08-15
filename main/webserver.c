@@ -2,71 +2,117 @@
 #include <esp_log.h>
 #include <esp_https_server.h>
 
-/* authorisation HTTP 401 */
-#include "httpd_basic_auth.h"
-
 #include "webserver.h"
 
 /* @brief TAG_MAIN used for ESP serial console messages */
 const char TAG_WEB[] = "webserver";
+
+/* constants for efficient memory management */
+const static char http_content_type_html[] = "text/html";
+const static char http_content_type_js[] = "text/javascript";
+const static char route_root[] = "/";
+const static char route_ofp_html[] = "/ofp.html";
+const static char route_ofp_js[] = "/ofp.js";
+
+/* const httpd related values stored in ROM */
+const static char http_302_hdr[] = "302 Found";
+const static char http_location_hdr[] = "Location";
 
 /* HTTPS server handle */
 httpd_handle_t *app_server = NULL;
 
 /***************************************************************************/
 
-/* An HTTP GET handler */
-esp_err_t https_handler_private(httpd_req_t *req)
+esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_start, const unsigned char *binary_end, const char *http_content_type)
 {
+    size_t binary_len = binary_end - binary_start;
 
-    if (!httpd_basic_auth(req, "https", "https") == ESP_OK)
-    {
-        httpd_basic_auth_resp_send_401(req);
-        httpd_resp_sendstr(req, "Not Authorized");
-        return ESP_FAIL;
-    }
-
-    extern const unsigned char ofp_html_start[] asm("_binary_ofp_html_start");
-    extern const unsigned char ofp_html_end[] asm("_binary_ofp_html_end");
-    size_t ofp_html_len = ofp_html_end - ofp_html_start;
-
-    ESP_LOGI(TAG_WEB, "%i bytes in HTML", ofp_html_len);
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, (const char *)ofp_html_start, ofp_html_len);
-
-    return ESP_OK;
-}
-
-/* HTTPS root handle */
-esp_err_t https_handler_root(httpd_req_t *req)
-{
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, "<h1>root</h1>", HTTPD_RESP_USE_STRLEN);
-
+    ESP_LOGI(TAG_WEB, "start %p end %p size %i", binary_start, binary_end, binary_len);
+    httpd_resp_set_type(req, http_content_type);
+    httpd_resp_send(req, (const char *)binary_start, binary_len);
     return ESP_OK;
 }
 
 /***************************************************************************/
 
-void webserver_register_uri_handlers(httpd_handle_t *new_server)
+esp_err_t https_handler_get(httpd_req_t *req)
 {
-    // Set URI handlers
-    ESP_LOGI(TAG_WEB, "Registering URI handlers");
+    if (strcmp(req->uri, route_root) == 0)
+    {
+        httpd_resp_set_type(req, http_content_type_html);
+        httpd_resp_set_status(req, http_302_hdr);
+        httpd_resp_set_hdr(req, http_location_hdr, route_ofp_html);
+        httpd_resp_send(req, NULL, 0);
+        return ESP_OK;
+    }
 
-    // Register root URI handler
-    const httpd_uri_t root = {
-        .uri = "/",
-        .method = HTTP_GET,
-        .handler = https_handler_root};
+    if (strcmp(req->uri, route_ofp_html) == 0)
+    {
+        extern const unsigned char ofp_html_start[] asm("_binary_ofp_html_start");
+        extern const unsigned char ofp_html_end[] asm("_binary_ofp_html_end");
+        return serve_from_asm(req, ofp_html_start, ofp_html_end, http_content_type_html);
+    }
 
-    ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &root));
+    if (strcmp(req->uri, route_ofp_js) == 0)
+    {
+        extern const unsigned char ofp_js_start[] asm("_binary_ofp_js_start");
+        extern const unsigned char ofp_js_end[] asm("_binary_ofp_js_end");
+        return serve_from_asm(req, ofp_js_start, ofp_js_end, http_content_type_js);
+    }
 
-    const httpd_uri_t private = {
-        .uri = "/private",
-        .method = HTTP_GET,
-        .handler = https_handler_private};
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, "{ }", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
 
-    ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &private));
+esp_err_t https_handler_post(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, "<h1>post</h1>", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+esp_err_t https_handler_put(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, "<h1>put</h1>", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+esp_err_t https_handler_patch(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, "<h1>patch</h1>", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+esp_err_t https_handler_delete(httpd_req_t *req)
+{
+    httpd_resp_set_type(req, "text/html");
+    httpd_resp_send(req, "<h1>delete</h1>", HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+}
+
+/***************************************************************************/
+
+void webserver_register_wildcard_method(httpd_handle_t *new_server, httpd_method_t method, esp_err_t (*handler)(httpd_req_t *r))
+{
+    // we can use a local variable as httpd_register_uri_handler copies the content of httpd_uri_t
+    const httpd_uri_t request = {
+        .uri = "*",
+        .method = method,
+        .handler = handler};
+    ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &request));
+}
+
+void webserver_register_uri_handlers(httpd_handle_t new_server)
+{
+    // use only generic handlers to avoid consuming too many handlers
+    webserver_register_wildcard_method(new_server, HTTP_GET, https_handler_get);
+    webserver_register_wildcard_method(new_server, HTTP_POST, https_handler_post);
+    webserver_register_wildcard_method(new_server, HTTP_PUT, https_handler_put);
+    webserver_register_wildcard_method(new_server, HTTP_PATCH, https_handler_patch);
+    webserver_register_wildcard_method(new_server, HTTP_DELETE, https_handler_delete);
 }
 
 /***************************************************************************/
@@ -99,11 +145,16 @@ void webserver_start()
     // dedicated webserver control port, for easier coexistance with other servers
     conf.httpd.ctrl_port = CONFIG_OFP_UI_WEBSERVER_CONTROL_PORT;
 
-    // E (9142) httpd: httpd_server_init: error in creating ctrl socket (112)
+    // use only wildcard matcher to reduce number of handlers
+    conf.httpd.uri_match_fn = httpd_uri_match_wildcard;
+
+    // errors happening here are due to faulty design
     ESP_ERROR_CHECK(httpd_ssl_start(&new_server, &conf));
 
-    webserver_register_uri_handlers(&new_server);
+    // register generic handles
+    webserver_register_uri_handlers(new_server);
 
+    // persist handle
     app_server = new_server;
 }
 
