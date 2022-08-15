@@ -33,6 +33,8 @@ const char TAG_MAIN[] = "main";
 /* HTTPS server handle */
 httpd_handle_t *app_server = NULL;
 
+/***************************************************************************/
+
 /* An HTTP GET handler */
 esp_err_t https_handler_private(httpd_req_t *req)
 {
@@ -63,6 +65,8 @@ esp_err_t https_handler_root(httpd_req_t *req)
 
 	return ESP_OK;
 }
+
+/***************************************************************************/
 
 #ifdef TLS_REQ_CLIENT_CERT
 /**
@@ -161,6 +165,8 @@ void stop_webserver(httpd_handle_t server)
 	httpd_ssl_stop(server);
 }
 
+/***************************************************************************/
+
 /* converts time to localtime using timezone */
 void time_to_localtime(time_t *val, struct tm *timeinfo)
 {
@@ -197,6 +203,8 @@ void sntp_callback(struct timeval *tv)
 	ESP_LOGI(TAG_MAIN, "Current time is : %s", buf);
 }
 
+/***************************************************************************/
+
 void cb_connection_ok_handler(void *pvParameter)
 {
 	ip_event_got_ip_t *param = (ip_event_got_ip_t *)pvParameter;
@@ -232,6 +240,8 @@ void cb_disconnect_handler(void *pvParameter)
 	ESP_LOGI(TAG_MAIN, "Stopping SNTP synchronization");
 	sntp_stop();
 }
+
+/***************************************************************************/
 
 void app_main()
 {
