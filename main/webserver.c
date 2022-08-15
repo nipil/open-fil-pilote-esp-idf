@@ -48,7 +48,7 @@ esp_err_t https_handler_root(httpd_req_t *req)
 
 /***************************************************************************/
 
-bool webserver_start()
+void webserver_start()
 {
     httpd_handle_t new_server = NULL;
 
@@ -77,12 +77,7 @@ bool webserver_start()
     conf.httpd.ctrl_port = CONFIG_OFP_UI_WEBSERVER_CONTROL_PORT;
 
     // E (9142) httpd: httpd_server_init: error in creating ctrl socket (112)
-    esp_err_t ret = httpd_ssl_start(&new_server, &conf);
-    if (ESP_OK != ret)
-    {
-        ESP_LOGI(TAG_WEB, "Error starting server!");
-        return false;
-    }
+    ESP_ERROR_CHECK(httpd_ssl_start(&new_server, &conf));
 
     // Set URI handlers
     ESP_LOGI(TAG_WEB, "Registering URI handlers");
@@ -103,7 +98,6 @@ bool webserver_start()
     ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &private));
 
     app_server = new_server;
-    return true;
 }
 
 void webserver_stop()

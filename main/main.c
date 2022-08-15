@@ -27,13 +27,7 @@ void wifi_manager_connected_callback(void *pvParameter)
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
 	ESP_LOGI(TAG_MAIN, "I have a connection and my IP is %s", str_ip);
-
-	if (!webserver_start())
-	{
-		ESP_LOGE(TAG_MAIN, "Failed to start webserver");
-		return;
-	}
-
+	webserver_start();
 	sntp_task_start();
 }
 
