@@ -13,7 +13,6 @@
 
 #include <esp_https_server.h>
 #include <esp_http_server.h>
-#include <esp_sntp.h>
 
 #include "esp_tls.h"
 
@@ -25,6 +24,7 @@
 
 #include "uptime.h"
 #include "utils.h"
+#include "sntp.h"
 
 /* @brief TAG_MAIN used for ESP serial console messages */
 const char TAG_MAIN[] = "main";
@@ -130,39 +130,6 @@ void stop_webserver(httpd_handle_t server)
 
 /***************************************************************************/
 
-void sntp_task_callback(struct timeval *tv)
-{
-	time_t now;
-	struct tm timeinfo;
-	char buf[40];
-
-	/* notify uptime handler ASAP to handle possible clock jump */
-	uptime_sync_check();
-
-	/* track SNTP messages */
-	ESP_LOGI(TAG_MAIN, "SNTP received time since epoch : = %jd sec: %li ms: %li us",
-			 (intmax_t)tv->tv_sec,
-			 tv->tv_usec / 1000,
-			 tv->tv_usec % 1000);
-
-	/* log new localized time */
-	time(&now);
-	time_to_localtime(&now, &timeinfo);
-	localtime_to_string(&timeinfo, buf, sizeof(buf));
-	ESP_LOGI(TAG_MAIN, "Current time is : %s", buf);
-}
-
-void sntp_task_start()
-{
-	/* start network time synchronization */
-	sntp_set_time_sync_notification_cb(sntp_task_callback);
-	sntp_setservername(0, "pool.ntp.org");
-	ESP_LOGI(TAG_MAIN, "Starting SNTP time configuration!");
-	sntp_init();
-}
-
-/***************************************************************************/
-
 void wifi_manager_connected_callback(void *pvParameter)
 {
 	ip_event_got_ip_t *param = (ip_event_got_ip_t *)pvParameter;
@@ -193,7 +160,7 @@ void wifi_manager_disconnected_callback(void *pvParameter)
 	}
 
 	ESP_LOGI(TAG_MAIN, "Stopping SNTP synchronization");
-	sntp_stop();
+	sntp_task_stop();
 }
 
 /***************************************************************************/
