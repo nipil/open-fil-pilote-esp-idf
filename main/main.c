@@ -28,9 +28,10 @@ void display_ip(ip_event_got_ip_t *param, char * msg)
 
 void wifi_manager_connected_callback(void *pvParameter)
 {
-	display_ip((ip_event_got_ip_t *)pvParameter, "I have a wifi connection and my IP is");
+	display_ip((ip_event_got_ip_t *)pvParameter, "STA Connected. IP is");
 	webserver_start();
 	sntp_task_start();
+	ESP_LOGI(TAG_MAIN, "Connection processing finished.");
 }
 
 void wifi_manager_disconnected_callback(void *pvParameter)
@@ -38,6 +39,7 @@ void wifi_manager_disconnected_callback(void *pvParameter)
 	ESP_LOGI(TAG_MAIN, "STA Disconnected");
 	webserver_stop();
 	sntp_task_stop();
+	ESP_LOGI(TAG_MAIN, "Disconnection processing finished.");
 }
 
 /***************************************************************************/
