@@ -195,10 +195,10 @@
           data-bs-parent="#accordionApp">
           <div class="accordion-body">
 
-            <form action="/api/hardware/parameters" method="post" id="hardwareCurrentForm">
+            <form action="/ofp-api/v1/hardware" method="POST" id="hardwareCurrentForm">
               <h5>Type de mat&eacute;riel</h5>
               <div class="mb-3">
-                <select class="form-select" id="hardwareSupportedSelect">
+                <select class="form-select" name="hardware_type" id="hardwareSupportedSelect">
                 </select>
               </div>
 
