@@ -201,7 +201,7 @@ void sntp_task_start()
 
 /***************************************************************************/
 
-void cb_connection_ok_handler(void *pvParameter)
+void wifi_manager_connected_callback(void *pvParameter)
 {
 	ip_event_got_ip_t *param = (ip_event_got_ip_t *)pvParameter;
 
@@ -220,7 +220,7 @@ void cb_connection_ok_handler(void *pvParameter)
 	sntp_task_start();
 }
 
-void cb_disconnect_handler(void *pvParameter)
+void wifi_manager_disconnected_callback(void *pvParameter)
 {
 	ESP_LOGI(TAG_MAIN, "STA Disconnected");
 
@@ -245,6 +245,6 @@ void app_main()
 	wifi_manager_start();
 
 	/* register a callback as an example to how you can integrate your code with the wifi manager */
-	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &cb_connection_ok_handler);
-	wifi_manager_set_callback(WM_EVENT_STA_DISCONNECTED, &cb_disconnect_handler);
+	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &wifi_manager_connected_callback);
+	wifi_manager_set_callback(WM_EVENT_STA_DISCONNECTED, &wifi_manager_disconnected_callback);
 }
