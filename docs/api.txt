@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------
 
-GET /api/v1/status
+GET /ofp-api/v1/status
     {
         "uptime": {
             "system": 43210,
@@ -10,7 +10,7 @@ GET /api/v1/status
 
 ---------------------------------------------------------------------
 
-GET /api/v1/orders
+GET /ofp-api/v1/orders
     {
         "orders": [
             {
@@ -24,15 +24,15 @@ GET /api/v1/orders
 
 ---------------------------------------------------------------------
 
-GET /api/v1/override
+GET /ofp-api/v1/override
     { override: "none" }
 
-PUT /api/v1/override
+PUT /ofp-api/v1/override
     { override: "nofreeze" }
 
 ---------------------------------------------------------------------
 
-GET /api/v1/zones
+GET /ofp-api/v1/zones
     {
         "zones": [
             {
@@ -50,14 +50,14 @@ GET /api/v1/zones
             ...
     }
 
-PATCH /api/v1/zones/${zoneId}
+PATCH /ofp-api/v1/zones/${zoneId}
     { desc: "wxc" }
     { mode: ":fixed:offload" }
     { mode: ":planning:${planningId}" }
 
 ---------------------------------------------------------------------
 
-GET /api/v1/plannings
+GET /ofp-api/v1/plannings
     {
         "plannings": [
             {
@@ -68,17 +68,17 @@ GET /api/v1/plannings
         ]
     }
 
-POST /api/v1/plannings
+POST /ofp-api/v1/plannings
     { name: "qsd" }
 
-PATCH /api/v1/plannings/${planningId}
+PATCH /ofp-api/v1/plannings/${planningId}
     { name: "toto" }
 
-DELETE /api/v1/plannings/${planningId}
+DELETE /ofp-api/v1/plannings/${planningId}
 
-GET /api/v1/plannings/${planningId}
+GET /ofp-api/v1/plannings/${planningId}
     {
-        "slots": [
+        "details": [
             {
                 "start": "00h00",
                 "order": "nofreeze"
@@ -89,18 +89,18 @@ GET /api/v1/plannings/${planningId}
 
 ---------------------------------------------------------------------
 
-POST /api/v1/plannings/${planningId}/slots
+POST /ofp-api/v1/plannings/${planningId}/slots
     { start: "00h53", mode: ":fixed:cozyminus2" }
 
-PUT /api/v1/plannings/${planningId}/slots/${startId}
+PUT /ofp-api/v1/plannings/${planningId}/slots/${startId}
     { start: "00h53" }
     { mode: ":fixed:cozyminus2" }
 
-DELETE /api/v1/plannings/${planningId}/slots/${startId}
+DELETE /ofp-api/v1/plannings/${planningId}/slots/${startId}
 
 ---------------------------------------------------------------------
 
-GET /api/v1/accounts
+GET /ofp-api/v1/accounts
     {
         "accounts": [
             {
@@ -115,20 +115,20 @@ GET /api/v1/accounts
         ]
     }
 
-POST /api/v1/accounts
+POST /ofp-api/v1/accounts
     { "id": "toto", "password": "pouet" }
 
-DELETE /api/v1/accounts/${userId}
+DELETE /ofp-api/v1/accounts/${userId}
 
-PATCH /api/v1/accounts/${userId}
+PATCH /ofp-api/v1/accounts/${userId}
     { "password": "pouet" }
 
 ---------------------------------------------------------------------
 
-POST /api/v1/upgrade
+POST /ofp-api/v1/upgrade
     FormData : "file"
         Hypertext Transfer Protocol
-            POST /api/v1/upgrade HTTP/1.1\r\n
+            POST /ofp-api/v1/upgrade HTTP/1.1\r\n
             Host: 127.0.0.1:5500\r\n
             Connection: keep-alive\r\n
             Content-Length: 1195\r\n
@@ -146,7 +146,7 @@ POST /api/v1/upgrade
             Accept-Encoding: gzip, deflate, br\r\n
             Accept-Language: fr,fr-FR;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6\r\n
             \r\n
-            [Full request URI: http://127.0.0.1:5500/api/v1/upgrade]
+            [Full request URI: http://127.0.0.1:5500/ofp-api/v1/upgrade]
             [HTTP request 2/2]
             File Data: 1195 bytes
         MIME Multipart Media Encapsulation, Type: multipart/form-data, Boundary: "----WebKitFormBoundaryt1eGNHgSa8nagq4F"
@@ -160,7 +160,7 @@ POST /api/v1/upgrade
 
 ---------------------------------------------------------------------
 
-GET /api/v1/hardware
+GET /ofp-api/v1/hardware
     {
         "current": "M1E1",
         "supported": [
