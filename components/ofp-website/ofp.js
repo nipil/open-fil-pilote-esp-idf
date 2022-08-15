@@ -324,7 +324,7 @@ async function loadPlanningList() {
     el.innerHTML = json2html.render(plannings, template);
     el.onchange = async function (e) {
         // action after initial loading : ignore cache for fresh data
-        await loadPlanningDetails(this.value, true);
+        await loadPlanningSlots(this.value, true);
     };
 
     el = document.getElementById('planningRenameButton');
@@ -342,42 +342,42 @@ async function loadPlanningList() {
     let planningId = getSelectedPlanning();
     if (planningId) {
         // action during initial loading : use cache if possible
-        await loadPlanningDetails(planningId);
+        await loadPlanningSlots(planningId);
     }
 }
 
 /*******************************************************************************/
 
-async function apiGetPlanningDetailsJson(planningId) {
+async function apiGetPlanningSlotsJson(planningId) {
     return await getUrlJson(`/ofp-api/v1/plannings/${planningId}`);
 }
 
-async function changePlanningDetailMode(planningId, startId, newMode) {
-    console.log('changePlanningDetailMode', planningId, startId, newMode);
-    putUrlJson(`/ofp-api/v1/plannings/${planningId}/details/${startId}`, { mode: newMode }).catch(logError);
-    loadPlanningDetails(planningId).catch(logError);
+async function changePlanningSlotMode(planningId, startId, newMode) {
+    console.log('changePlanningSlotMode', planningId, startId, newMode);
+    putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`, { mode: newMode }).catch(logError);
+    loadPlanningSlots(planningId).catch(logError);
 }
 
-async function changePlanningDetailStart(planningId, startId, newStart) {
-    console.log('changePlanningDetailStart', planningId, startId, newStart);
-    putUrlJson(`/ofp-api/v1/plannings/${planningId}/details/${startId}`, { start: newStart }).catch(logError);
-    loadPlanningDetails(planningId).catch(logError);
+async function changePlanningSlotStart(planningId, startId, newStart) {
+    console.log('changePlanningSlotStart', planningId, startId, newStart);
+    putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`, { start: newStart }).catch(logError);
+    loadPlanningSlots(planningId).catch(logError);
 }
 
-async function deletePlanningDetail(planningId, startId) {
-    console.log('deletePlanningDetail', planningId, startId);
-    deleteUrl(`/ofp-api/v1/plannings/${planningId}/details/${startId}`).catch(logError);
-    loadPlanningDetails(planningId).catch(logError);
+async function deletePlanningSlot(planningId, startId) {
+    console.log('deletePlanningSlot', planningId, startId);
+    deleteUrl(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`).catch(logError);
+    loadPlanningSlots(planningId).catch(logError);
 }
 
-async function addPlanningDetailSlot(planningId, startId, order) {
-    console.log('addPlanningDetailSlot', planningId, startId, order);
-    postUrlJson(`/ofp-api/v1/plannings/${planningId}/details`, { start: startId, mode: order}).catch(logError);
-    loadPlanningDetails(planningId).catch(logError);
+async function addPlanningSlot(planningId, startId, order) {
+    console.log('addPlanningSlot', planningId, startId, order);
+    postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { start: startId, mode: order }).catch(logError);
+    loadPlanningSlots(planningId).catch(logError);
 }
 
-async function loadPlanningDetails(planningId) {
-    let { slots } = await apiGetPlanningDetailsJson(planningId);
+async function loadPlanningSlots(planningId) {
+    let { slots } = await apiGetPlanningSlotsJson(planningId);
     let { orders } = await apiGetOrderTypesJson();
 
     let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
@@ -392,7 +392,7 @@ async function loadPlanningDetails(planningId) {
                         'type': 'text',
                         'value': '${start}',
                         'onchange': function (e) {
-                            changePlanningDetailStart(planningId, e.obj.start, e.event.currentTarget.value);
+                            changePlanningSlotStart(planningId, e.obj.start, e.event.currentTarget.value);
                         }
                     },
                 ]
@@ -401,10 +401,10 @@ async function loadPlanningDetails(planningId) {
                 '<>': 'div', 'class': 'col', 'html': [
                     {
                         '<>': 'select',
-                        'id': 'planningDetailSelect_${start}',
+                        'id': 'planningSlotSelect_${start}',
                         'class': 'form-select',
                         'onchange': function (e) {
-                            changePlanningDetailMode(planningId, e.obj.start, e.event.currentTarget.value);
+                            changePlanningSlotMode(planningId, e.obj.start, e.event.currentTarget.value);
                         },
                         'html': optionsHtml
                     }
@@ -415,7 +415,7 @@ async function loadPlanningDetails(planningId) {
                     {
                         '<>': 'button', 'class': 'btn btn-danger',
                         'onclick': function (e) {
-                            deletePlanningDetail(planningId, e.obj.start);
+                            deletePlanningSlot(planningId, e.obj.start);
                         },
                         'html': [{ '<>': 'span', 'class': 'bi bi-trash' }]
                     }
@@ -425,13 +425,13 @@ async function loadPlanningDetails(planningId) {
     };
 
     // clear content
-    document.getElementById('planningDetails').textContent = '';
+    document.getElementById('planningSlots').textContent = '';
 
     // NOTE: json2html requires jquery to insert event handlers
-    $('#planningDetails').json2html(slots, template);
+    $('#planningSlots').json2html(slots, template);
 
     slots.forEach(function (slot) {
-        let e = document.getElementById(`planningDetailSelect_${slot.start}`);
+        let e = document.getElementById(`planningSlotSelect_${slot.start}`);
         e.value = `:fixed:${slot.order}`;
     });
 
@@ -446,7 +446,7 @@ async function loadPlanningDetails(planningId) {
         let order = els.value.trim();
         if (order.length === 0) return;
         eli.value = '';
-        addPlanningDetailSlot(planningId, start, order);
+        addPlanningSlot(planningId, start, order);
     };
 }
 
