@@ -48,6 +48,7 @@ esp_err_t https_handler_get(httpd_req_t *req)
 
     if (strcmp(req->uri, route_ofp_html) == 0)
     {
+        // This does NOT need to be null-terminated
         extern const unsigned char ofp_html_start[] asm("_binary_ofp_html_start");
         extern const unsigned char ofp_html_end[] asm("_binary_ofp_html_end");
         return serve_from_asm(req, ofp_html_start, ofp_html_end, http_content_type_html);
@@ -55,6 +56,7 @@ esp_err_t https_handler_get(httpd_req_t *req)
 
     if (strcmp(req->uri, route_ofp_js) == 0)
     {
+        // This does NOT need to be null-terminated
         extern const unsigned char ofp_js_start[] asm("_binary_ofp_js_start");
         extern const unsigned char ofp_js_end[] asm("_binary_ofp_js_end");
         return serve_from_asm(req, ofp_js_start, ofp_js_end, http_content_type_js);
@@ -132,11 +134,13 @@ void webserver_start()
 
     httpd_ssl_config_t conf = HTTPD_SSL_CONFIG_DEFAULT();
 
+    // This need to be null-terminated
     extern const unsigned char cacert_pem_start[] asm("_binary_cacert_pem_start");
     extern const unsigned char cacert_pem_end[] asm("_binary_cacert_pem_end");
     conf.cacert_pem = cacert_pem_start;
     conf.cacert_len = cacert_pem_end - cacert_pem_start;
 
+    // This need to be null-terminated
     extern const unsigned char prvtkey_pem_start[] asm("_binary_prvtkey_pem_start");
     extern const unsigned char prvtkey_pem_end[] asm("_binary_prvtkey_pem_end");
     conf.prvtkey_pem = prvtkey_pem_start;
