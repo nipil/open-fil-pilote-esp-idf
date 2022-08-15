@@ -19,14 +19,16 @@ const char TAG_MAIN[] = "main";
 
 /***************************************************************************/
 
-void wifi_manager_connected_callback(void *pvParameter)
+void display_ip(ip_event_got_ip_t *param, char * msg)
 {
-	ip_event_got_ip_t *param = (ip_event_got_ip_t *)pvParameter;
-
-	/* transform IP to human readable string */
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
-	ESP_LOGI(TAG_MAIN, "I have a connection and my IP is %s", str_ip);
+	ESP_LOGI(TAG_MAIN, "%s : %s",  msg, str_ip);
+}
+
+void wifi_manager_connected_callback(void *pvParameter)
+{
+	display_ip((ip_event_got_ip_t *)pvParameter, "I have a wifi connection and my IP is");
 	webserver_start();
 	sntp_task_start();
 }
