@@ -2,7 +2,20 @@
 
 Firmware pour les cartes domotiques Open-fil-pilote
 
-# configuration manuelle
+# configuration via menuconfig
+
+Certains paramètres compilés sont modifiables v 
+
+    idf.py menuconfig
+
+Puis allez dans les sous menus :
+
+    Component config
+        Open Fil Pilote
+
+Les valeurs par défaut sont correctes pour la France et le firmware de base.
+
+# configuration manuelle additionnelle
 
 Voir le document certs/README.md pour la génération des certificats
 
