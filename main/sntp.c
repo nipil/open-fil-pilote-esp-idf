@@ -12,10 +12,6 @@ const char TAG_SNTP[] = "sntp";
 
 void sntp_task_callback(struct timeval *tv)
 {
-    time_t now;
-    struct tm timeinfo;
-    char buf[40];
-
     /* notify uptime handler ASAP to handle possible clock jump */
     uptime_sync_check();
 
@@ -25,15 +21,15 @@ void sntp_task_callback(struct timeval *tv)
              tv->tv_usec / 1000,
              tv->tv_usec % 1000);
 
-    /* log new localized time */
-    time(&now);
-    time_to_localtime(&now, &timeinfo);
-    localtime_to_string(&timeinfo, buf, sizeof(buf));
-    ESP_LOGI(TAG_SNTP, "Current time is : %s", buf);
+    /* display every time something intersting happens */
+    display_current_localtime(TAG_SNTP);
 }
 
 void sntp_task_start()
 {
+    /* display every time something intersting happens */
+    display_current_localtime(TAG_SNTP);
+
     /* start network time synchronization */
     sntp_set_time_sync_notification_cb(sntp_task_callback);
     char ntp_server[] = CONFIG_OFP_SNTP_SERVER_NAME;
