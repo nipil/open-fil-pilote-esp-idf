@@ -74,7 +74,7 @@ bool webserver_start()
     conf.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
 
     // dedicated webserver control port, for easier coexistance with other servers
-    conf.httpd.ctrl_port = 32000;
+    conf.httpd.ctrl_port = CONFIG_OFP_UI_WEBSERVER_CONTROL_PORT;
 
     // E (9142) httpd: httpd_server_init: error in creating ctrl socket (112)
     esp_err_t ret = httpd_ssl_start(&new_server, &conf);

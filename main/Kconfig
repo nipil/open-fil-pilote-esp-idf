@@ -1,0 +1,21 @@
+menu "Open Fil Pilote"
+
+config OFP_SNTP_SERVER_NAME
+    string "Defines the NTP server used for time synchronization"
+    default "pool.ntp.org"
+    help
+    This parameter helps you select the SNTP server to use for time synchronization
+
+config OFP_LOCAL_TIMEZONE_SPEC
+    string "Defines the timezone spec to compute local time from standard time"
+    default "CET-1CEST,M3.5.0,M10.5.0/3"
+    help
+    The default value is for Europe/Paris. See https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html and https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for more information.
+
+config OFP_UI_WEBSERVER_CONTROL_PORT
+    int "UDP control port for the UI HTTPD server. Must be different from any other HTTPD server instance running simultaneously. ESP-IDF default value is 32768."
+    default 32000
+    help
+    You may run multiple ones (wifimanager, ofp, others...) so you need to specify different values.
+
+endmenu

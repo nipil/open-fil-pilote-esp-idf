@@ -4,7 +4,7 @@
 /* converts time to localtime using timezone */
 void time_to_localtime(time_t *val, struct tm *timeinfo)
 {
-	setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1); // TODO: migrate TZ definition to menuconfig
+	setenv("TZ", CONFIG_OFP_LOCAL_TIMEZONE_SPEC, 1);
 	tzset();
 	localtime_r(val, timeinfo);
 }
