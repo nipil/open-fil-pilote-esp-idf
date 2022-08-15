@@ -99,6 +99,8 @@ esp_err_t https_handler_delete(httpd_req_t *req)
 
 /***************************************************************************/
 
+#ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
+
 bool is_authentication_valid(httpd_req_t *req)
 {
     return httpd_basic_auth(req, "admin", "admin") == ESP_OK;
@@ -111,13 +113,18 @@ esp_err_t authentication_reject(httpd_req_t *req)
     return ESP_FAIL;
 }
 
+#endif
+
 /***************************************************************************/
 
 esp_err_t https_handler_generic(httpd_req_t *req)
 {
+
+#ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
     // check credentials
     if (!is_authentication_valid(req))
         return authentication_reject(req);
+#endif
 
     // handle requests
     if (req->method == HTTP_GET)

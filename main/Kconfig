@@ -18,4 +18,10 @@ config OFP_UI_WEBSERVER_CONTROL_PORT
     help
     You may run multiple ones (wifimanager, ofp, others...) so you need to specify different values.
 
+config OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
+    bool "Require authentication to access user interface and API"
+    default "y"
+    help
+    You may disable authentication, for example if you have another means to filter access (reverse-proxy, firewall...)
+    
 endmenu
