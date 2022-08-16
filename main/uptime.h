@@ -1,3 +1,6 @@
+#ifndef UPTIME_H
+#define UPTIME_H
+
 #include <stdio.h>
 
 #define UPTIME_LEAP_TRIGGER_SECONDS (5)
@@ -11,3 +14,5 @@ void uptime_sync_start();
 
 /* allow to request an immediate check (returns true if clock changed) */
 bool uptime_sync_check();
+
+#endif /* UPTIME_H */
