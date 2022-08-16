@@ -555,7 +555,7 @@ async function apiGetHardwareTypesJson() {
 }
 
 async function apiGetHardwareParamsJson(hardwareId) {
-    return await getUrlJson(`/ofp-api/v1/hardware/${hardwareId}`);
+    return await getUrlJson(`/ofp-api/v1/hardware/${hardwareId}/parameters`);
 }
 
 async function loadHardwareSupported() {

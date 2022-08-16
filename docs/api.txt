@@ -180,7 +180,7 @@ POST /ofp-api/v1/hardware
     FormData:
         hardware_type=OFP-10Z&hardware_parameter_name_dummy1=69&hardware_parameter_name_dummy2=blah+et+%C3%A9t%C3%A9+cou%23cou%3A+toto
 
-GET /ofp-api/v1/hardware/${hardwareID}
+GET /ofp-api/v1/hardware/${hardwareID}/parameters
 {
     "parameters": [
       {

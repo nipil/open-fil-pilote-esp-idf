@@ -203,12 +203,12 @@ module.exports = {
       }
     ]
   },
-  "/ofp-api/v1/hardware/ESP32": {
+  "/ofp-api/v1/hardware/ESP32/parameters": {
     "parameters": [
     ]
   },
 
-  "/ofp-api/v1/hardware/M1E1": {
+  "/ofp-api/v1/hardware/M1E1/parameters": {
     "parameters": [
       {
         "id": "ext_count",
@@ -219,7 +219,7 @@ module.exports = {
     ]
   },
 
-  "/ofp-api/v1/hardware/OFP-10Z": {
+  "/ofp-api/v1/hardware/OFP-10Z/parameters": {
     "parameters": [
       {
         "id": "dummy1",
