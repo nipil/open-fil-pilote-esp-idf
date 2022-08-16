@@ -1,11 +1,23 @@
 menu "Open Fil Pilote"
 
+    config OFP_HOSTNAME
+        string "Machine hostname (short)"
+        default "openfilpilote"
+        help
+            Hostname without domain, will be used for mDNS service
+
     config OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
         bool "Authentice access to UI and API"
         default "y"
         help
             You may disable authentication, for example if you have another means to filter access
             For example, you are using a reverse-proxy, a firewall... or both !
+
+    config OFP_MDNS_INSTANCE_NAME
+        string "Machine hostname (short)"
+        default "Open fil-pilote"
+        help
+            The instance name of the mDNS service
 
     config OFP_LOCAL_TIMEZONE_SPEC
         string "Local timezone specification"
