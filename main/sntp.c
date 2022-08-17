@@ -22,13 +22,13 @@ static void sntp_task_callback(struct timeval *tv)
              tv->tv_usec % 1000);
 
     /* display every time something intersting happens */
-    display_current_localtime(TAG);
+    log_current_localtime(TAG);
 }
 
 void sntp_task_start(void)
 {
     /* display every time something intersting happens */
-    display_current_localtime(TAG);
+    log_current_localtime(TAG);
 
     /* start network time synchronization */
     sntp_set_time_sync_notification_cb(sntp_task_callback);

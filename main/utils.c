@@ -18,7 +18,7 @@ void localtime_to_string(struct tm *timeinfo, char *buf, int buf_len)
 
 /* display current localtime */
 
-void display_current_localtime(const char *tag)
+void log_current_localtime(const char *tag)
 {
     time_t now;
     struct tm timeinfo;
