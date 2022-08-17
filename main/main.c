@@ -20,8 +20,7 @@
 #include "hw_esp32.h"
 #include "hw_m1e1.h"
 
-/* @brief TAG_MAIN used for ESP serial console messages */
-const char TAG_MAIN[] = "main";
+static const char TAG[] = "main";
 
 /***************************************************************************/
 
@@ -29,7 +28,7 @@ void display_ip(ip_event_got_ip_t *param, char *msg)
 {
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
-	ESP_LOGI(TAG_MAIN, "%s : %s", msg, str_ip);
+	ESP_LOGI(TAG, "%s : %s", msg, str_ip);
 }
 
 void wifi_manager_connected_callback(void *pvParameter)
@@ -38,16 +37,16 @@ void wifi_manager_connected_callback(void *pvParameter)
 	mdns_start();
 	webserver_start();
 	sntp_task_start();
-	ESP_LOGI(TAG_MAIN, "Connection processing finished.");
+	ESP_LOGI(TAG, "Connection processing finished.");
 }
 
 void wifi_manager_disconnected_callback(void *pvParameter)
 {
-	ESP_LOGI(TAG_MAIN, "STA Disconnected");
+	ESP_LOGI(TAG, "STA Disconnected");
 	mdns_stop();
 	webserver_stop();
 	sntp_task_stop();
-	ESP_LOGI(TAG_MAIN, "Disconnection processing finished.");
+	ESP_LOGI(TAG, "Disconnection processing finished.");
 }
 
 /***************************************************************************/
