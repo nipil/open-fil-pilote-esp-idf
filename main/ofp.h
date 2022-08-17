@@ -1,6 +1,12 @@
 #ifndef OFP_H
 #define OFP_H
 
+/* limits */
+#define OFP_MAX_SIMULTANEOUS_HARDWARE 4
+#define OFP_MAX_LEN_ID 16
+#define OFP_MAX_LEN_VALUE 32
+#define OFP_MAX_LEN_DESCRIPTION 128
+
 /* orders, DO NOT EVER MODIFY THE IDs */
 
 enum ofp_order_id
@@ -15,5 +21,37 @@ enum ofp_order_id
     HW_OFP_ORDER_ID_EXTENDED_COZYMINUS1 = 5,
     HW_OFP_ORDER_ID_ENUM_SIZE
 } ofp_order_id;
+
+/* hardware */
+
+enum ofp_hw_param_type
+{
+    HW_OFP_PARAM_INTEGER = 0,
+    HW_OFP_PARAM_STRING = 1,
+};
+
+union ofp_hw_param_value
+{
+    int int_;
+    char string_[OFP_MAX_LEN_VALUE];
+};
+
+struct ofp_hw_param
+{
+    const char id[OFP_MAX_LEN_ID];
+    char description[OFP_MAX_LEN_DESCRIPTION];
+    enum ofp_hw_param_type type;
+    union ofp_hw_param_value value;
+};
+
+struct ofp_hw
+{
+    const char id[OFP_MAX_LEN_ID];
+    char description[OFP_MAX_LEN_DESCRIPTION];
+    int param_count;
+    struct ofp_hw_param params[];
+};
+/* enable an hardware implementation to be used */
+void ofp_hw_register(struct ofp_hw *hw);
 
 #endif /* OFP_H */

@@ -9,11 +9,16 @@
 /* menu autoconfig */
 #include "sdkconfig.h"
 
+#include "ofp.h"
 #include "uptime.h"
 #include "utils.h"
 #include "sntp.h"
 #include "webserver.h"
 #include "m_dns.h"
+
+// hardware
+#include "hw_esp32.h"
+#include "hw_m1e1.h"
 
 /* @brief TAG_MAIN used for ESP serial console messages */
 const char TAG_MAIN[] = "main";
@@ -47,10 +52,21 @@ void wifi_manager_disconnected_callback(void *pvParameter)
 
 /***************************************************************************/
 
+void register_hardware(void)
+{
+	ofp_hw_register(hw_esp32_get_definition());
+	ofp_hw_register(hw_m1e1_get_definition());
+}
+
+/***************************************************************************/
+
 void app_main()
 {
 	// compensate uptime according to clock leap from SNTP
 	uptime_sync_start();
+
+	// register every hardware available at compilation time
+	register_hardware();
 
 	/* start the wifi manager */
 	wifi_manager_start();

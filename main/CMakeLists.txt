@@ -6,6 +6,9 @@ idf_component_register(
         "uptime.c"
         "m_dns.c"
         "webserver.c"
+        "ofp.c"
+        "hw_m1e1.c"
+        "hw_esp32.c"
     INCLUDE_DIRS
         "."
 )
