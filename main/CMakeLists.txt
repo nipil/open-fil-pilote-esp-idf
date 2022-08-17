@@ -1,2 +1,11 @@
-idf_component_register(SRCS "webserver.c" "sntp.c" "utils.c" "uptime.c" "main.c"
-                    INCLUDE_DIRS ".")
+idf_component_register(
+    SRCS 
+        "main.c" 
+        "utils.c"
+        "sntp.c"
+        "uptime.c"
+        "m_dns.c"
+        "webserver.c"
+    INCLUDE_DIRS
+        "."
+)
