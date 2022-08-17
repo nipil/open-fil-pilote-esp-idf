@@ -6,19 +6,17 @@
 
 #include "webserver.h"
 
-/* @brief TAG_MAIN used for ESP serial console messages */
 static const char TAG[] = "webserver";
 
 /* constants for efficient memory management */
-const static char http_content_type_html[] = "text/html";
-const static char http_content_type_js[] = "text/javascript";
-const static char route_root[] = "/";
-const static char route_ofp_html[] = "/ofp.html";
-const static char route_ofp_js[] = "/ofp.js";
+static const char http_content_type_html[] = "text/html";
+static const char http_content_type_js[] = "text/javascript";
+static const char route_root[] = "/";
+static const char route_ofp_html[] = "/ofp.html";
+static const char route_ofp_js[] = "/ofp.js";
 
-/* const httpd related values stored in ROM */
-const static char http_302_hdr[] = "302 Found";
-const static char http_location_hdr[] = "Location";
+static const char http_302_hdr[] = "302 Found";
+static const char http_location_hdr[] = "Location";
 
 /* HTTPS server handle */
 static httpd_handle_t *app_server = NULL;
