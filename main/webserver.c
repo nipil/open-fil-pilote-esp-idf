@@ -47,7 +47,7 @@ static esp_err_t serve_static_ofp_html(httpd_req_t *req)
     return serve_from_asm(req, ofp_html_start, ofp_html_end, http_content_type_html);
 }
 
-static esp_err_t serve_static_ofp_html(httpd_req_t *req)
+static esp_err_t serve_static_ofp_js(httpd_req_t *req)
 {
     extern const unsigned char ofp_js_start[] asm("_binary_ofp_js_start");
     extern const unsigned char ofp_js_end[] asm("_binary_ofp_js_end");
