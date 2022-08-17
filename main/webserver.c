@@ -33,6 +33,20 @@ static esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_st
     return ESP_OK;
 }
 
+static esp_err_t serve_static_ofp_html(httpd_req_t *req)
+{
+    extern const unsigned char ofp_html_start[] asm("_binary_ofp_html_start");
+    extern const unsigned char ofp_html_end[] asm("_binary_ofp_html_end");
+    return serve_from_asm(req, ofp_html_start, ofp_html_end, http_content_type_html);
+}
+
+static esp_err_t serve_static_ofp_html(httpd_req_t *req)
+{
+    extern const unsigned char ofp_js_start[] asm("_binary_ofp_js_start");
+    extern const unsigned char ofp_js_end[] asm("_binary_ofp_js_end");
+    return serve_from_asm(req, ofp_js_start, ofp_js_end, http_content_type_js);
+}
+
 /***************************************************************************/
 
 static esp_err_t https_handler_get(httpd_req_t *req)
@@ -46,7 +60,13 @@ static esp_err_t https_handler_get(httpd_req_t *req)
         return ESP_OK;
     }
 
+    // static content
     if (strcmp(req->uri, route_ofp_html) == 0)
+        return serve_static_ofp_html(req);
+
+    if (strcmp(req->uri, route_ofp_js) == 0)
+        return serve_static_ofp_js(req);
+
     {
         // This does NOT need to be null-terminated
         extern const unsigned char ofp_html_start[] asm("_binary_ofp_html_start");
