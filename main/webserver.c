@@ -111,7 +111,7 @@ static esp_err_t https_handler_get(httpd_req_t *req)
 {
     // redirect root to static content
     if (strcmp(req->uri, route_root) == 0)
-        return serve_redirect(req, route_ofp_html);
+        return serve_redirect(req, (char *)route_ofp_html);
 
     // static content
     if (strcmp(req->uri, route_ofp_html) == 0)
