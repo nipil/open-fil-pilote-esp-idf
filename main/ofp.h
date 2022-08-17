@@ -51,6 +51,12 @@ struct ofp_hw
     int param_count;
     struct ofp_hw_param params[];
 };
+
+struct ofp_hw_list
+{
+    int hw_count;
+    struct ofp_hw *hw[OFP_MAX_SIMULTANEOUS_HARDWARE];
+};
 /* enable an hardware implementation to be used */
 void ofp_hw_register(struct ofp_hw *hw);
 

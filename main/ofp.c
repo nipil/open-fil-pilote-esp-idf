@@ -6,7 +6,7 @@
 
 static const char TAG[] = "ofp";
 
-static struct ofp_hw *ofp_hardware_definitions[OFP_MAX_SIMULTANEOUS_HARDWARE] = {NULL};
+static struct ofp_hw_list hw_list = {.hw_count = 0, .hw = {NULL}};
 
 /*
  * Make a hardware available to the system.
@@ -16,20 +16,8 @@ static struct ofp_hw *ofp_hardware_definitions[OFP_MAX_SIMULTANEOUS_HARDWARE] = 
 void ofp_hw_register(struct ofp_hw *hw)
 {
     assert(hw);
+    assert(hw_list.hw_count < OFP_MAX_SIMULTANEOUS_HARDWARE);
 
     ESP_LOGD(TAG, "Registering hardware definition %s with %i parameters", hw->id, hw->param_count);
-
-    struct ofp_hw **cur = ofp_hardware_definitions;
-    struct ofp_hw **last = cur + OFP_MAX_SIMULTANEOUS_HARDWARE;
-    while (cur != last)
-    {
-        if (*cur == NULL)
-        {
-            *cur = hw;
-            return;
-        }
-        cur++;
-    }
-
-    assert(cur != last);
+    hw_list.hw[hw_list.hw_count++] = hw;
 }
