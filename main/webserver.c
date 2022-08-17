@@ -12,6 +12,7 @@ static const char TAG[] = "webserver";
 /* constants for efficient memory management */
 static const char http_content_type_html[] = "text/html";
 static const char http_content_type_js[] = "text/javascript";
+static const char http_content_type_json[] = "application/json";
 static const char route_root[] = "/";
 static const char route_ofp_html[] = "/ofp.html";
 static const char route_ofp_js[] = "/ofp.js";
@@ -63,6 +64,16 @@ static esp_err_t serve_redirect(httpd_req_t *req, char *target)
     httpd_resp_set_hdr(req, http_location_hdr, target);
     httpd_resp_send(req, NULL, 0);
     return ESP_OK;
+}
+
+static esp_err_t serve_json(httpd_req_t *req, cJSON *node)
+{
+    const char *txt = cJSON_Print(node);
+    ESP_LOGD(TAG, "Serving serialized JSON: %s", txt);
+    httpd_resp_set_type(req, http_content_type_json);
+    esp_err_t result = httpd_resp_sendstr(req, txt);
+    free(txt); // we are responsible for freeing the rendering buffer
+    return result;
 }
 
 /***************************************************************************/
