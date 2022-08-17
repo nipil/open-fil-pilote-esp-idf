@@ -5,6 +5,7 @@
 #include "httpd_basic_auth.h"
 
 #include "webserver.h"
+#include "ofp.h"
 
 static const char TAG[] = "webserver";
 
