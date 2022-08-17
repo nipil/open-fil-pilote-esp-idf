@@ -1,1 +1,1 @@
-idf_component_register(EMBED_FILES "ofp.html" "ofp.js")
+idf_component_register(EMBED_TXTFILES  "ofp.html" "ofp.js")

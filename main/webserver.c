@@ -25,7 +25,14 @@ static httpd_handle_t *app_server = NULL;
 
 static esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_start, const unsigned char *binary_end, const char *http_content_type)
 {
-    size_t binary_len = binary_end - binary_start;
+    /*
+     * Static pages are TXT files which are likely to be embedded using EMBED_TXTFILES,
+     * which adds a final NULL terminator, and increase the size by one.
+     * This is likely done so that the embedded file could safely be printed.
+     *
+     * When serving it through the network, do *NOT* send this final NULL terminator
+     */
+    size_t binary_len = binary_end - binary_start - 1;
 
     ESP_LOGD(TAG, "Serve_from_asm start %p end %p size %i", binary_start, binary_end, binary_len);
     httpd_resp_set_type(req, http_content_type);
