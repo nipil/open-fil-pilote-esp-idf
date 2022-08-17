@@ -60,4 +60,13 @@ struct ofp_hw_list
 /* enable an hardware implementation to be used */
 void ofp_hw_register(struct ofp_hw *hw);
 
+/* gives the number of registered definitions */
+int ofp_hw_list_get_count(void);
+
+/* get hardware definition by index */
+struct ofp_hw *ofp_hw_list_get_hw_by_index(int n);
+
+/* get hardware definition by id */
+struct ofp_hw *ofp_hw_list_find_hw_by_id(char *hw_id);
+
 #endif /* OFP_H */
