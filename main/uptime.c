@@ -17,7 +17,7 @@ time_t system_start = 0;
 time_t last_time = 0;
 
 /* calculate corrected system uptime */
-time_t uptime_get_time()
+time_t uptime_get_time(void)
 {
     portMUX_TYPE mutex_system_start = portMUX_INITIALIZER_UNLOCKED;
 
@@ -32,7 +32,7 @@ time_t uptime_get_time()
     return uptime;
 }
 
-bool uptime_sync_check()
+bool uptime_sync_check(void)
 {
     portMUX_TYPE mutex_system_start = portMUX_INITIALIZER_UNLOCKED;
     portMUX_TYPE mutex_last_time = portMUX_INITIALIZER_UNLOCKED;
@@ -85,7 +85,7 @@ void uptime_sync_task(void *pvParameter)
 }
 
 /* starts compensation task */
-void uptime_sync_start()
+void uptime_sync_start(void)
 {
     // TODO: reduce stack size to maximum possible
     // I (1548) uptime: StackHighWaterMark min changed: cur=1360, max=-1, min=1360

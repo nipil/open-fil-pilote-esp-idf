@@ -156,7 +156,7 @@ void webserver_register_uri_handlers(httpd_handle_t new_server)
 
 /***************************************************************************/
 
-void webserver_start()
+void webserver_start(void)
 {
     httpd_handle_t new_server = NULL;
 
@@ -199,7 +199,7 @@ void webserver_start()
     app_server = new_server;
 }
 
-void webserver_stop()
+void webserver_stop(void)
 {
     if (!app_server)
         return;

@@ -10,7 +10,7 @@ const char mdns_instance[] = CONFIG_OFP_MDNS_INSTANCE_NAME;
 
 static const char TAG[] = "m_dns";
 
-void mdns_start()
+void mdns_start(void)
 {
     ESP_LOGI(TAG, "Starting MDNS service");
 
@@ -37,7 +37,7 @@ void mdns_start()
     ESP_ERROR_CHECK(mdns_service_txt_item_set("_https", "_tcp", "path", "/"));
 }
 
-void mdns_stop()
+void mdns_stop(void)
 {
     ESP_LOGI(TAG, "Stopping MDNS service");
 }

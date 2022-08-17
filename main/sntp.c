@@ -25,7 +25,7 @@ void sntp_task_callback(struct timeval *tv)
     display_current_localtime(TAG);
 }
 
-void sntp_task_start()
+void sntp_task_start(void)
 {
     /* display every time something intersting happens */
     display_current_localtime(TAG);
@@ -37,7 +37,7 @@ void sntp_task_start()
     sntp_init();
 }
 
-void sntp_task_stop()
+void sntp_task_stop(void)
 {
     ESP_LOGI(TAG, "Stopping SNTP synchronization");
     sntp_stop();
