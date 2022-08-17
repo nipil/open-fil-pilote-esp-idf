@@ -13,8 +13,8 @@
 static const char TAG[] = "uptime";
 
 /* global variables */
-time_t system_start = 0;
-time_t last_time = 0;
+static time_t system_start = 0;
+static time_t last_time = 0;
 
 /* calculate corrected system uptime */
 time_t uptime_get_time(void)

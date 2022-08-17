@@ -21,11 +21,11 @@ const static char http_302_hdr[] = "302 Found";
 const static char http_location_hdr[] = "Location";
 
 /* HTTPS server handle */
-httpd_handle_t *app_server = NULL;
+static httpd_handle_t *app_server = NULL;
 
 /***************************************************************************/
 
-esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_start, const unsigned char *binary_end, const char *http_content_type)
+static esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_start, const unsigned char *binary_end, const char *http_content_type)
 {
     size_t binary_len = binary_end - binary_start;
 
@@ -37,7 +37,7 @@ esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_start, co
 
 /***************************************************************************/
 
-esp_err_t https_handler_get(httpd_req_t *req)
+static esp_err_t https_handler_get(httpd_req_t *req)
 {
     if (strcmp(req->uri, route_root) == 0)
     {
@@ -67,22 +67,22 @@ esp_err_t https_handler_get(httpd_req_t *req)
     return httpd_resp_send_404(req);
 }
 
-esp_err_t https_handler_post(httpd_req_t *req)
+static esp_err_t https_handler_post(httpd_req_t *req)
 {
     return httpd_resp_send_404(req);
 }
 
-esp_err_t https_handler_put(httpd_req_t *req)
+static esp_err_t https_handler_put(httpd_req_t *req)
 {
     return httpd_resp_send_404(req);
 }
 
-esp_err_t https_handler_patch(httpd_req_t *req)
+static esp_err_t https_handler_patch(httpd_req_t *req)
 {
     return httpd_resp_send_404(req);
 }
 
-esp_err_t https_handler_delete(httpd_req_t *req)
+static esp_err_t https_handler_delete(httpd_req_t *req)
 {
     return httpd_resp_send_404(req);
 }
@@ -91,12 +91,12 @@ esp_err_t https_handler_delete(httpd_req_t *req)
 
 #ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
 
-bool is_authentication_valid(httpd_req_t *req)
+static bool is_authentication_valid(httpd_req_t *req)
 {
     return httpd_basic_auth(req, "admin", "admin") == ESP_OK;
 }
 
-esp_err_t authentication_reject(httpd_req_t *req)
+static esp_err_t authentication_reject(httpd_req_t *req)
 {
     httpd_basic_auth_resp_send_401(req);
     httpd_resp_sendstr(req, "Not Authorized");
@@ -107,7 +107,7 @@ esp_err_t authentication_reject(httpd_req_t *req)
 
 /***************************************************************************/
 
-esp_err_t https_handler_generic(httpd_req_t *req)
+static esp_err_t https_handler_generic(httpd_req_t *req)
 {
 
 #ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
@@ -134,7 +134,7 @@ esp_err_t https_handler_generic(httpd_req_t *req)
 
 /***************************************************************************/
 
-void webserver_register_wildcard_method(httpd_handle_t *new_server, httpd_method_t method, esp_err_t (*handler)(httpd_req_t *r))
+static void webserver_register_wildcard_method(httpd_handle_t *new_server, httpd_method_t method, esp_err_t (*handler)(httpd_req_t *r))
 {
     // we can use a local variable as httpd_register_uri_handler copies the content of httpd_uri_t
     const httpd_uri_t request = {
@@ -144,7 +144,7 @@ void webserver_register_wildcard_method(httpd_handle_t *new_server, httpd_method
     ESP_ERROR_CHECK(httpd_register_uri_handler(new_server, &request));
 }
 
-void webserver_register_uri_handlers(httpd_handle_t new_server)
+static void webserver_register_uri_handlers(httpd_handle_t new_server)
 {
     // use only generic handlers to avoid consuming too many handlers
     webserver_register_wildcard_method(new_server, HTTP_GET, https_handler_generic);

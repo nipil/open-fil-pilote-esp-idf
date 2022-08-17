@@ -10,7 +10,7 @@
 
 static const char TAG[] = "sntp";
 
-void sntp_task_callback(struct timeval *tv)
+static void sntp_task_callback(struct timeval *tv)
 {
     /* notify uptime handler ASAP to handle possible clock jump */
     uptime_sync_check();

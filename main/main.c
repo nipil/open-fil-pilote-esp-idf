@@ -24,14 +24,14 @@ static const char TAG[] = "main";
 
 /***************************************************************************/
 
-void display_ip(ip_event_got_ip_t *param, char *msg)
+static void display_ip(ip_event_got_ip_t *param, char *msg)
 {
 	char str_ip[16];
 	esp_ip4addr_ntoa(&param->ip_info.ip, str_ip, IP4ADDR_STRLEN_MAX);
 	ESP_LOGI(TAG, "%s : %s", msg, str_ip);
 }
 
-void wifi_manager_connected_callback(void *pvParameter)
+static void wifi_manager_connected_callback(void *pvParameter)
 {
 	display_ip((ip_event_got_ip_t *)pvParameter, "STA Connected. IP is");
 	mdns_start();
@@ -40,7 +40,7 @@ void wifi_manager_connected_callback(void *pvParameter)
 	ESP_LOGI(TAG, "Connection processing finished.");
 }
 
-void wifi_manager_disconnected_callback(void *pvParameter)
+static void wifi_manager_disconnected_callback(void *pvParameter)
 {
 	ESP_LOGI(TAG, "STA Disconnected");
 	mdns_stop();
@@ -51,7 +51,7 @@ void wifi_manager_disconnected_callback(void *pvParameter)
 
 /***************************************************************************/
 
-void register_hardware(void)
+static void register_hardware(void)
 {
 	ofp_hw_register(hw_esp32_get_definition());
 	ofp_hw_register(hw_m1e1_get_definition());

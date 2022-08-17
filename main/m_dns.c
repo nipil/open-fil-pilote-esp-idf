@@ -5,8 +5,8 @@
 /* menu autoconfig */
 #include "sdkconfig.h"
 
-const char mdns_hostname[] = CONFIG_OFP_HOSTNAME;
-const char mdns_instance[] = CONFIG_OFP_MDNS_INSTANCE_NAME;
+static const char mdns_hostname[] = CONFIG_OFP_HOSTNAME;
+static const char mdns_instance[] = CONFIG_OFP_MDNS_INSTANCE_NAME;
 
 static const char TAG[] = "m_dns";
 
