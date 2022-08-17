@@ -7,7 +7,7 @@
 #include "webserver.h"
 
 /* @brief TAG_MAIN used for ESP serial console messages */
-const char TAG_WEB[] = "webserver";
+static const char TAG[] = "webserver";
 
 /* constants for efficient memory management */
 const static char http_content_type_html[] = "text/html";
@@ -29,7 +29,7 @@ esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_start, co
 {
     size_t binary_len = binary_end - binary_start;
 
-    ESP_LOGI(TAG_WEB, "start %p end %p size %i", binary_start, binary_end, binary_len);
+    ESP_LOGD(TAG, "Serve_from_asm start %p end %p size %i", binary_start, binary_end, binary_len);
     httpd_resp_set_type(req, http_content_type);
     httpd_resp_send(req, (const char *)binary_start, binary_len);
     return ESP_OK;
@@ -162,12 +162,12 @@ void webserver_start()
 
     if (app_server)
     {
-        ESP_LOGW(TAG_WEB, "Webserver already started, restarting.");
+        ESP_LOGW(TAG, "Webserver already started, restarting.");
         webserver_stop();
     }
 
     // Start the httpd server
-    ESP_LOGI(TAG_WEB, "Starting server");
+    ESP_LOGI(TAG, "Starting server");
 
     httpd_ssl_config_t conf = HTTPD_SSL_CONFIG_DEFAULT();
 
@@ -204,7 +204,7 @@ void webserver_stop()
     if (!app_server)
         return;
 
-    ESP_LOGI(TAG_WEB, "Stopping webserver.");
+    ESP_LOGI(TAG, "Stopping webserver.");
     httpd_ssl_stop(app_server);
     app_server = NULL;
 }

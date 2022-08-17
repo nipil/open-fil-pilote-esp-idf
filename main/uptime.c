@@ -10,7 +10,7 @@
 
 #include "uptime.h"
 
-const char TAG_UPTIME[] = "uptime";
+static const char TAG[] = "uptime";
 
 /* global variables */
 time_t system_start = 0;
@@ -54,7 +54,7 @@ bool uptime_sync_check()
         system_start += delta;
         taskEXIT_CRITICAL(&mutex_system_start);
 
-        ESP_LOGI(TAG_UPTIME, "Clock leap detected (delta=%+li), uptime changed accordingly.", delta);
+        ESP_LOGI(TAG, "Clock leap detected (delta=%+li), uptime changed accordingly.", delta);
         return true;
     }
 
@@ -74,12 +74,12 @@ void uptime_sync_task(void *pvParameter)
         if (cur < min)
         {
             min = cur;
-            ESP_LOGI(TAG_UPTIME, "StackHighWaterMark min changed: cur=%i, max=%i, min=%i", cur, max, min);
+            ESP_LOGD(TAG, "StackHighWaterMark min changed: cur=%i, max=%i, min=%i", cur, max, min);
         }
         if (cur > max)
         {
             max = cur;
-            ESP_LOGI(TAG_UPTIME, "StackHighWaterMark max changed: cur=%i, max=%i, min=%i", cur, max, min);
+            ESP_LOGD(TAG, "StackHighWaterMark max changed: cur=%i, max=%i, min=%i", cur, max, min);
         }
     }
 }

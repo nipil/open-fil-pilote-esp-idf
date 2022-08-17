@@ -8,18 +8,18 @@
 const char mdns_hostname[] = CONFIG_OFP_HOSTNAME;
 const char mdns_instance[] = CONFIG_OFP_MDNS_INSTANCE_NAME;
 
-const char TAG_MDNS[] = "m_dns";
+static const char TAG[] = "m_dns";
 
 void mdns_start()
 {
-    ESP_LOGI(TAG_MDNS, "Starting MDNS service");
+    ESP_LOGI(TAG, "Starting MDNS service");
 
     // initialize mDNS
     ESP_ERROR_CHECK(mdns_init());
 
     // set mDNS hostname (required if you want to advertise services)
     ESP_ERROR_CHECK(mdns_hostname_set(mdns_hostname));
-    ESP_LOGI(TAG_MDNS, "mdns hostname set to: [%s]", mdns_hostname);
+    ESP_LOGI(TAG, "mdns hostname set to: %s.local", mdns_hostname);
 
     // set default mDNS instance name
     ESP_ERROR_CHECK(mdns_instance_name_set(mdns_instance));
@@ -39,5 +39,5 @@ void mdns_start()
 
 void mdns_stop()
 {
-    ESP_LOGI(TAG_MDNS, "Stopping MDNS service");
+    ESP_LOGI(TAG, "Stopping MDNS service");
 }
