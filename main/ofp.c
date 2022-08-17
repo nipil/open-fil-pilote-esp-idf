@@ -30,7 +30,7 @@ int ofp_hw_list_get_count(void)
     return hw_list.hw_count;
 }
 
-struct ofp_hw *ofp_hw_get_by_index(int n)
+struct ofp_hw *ofp_hw_list_get_hw_by_index(int n)
 {
     assert(n < hw_list.hw_count);
     assert(n >= 0);

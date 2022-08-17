@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <esp_log.h>
 #include <esp_https_server.h>
+#include <cjson.h>
 
 #include "httpd_basic_auth.h"
 
@@ -16,6 +17,7 @@ static const char http_content_type_json[] = "application/json";
 static const char route_root[] = "/";
 static const char route_ofp_html[] = "/ofp.html";
 static const char route_ofp_js[] = "/ofp.js";
+static const char route_api_hw[] = "/ofp-api/v1/hardware"; // TODO: avoid repeating base API path
 
 static const char http_302_hdr[] = "302 Found";
 static const char http_location_hdr[] = "Location";
@@ -72,7 +74,34 @@ static esp_err_t serve_json(httpd_req_t *req, cJSON *node)
     ESP_LOGD(TAG, "Serving serialized JSON: %s", txt);
     httpd_resp_set_type(req, http_content_type_json);
     esp_err_t result = httpd_resp_sendstr(req, txt);
-    free(txt); // we are responsible for freeing the rendering buffer
+    free((void *)txt); // we are responsible for freeing the rendering buffer
+    return result;
+}
+
+/***************************************************************************/
+
+static esp_err_t serve_api_hardware(httpd_req_t *req)
+{
+    cJSON *root = cJSON_CreateObject();
+
+    cJSON *supported = cJSON_CreateArray();
+    for (int i = 0; i < ofp_hw_list_get_count(); i++)
+    {
+        struct ofp_hw *hw = ofp_hw_list_get_hw_by_index(i);
+        cJSON *j = cJSON_CreateObject();
+        cJSON_AddStringToObject(j, "id", hw->id);
+        cJSON_AddStringToObject(j, "description", hw->description);
+        cJSON_AddItemToArray(supported, j);
+    }
+    cJSON_AddItemToObject(root, "supported", supported);
+
+    cJSON *current = cJSON_CreateNull(); // TODO: replace with current value
+    cJSON_AddItemToObject(root, "current", current);
+
+    // TODO: manage cache ?
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
     return result;
 }
 
@@ -90,6 +119,13 @@ static esp_err_t https_handler_get(httpd_req_t *req)
 
     if (strcmp(req->uri, route_ofp_js) == 0)
         return serve_static_ofp_js(req);
+
+    // httpd_resp_set_type(req, http_content_type_html);
+
+    // api content
+    if (strcmp(req->uri, route_api_hw) == 0)
+        return serve_api_hardware(req);
+
 
     return httpd_resp_send_404(req);
 }
