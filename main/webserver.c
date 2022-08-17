@@ -80,21 +80,6 @@ static esp_err_t https_handler_get(httpd_req_t *req)
     if (strcmp(req->uri, route_ofp_js) == 0)
         return serve_static_ofp_js(req);
 
-    {
-        // This does NOT need to be null-terminated
-        extern const unsigned char ofp_html_start[] asm("_binary_ofp_html_start");
-        extern const unsigned char ofp_html_end[] asm("_binary_ofp_html_end");
-        return serve_from_asm(req, ofp_html_start, ofp_html_end, http_content_type_html);
-    }
-
-    if (strcmp(req->uri, route_ofp_js) == 0)
-    {
-        // This does NOT need to be null-terminated
-        extern const unsigned char ofp_js_start[] asm("_binary_ofp_js_start");
-        extern const unsigned char ofp_js_end[] asm("_binary_ofp_js_end");
-        return serve_from_asm(req, ofp_js_start, ofp_js_end, http_content_type_js);
-    }
-
     return httpd_resp_send_404(req);
 }
 
