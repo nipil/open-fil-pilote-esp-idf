@@ -72,8 +72,10 @@ static esp_err_t serve_json(httpd_req_t *req, cJSON *node)
 {
     const char *txt = cJSON_Print(node);
     ESP_LOGD(TAG, "Serving serialized JSON: %s", txt);
+
     httpd_resp_set_type(req, http_content_type_json);
     esp_err_t result = httpd_resp_sendstr(req, txt);
+
     free((void *)txt); // we are responsible for freeing the rendering buffer
     return result;
 }
@@ -125,7 +127,6 @@ static esp_err_t https_handler_get(httpd_req_t *req)
     // api content
     if (strcmp(req->uri, route_api_hw) == 0)
         return serve_api_hardware(req);
-
 
     return httpd_resp_send_404(req);
 }
