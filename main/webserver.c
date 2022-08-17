@@ -49,16 +49,21 @@ static esp_err_t serve_static_ofp_html(httpd_req_t *req)
 
 /***************************************************************************/
 
+static esp_err_t serve_redirect(httpd_req_t *req, char *target)
+{
+    httpd_resp_set_status(req, http_302_hdr);
+    httpd_resp_set_hdr(req, http_location_hdr, target);
+    httpd_resp_send(req, NULL, 0);
+    return ESP_OK;
+}
+
+/***************************************************************************/
+
 static esp_err_t https_handler_get(httpd_req_t *req)
 {
+    // redirect root to static content
     if (strcmp(req->uri, route_root) == 0)
-    {
-        httpd_resp_set_type(req, http_content_type_html);
-        httpd_resp_set_status(req, http_302_hdr);
-        httpd_resp_set_hdr(req, http_location_hdr, route_ofp_html);
-        httpd_resp_send(req, NULL, 0);
-        return ESP_OK;
-    }
+        return serve_redirect(req, route_ofp_html);
 
     // static content
     if (strcmp(req->uri, route_ofp_html) == 0)
