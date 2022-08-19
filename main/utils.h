@@ -2,6 +2,7 @@
 #define UTILS_H
 
 #include <time.h>
+#include <regex.h>
 
 // Some useful macros (source: linux kernel)
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
@@ -63,5 +64,24 @@ void localtime_to_string(struct tm *timeinfo, char *buf, int buf_len);
 
 // time logging
 void log_current_localtime(const char *tag);
+
+// regex
+void log_regerror(const char *TAG, regex_t *re, int res);
+
+// creates a copy of a substring, which MUST BE FREED BY THE CALLER
+char *substr(const char *src, int offset, int length);
+
+/*
+ * Tries to match an string to a regex dynamically built from the variable arguments and separator
+ *
+ * Use the macro if you want the pre-compiler to automatically compute the number of arguments
+ * Use the function itself if/when you want to specify the number of arguments yourself
+ *
+ * Every variable argument must be a (char *)
+ */
+#define join_and_match_re(str, nmatch, pmatch, ...) \
+    join_and_match_re_nargs(str, nmatch, pmatch, PP_NARG(__VA_ARGS__), __VA_ARGS__)
+
+regex_t *join_and_match_re_nargs(const char *str, int nmatch, regmatch_t *pmatch, int nargs, ...);
 
 #endif /* UTILS_H */
