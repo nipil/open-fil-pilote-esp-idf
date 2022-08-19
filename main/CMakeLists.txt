@@ -12,3 +12,13 @@ idf_component_register(
     INCLUDE_DIRS
         "."
 )
+
+#[[This define speeds up iterations
+
+set_source_files_properties(
+    main.c
+    PROPERTIES COMPILE_FLAGS
+    -DOFP_DISABLE_NETWORKING
+)
+
+]]

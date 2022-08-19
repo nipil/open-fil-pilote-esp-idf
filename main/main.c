@@ -66,10 +66,12 @@ void app_main()
 	// register every hardware available at compilation time
 	register_hardware();
 
+#ifndef OFP_DISABLE_NETWORKING
 	/* start the wifi manager */
 	wifi_manager_start();
 
 	/* register a callback as an example to how you can integrate your code with the wifi manager */
 	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &wifi_manager_connected_callback);
 	wifi_manager_set_callback(WM_EVENT_STA_DISCONNECTED, &wifi_manager_disconnected_callback);
+#endif /* OFP_NO_NETWORKING */
 }
