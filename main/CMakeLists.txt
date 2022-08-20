@@ -12,6 +12,7 @@ idf_component_register(
         "api_hw.c"
         "api_accounts.c"
         "api_zones.c"
+        "api_mgmt.c"
     INCLUDE_DIRS
         "."
 )

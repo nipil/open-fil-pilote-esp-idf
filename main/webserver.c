@@ -10,6 +10,7 @@
 #include "api_hw.h"
 #include "api_accounts.h"
 #include "api_zones.h"
+#include "api_mgmt.h"
 
 static const char TAG[] = "webserver";
 
@@ -34,6 +35,10 @@ static const char route_api_override[] = "^/ofp-api/v([[:digit:]]+)/override$";
 static const char route_api_zones[] = "^/ofp-api/v([[:digit:]]+)/zones$";
 static const char route_api_zones_id[] = "^/ofp-api/v([[:digit:]]+)/zones/([[:alnum:]]+)$";
 
+static const char route_api_upgrade[] = "^/ofp-api/v([[:digit:]]+)/upgrade$";
+static const char route_api_status[] = "^/ofp-api/v([[:digit:]]+)/status$";
+
+// static const char route_api_status[] = "^/ofp-api/v([[:digit:]]+)/status$";
 static const char http_302_hdr[] = "302 Found";
 
 static const char http_location_hdr[] = "Location";
@@ -150,6 +155,9 @@ static esp_err_t https_handler_get(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_override, serve_api_get_override))
         return result;
 
+    if (api_route_try(&result, req, route_api_status, serve_api_get_status))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
@@ -161,6 +169,9 @@ static esp_err_t https_handler_post(httpd_req_t *req)
         return result;
 
     if (api_route_try(&result, req, route_api_accounts, serve_api_post_accounts))
+        return result;
+
+    if (api_route_try(&result, req, route_api_upgrade, serve_api_post_upgrade))
         return result;
 
     return httpd_resp_send_404(req);
