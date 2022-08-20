@@ -101,4 +101,8 @@ char *joinstr_nargs(char *sep, int nargs, ...);
 struct re_result *re_match(const char *re, const char *str);
 void re_free(struct re_result *r);
 
+/* safer accessors */
+int re_get_int(struct re_result *result, int index);
+char *re_get_string(struct re_result *result, int index);
+
 #endif /* UTILS_H */

@@ -199,3 +199,17 @@ void re_free(struct re_result *r)
     free(r->strings);
     free(r);
 }
+
+int re_get_int(struct re_result *result, int index)
+{
+    assert(result != NULL);
+    assert(index >= 0 && index < result->count);
+    return atoi(result->strings[index]);
+}
+
+char *re_get_string(struct re_result *result, int index)
+{
+    assert(result != NULL);
+    assert(index >= 0 && index < result->count);
+    return result->strings[index];
+}
