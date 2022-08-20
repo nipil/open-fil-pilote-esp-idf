@@ -52,6 +52,7 @@ void log_regerror(const char *TAG, regex_t *re, int res)
 char *substr(const char *src, int offset, int length)
 {
     char *dest = malloc(length + 1);
+    assert(dest != NULL);
     const char *begin = src + offset;
     strncpy(dest, begin, length);
     dest[length] = '\0';
@@ -84,6 +85,7 @@ char *joinstr_nargs(char *sep, int nargs, ...)
 
     // concatenate
     char *buf = malloc(len);
+    assert(buf != NULL);
     char *p = buf;
 
     va_start(args, nargs);
@@ -146,6 +148,7 @@ struct re_result *re_match(const char *re_str, const char *str)
 
     // alloc
     regmatch_t *pmatch = malloc(nmatch * sizeof(regmatch_t));
+    assert(pmatch != NULL);
 
     // match
     res = regexec(&re, str, nmatch, pmatch, 0);
@@ -163,6 +166,7 @@ struct re_result *re_match(const char *re_str, const char *str)
 
     // alloc
     char **smatch = malloc(nmatch * sizeof(char *));
+    assert(smatch != NULL);
 
     // extract
     for (int i = 0; i < nmatch; i++)
@@ -181,6 +185,7 @@ struct re_result *re_match(const char *re_str, const char *str)
 
     // build result
     struct re_result *out = malloc(sizeof(struct re_result));
+    assert(out != NULL);
     out->count = nmatch;
     out->strings = smatch; // MUST BE FREED BY CALLER
     return out;
@@ -188,6 +193,7 @@ struct re_result *re_match(const char *re_str, const char *str)
 
 void re_free(struct re_result *r)
 {
+    assert(r != NULL);
     if (!r)
         return;
     if (!r->strings)
