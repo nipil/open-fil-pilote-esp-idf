@@ -11,6 +11,7 @@ idf_component_register(
         "hw_esp32.c"
         "api_hw.c"
         "api_accounts.c"
+        "api_zones.c"
     INCLUDE_DIRS
         "."
 )

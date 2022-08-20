@@ -9,6 +9,7 @@
 #include "utils.h"
 #include "api_hw.h"
 #include "api_accounts.h"
+#include "api_zones.h"
 
 static const char TAG[] = "webserver";
 
@@ -28,7 +29,11 @@ static const char route_api_hardware_id_parameters[] = "^/ofp-api/v([[:digit:]]+
 static const char route_api_accounts[] = "^/ofp-api/v([[:digit:]]+)/accounts$";
 static const char route_api_accounts_id[] = "^/ofp-api/v([[:digit:]]+)/accounts/([[:alnum:]]+)$";
 
-// static const char route_api_orders[] = "^/ofp-api/v([[:digit:]]+)/orders$";
+static const char route_api_orders[] = "^/ofp-api/v([[:digit:]]+)/orders$";
+static const char route_api_override[] = "^/ofp-api/v([[:digit:]]+)/override$";
+static const char route_api_zones[] = "^/ofp-api/v([[:digit:]]+)/zones$";
+static const char route_api_zones_id[] = "^/ofp-api/v([[:digit:]]+)/zones/([[:alnum:]]+)$";
+
 static const char http_302_hdr[] = "302 Found";
 
 static const char http_location_hdr[] = "Location";
@@ -124,6 +129,7 @@ static esp_err_t https_handler_get(httpd_req_t *req)
     if (strcmp(req->uri, route_ofp_js) == 0)
         return serve_static_ofp_js(req);
 
+    // api content
     esp_err_t result;
 
     if (api_route_try(&result, req, route_api_hardware, serve_api_get_hardware))
@@ -133,6 +139,15 @@ static esp_err_t https_handler_get(httpd_req_t *req)
         return result;
 
     if (api_route_try(&result, req, route_api_accounts, serve_api_get_accounts))
+        return result;
+
+    if (api_route_try(&result, req, route_api_orders, serve_api_get_orders))
+        return result;
+
+    if (api_route_try(&result, req, route_api_zones, serve_api_get_zones))
+        return result;
+
+    if (api_route_try(&result, req, route_api_override, serve_api_get_override))
         return result;
 
     return httpd_resp_send_404(req);
@@ -153,6 +168,11 @@ static esp_err_t https_handler_post(httpd_req_t *req)
 
 static esp_err_t https_handler_put(httpd_req_t *req)
 {
+    esp_err_t result;
+
+    if (api_route_try(&result, req, route_api_override, serve_api_put_override))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
@@ -161,6 +181,9 @@ static esp_err_t https_handler_patch(httpd_req_t *req)
     esp_err_t result;
 
     if (api_route_try(&result, req, route_api_accounts_id, serve_api_patch_accounts_id))
+        return result;
+
+    if (api_route_try(&result, req, route_api_zones_id, serve_api_patch_zones_id))
         return result;
 
     return httpd_resp_send_404(req);
