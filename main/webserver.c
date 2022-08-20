@@ -11,6 +11,7 @@
 #include "api_accounts.h"
 #include "api_zones.h"
 #include "api_mgmt.h"
+#include "api_plannings.h"
 
 static const char TAG[] = "webserver";
 
@@ -38,7 +39,11 @@ static const char route_api_zones_id[] = "^/ofp-api/v([[:digit:]]+)/zones/([[:al
 static const char route_api_upgrade[] = "^/ofp-api/v([[:digit:]]+)/upgrade$";
 static const char route_api_status[] = "^/ofp-api/v([[:digit:]]+)/status$";
 
-// static const char route_api_status[] = "^/ofp-api/v([[:digit:]]+)/status$";
+static const char route_api_plannings[] = "^/ofp-api/v([[:digit:]]+)/plannings$";
+static const char route_api_planning_id[] = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)$";
+static const char route_api_planning_id_slots[] = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)/slots$";
+static const char route_api_planning_id_slots_id[] = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)/slots/((2[0-3]|[0-1][[:digit:]])h[0-5][[:digit:]])$";
+
 static const char http_302_hdr[] = "302 Found";
 
 static const char http_location_hdr[] = "Location";
@@ -158,6 +163,12 @@ static esp_err_t https_handler_get(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_status, serve_api_get_status))
         return result;
 
+    if (api_route_try(&result, req, route_api_plannings, serve_api_get_plannings))
+        return result;
+
+    if (api_route_try(&result, req, route_api_planning_id, serve_api_get_plannings_id))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
@@ -174,6 +185,12 @@ static esp_err_t https_handler_post(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_upgrade, serve_api_post_upgrade))
         return result;
 
+    if (api_route_try(&result, req, route_api_plannings, serve_api_post_plannings))
+        return result;
+
+    if (api_route_try(&result, req, route_api_planning_id_slots, serve_api_post_plannings_id_slots))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
@@ -182,6 +199,9 @@ static esp_err_t https_handler_put(httpd_req_t *req)
     esp_err_t result;
 
     if (api_route_try(&result, req, route_api_override, serve_api_put_override))
+        return result;
+
+    if (api_route_try(&result, req, route_api_planning_id_slots_id, serve_api_put_plannings_id_slots_id))
         return result;
 
     return httpd_resp_send_404(req);
@@ -197,6 +217,9 @@ static esp_err_t https_handler_patch(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_zones_id, serve_api_patch_zones_id))
         return result;
 
+    if (api_route_try(&result, req, route_api_planning_id, serve_api_patch_plannings_id))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
@@ -205,6 +228,12 @@ static esp_err_t https_handler_delete(httpd_req_t *req)
     esp_err_t result;
 
     if (api_route_try(&result, req, route_api_accounts_id, serve_api_delete_accounts_id))
+        return result;
+
+    if (api_route_try(&result, req, route_api_planning_id, serve_api_delete_plannings_id))
+        return result;
+
+    if (api_route_try(&result, req, route_api_planning_id_slots_id, serve_api_delete_plannings_id_slots_id))
         return result;
 
     return httpd_resp_send_404(req);
