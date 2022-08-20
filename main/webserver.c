@@ -22,6 +22,8 @@ static const char route_ofp_html[] = "/ofp.html";
 static const char route_ofp_js[] = "/ofp.js";
 
 static const char route_api_hardware[] = "^/ofp-api/v([[:digit:]]+)/hardware$";
+static const char route_api_hardware_id_parameters[] = "^/ofp-api/v([[:digit:]]+)/hardware/([[:alnum:]]+)/parameters$";
+
 // static const char route_api_orders[] = "^/ofp-api/v([[:digit:]]+)/orders$";
 static const char http_302_hdr[] = "302 Found";
 
@@ -121,7 +123,10 @@ static esp_err_t https_handler_get(httpd_req_t *req)
     esp_err_t result;
 
 
-    if (api_route_try(&result, req, route_api_hardware, serve_api_hardware))
+    if (api_route_try(&result, req, route_api_hardware, serve_api_get_hardware))
+        return result;
+
+    if (api_route_try(&result, req, route_api_hardware_id_parameters, serve_api_get_hardware_id_parameters))
         return result;
 
     return httpd_resp_send_404(req);
@@ -129,6 +134,11 @@ static esp_err_t https_handler_get(httpd_req_t *req)
 
 static esp_err_t https_handler_post(httpd_req_t *req)
 {
+    esp_err_t result;
+
+    if (api_route_try(&result, req, route_api_hardware, serve_api_post_hardware))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
