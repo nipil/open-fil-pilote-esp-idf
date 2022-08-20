@@ -120,6 +120,8 @@ char *joinstr_nargs(char *sep, int nargs, ...)
  */
 struct re_result *re_match(const char *re_str, const char *str)
 {
+    ESP_LOGD(TAG, "re_str=%s str=%s", re_str, str);
+
     // compile
     regex_t re;
     int res = regcomp(&re, re_str, REG_EXTENDED);
@@ -145,6 +147,7 @@ struct re_result *re_match(const char *re_str, const char *str)
         tmp++;
     }
     nmatch++; // for the whole match
+    ESP_LOGD(TAG, "nmatch=%d", nmatch++);
 
     // alloc
     regmatch_t *pmatch = malloc(nmatch * sizeof(regmatch_t));
@@ -152,6 +155,7 @@ struct re_result *re_match(const char *re_str, const char *str)
 
     // match
     res = regexec(&re, str, nmatch, pmatch, 0);
+    ESP_LOGD(TAG, "regexec=%d", res);
     if (res != 0)
     {
         if (res != REG_NOMATCH)
@@ -175,9 +179,11 @@ struct re_result *re_match(const char *re_str, const char *str)
         if (m->rm_so == -1)
         {
             smatch[i] = NULL;
+            ESP_LOGD(TAG, "smatch[%d]=NULL", i);
             continue;
         }
         smatch[i] = substr(str, m->rm_so, m->rm_eo - m->rm_so); // MUST BE FREED BY CALLER
+        ESP_LOGD(TAG, "smatch[%d]=%s", i, smatch[i]);
     }
 
     // cleanup
