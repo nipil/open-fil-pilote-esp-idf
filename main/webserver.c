@@ -183,9 +183,9 @@ static esp_err_t https_handler_generic(httpd_req_t *req)
     // handle requests
     if (req->method == HTTP_GET)
         return https_handler_get(req);
-    if (req->method == HTTP_GET)
-        return https_handler_post(req);
     if (req->method == HTTP_POST)
+        return https_handler_post(req);
+    if (req->method == HTTP_PUT)
         return https_handler_put(req);
     if (req->method == HTTP_PATCH)
         return https_handler_patch(req);
