@@ -2,7 +2,7 @@
 
 #include "ofp.h"
 #include "webserver.h"
-#include "api.h"
+#include "api_hw.h"
 
 /***************************************************************************/
 

@@ -9,6 +9,7 @@ idf_component_register(
         "ofp.c"
         "hw_m1e1.c"
         "hw_esp32.c"
+        "api_hw.c"
     INCLUDE_DIRS
         "."
 )
