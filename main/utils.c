@@ -109,87 +109,94 @@ char *joinstr_nargs(char *sep, int nargs, ...)
 }
 
 /*
- * Tries to match an string to a regex dynamically built from the variable arguments and separator
+ * Regex wrapper
  *
- * Use the macro if you want the pre-compiler to automatically compute the number of arguments
- * Use the function itself if/when you want to specify the number of arguments yourself
+ * returns NULL on error or not found
+ * caller has ownership of the returned structure
+ * returned structure has ownership of the matches
  *
- * Every variable argument must be a (char *)
+ * free everything using re_match_free
  */
-regex_t *join_and_match_re_nargs(const char *str, int nmatch, regmatch_t *pmatch, int nargs, ...)
+struct re_result *re_match(const char *re_str, const char *str)
 {
-    va_list args;
-
-    // memory
-    int len = 0;
-    va_start(args, nargs);
-    for (int i = 0; i < nargs; i++)
-    {
-        len += strlen(va_arg(args, char *));
-    }
-    va_end(args);
-    len += 1; // final NULL
-
-    // concatenate
-    char *buf = malloc(len);
-    char *p = buf;
-    *p++ = '^';
-
-    va_start(args, nargs);
-    for (int i = 0; i < nargs; i++)
-    {
-        char *a = va_arg(args, char *);
-        strcpy(p, a);
-        p += strlen(a);
-    }
-    va_end(args);
-
-    *p++ = '$';
-    *p = '\0';
-    ESP_LOGD(TAG, "REGEX prepared: %s", buf);
-
     // compile
     regex_t re;
-    int res = regcomp(&re, buf, REG_EXTENDED);
-    free((void *)buf);
+    int res = regcomp(&re, re_str, REG_EXTENDED);
     if (res != 0)
     {
         log_regerror(TAG, &re, res);
-        assert(res == 0);
+        // assert(res == 0);
         return NULL;
     }
+
+    // dummy attempt to compute the number of groups
+    int nmatch = 0;
+    bool last_escape = false;
+    const char *tmp = re_str;
+    while (*tmp)
+    {
+        // unescapted group begin
+        if (*tmp == '(' && !last_escape)
+            nmatch++;
+        // in any case set/reset escape flag
+        last_escape = (*tmp == '\\');
+        // next character
+        tmp++;
+    }
+    nmatch++; // for the whole match
+
+    // alloc
+    regmatch_t *pmatch = malloc(nmatch * sizeof(regmatch_t));
 
     // match
     res = regexec(&re, str, nmatch, pmatch, 0);
-    switch (res)
+    if (res != 0)
     {
-    case 0:
-        // guard clause for found
-        break;
-
-    case REG_NOMATCH:
-        // no match
-        regfree(&re);
-        return NULL;
-
-    default:
-        // error
-        log_regerror(TAG, &re, res);
+        if (res != REG_NOMATCH)
+            log_regerror(TAG, &re, res);
+        free(pmatch);
         regfree(&re);
         return NULL;
     }
 
-    // list matches
+    // cleanup
+    regfree(&re);
+
+    // alloc
+    char **smatch = malloc(nmatch * sizeof(char *));
+
+    // extract
     for (int i = 0; i < nmatch; i++)
     {
         regmatch_t *m = &pmatch[i];
         if (m->rm_so == -1)
+        {
+            smatch[i] = NULL;
             continue;
-
-        char *sub = substr(str, m->rm_so, m->rm_eo - m->rm_so);
-        ESP_LOGD(TAG, "REGEX match %i start=%li end=%li: %s", i, m->rm_so, m->rm_eo, sub);
-        free(sub);
+        }
+        smatch[i] = substr(str, m->rm_so, m->rm_eo - m->rm_so); // MUST BE FREED BY CALLER
     }
 
-    return NULL;
+    // cleanup
+    free(pmatch);
+
+    // build result
+    struct re_result *out = malloc(sizeof(struct re_result));
+    out->count = nmatch;
+    out->strings = smatch; // MUST BE FREED BY CALLER
+    return out;
+}
+
+void re_match_free(struct re_result *r)
+{
+    if (!r)
+        return;
+    if (!r->strings)
+        return;
+    for (int i = 0; i < r->count; i++)
+    {
+        free(r->strings[i]);
+    }
+    free(r->strings);
+    free(r);
 }

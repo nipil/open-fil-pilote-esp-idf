@@ -58,6 +58,13 @@
         19, 18, 17, 16, 15, 14, 13, 12, 11, 10,           \
         9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 
+// regexp helper structure
+struct re_result
+{
+    int count;
+    char **strings;
+};
+
 // time conversions
 void time_to_localtime(time_t *val, struct tm *timeinfo);
 void localtime_to_string(struct tm *timeinfo, char *buf, int buf_len);
@@ -85,16 +92,13 @@ char *substr(const char *src, int offset, int length);
 char *joinstr_nargs(char *sep, int nargs, ...);
 
 /*
- * Tries to match an string to a regex dynamically built from the variable arguments and separator
+ * Match a string, and handle memory management for captures
  *
- * Use the macro if you want the pre-compiler to automatically compute the number of arguments
- * Use the function itself if/when you want to specify the number of arguments yourself
+ * Returns NULL on failure
  *
- * Every variable argument must be a (char *)
+ * The returned pointer (if not NULL) MUST BE FREED BY THE CALLER using re_match_free()
  */
-#define join_and_match_re(str, nmatch, pmatch, ...) \
-    join_and_match_re_nargs(str, nmatch, pmatch, PP_NARG(__VA_ARGS__), __VA_ARGS__)
-
-regex_t *join_and_match_re_nargs(const char *str, int nmatch, regmatch_t *pmatch, int nargs, ...);
+struct re_result *re_match(const char *re, const char *str);
+void re_match_free(struct re_result *r);
 
 #endif /* UTILS_H */
