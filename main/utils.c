@@ -58,6 +58,39 @@ char *substr(const char *src, int offset, int length)
     return dest; // must be free'd by the caller
 }
 
+/* Joins strings using separator, result MUST BE FREED BY THE CALLER */
+char *catstr_nargs(int nargs, ...)
+{
+    va_list args;
+
+    // memory
+    int len = 0;
+    va_start(args, nargs);
+    for (int i = 0; i < nargs; i++)
+    {
+        len += strlen(va_arg(args, char *));
+    }
+    va_end(args);
+    len += 1; // final NULL
+
+    // concatenate
+    char *buf = malloc(len);
+    char *p = buf;
+
+    va_start(args, nargs);
+    for (int i = 0; i < nargs; i++)
+    {
+        char *a = va_arg(args, char *);
+        strcpy(p, a);
+        p += strlen(a);
+    }
+    va_end(args);
+
+    *p = '\0';
+
+    return buf; // MUST BE FREED BY CALLER
+}
+
 /*
  * Tries to match an string to a regex dynamically built from the variable arguments and separator
  *
