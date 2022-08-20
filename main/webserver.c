@@ -69,7 +69,7 @@ static esp_err_t serve_static_ofp_js(httpd_req_t *req)
 
 /***************************************************************************/
 
-static esp_err_t serve_redirect(httpd_req_t *req, char *target)
+esp_err_t serve_redirect(httpd_req_t *req, char *target)
 {
     httpd_resp_set_status(req, http_302_hdr);
     httpd_resp_set_hdr(req, http_location_hdr, target);
@@ -77,7 +77,7 @@ static esp_err_t serve_redirect(httpd_req_t *req, char *target)
     return ESP_OK;
 }
 
-static esp_err_t serve_json(httpd_req_t *req, cJSON *node)
+esp_err_t serve_json(httpd_req_t *req, cJSON *node)
 {
     const char *txt = cJSON_Print(node);
     ESP_LOGD(TAG, "Serving serialized JSON: %s", txt);
