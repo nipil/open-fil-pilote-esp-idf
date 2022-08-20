@@ -4,6 +4,8 @@
 #include <string.h>
 #include <esp_log.h>
 
+#include "utils.h"
+
 static const char *TAG = "utils";
 
 /* converts time to localtime using timezone */
