@@ -198,7 +198,7 @@ module.exports = {
         "name": "DevKit NodeMCU 30 pin + OFP M1 + OFP E1"
       },
       {
-        "id": "OFP-10Z",
+        "id": "OFP10Z",
         "name": "Carte 10 zones avec afficheur et bouton"
       }
     ]
