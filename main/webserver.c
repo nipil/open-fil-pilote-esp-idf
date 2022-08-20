@@ -12,15 +12,19 @@
 static const char TAG[] = "webserver";
 
 /* constants for efficient memory management */
+
 static const char http_content_type_html[] = "text/html";
 static const char http_content_type_js[] = "text/javascript";
 static const char http_content_type_json[] = "application/json";
+
 static const char route_root[] = "/";
 static const char route_ofp_html[] = "/ofp.html";
 static const char route_ofp_js[] = "/ofp.js";
+
 static const char route_api_hardware[] = "^/ofp-api/v([[:digit:]]+)/hardware$";
 // static const char route_api_orders[] = "^/ofp-api/v([[:digit:]]+)/orders$";
 static const char http_302_hdr[] = "302 Found";
+
 static const char http_location_hdr[] = "Location";
 
 /* HTTPS server handle */
@@ -192,7 +196,6 @@ static esp_err_t authentication_reject(httpd_req_t *req)
 
 static esp_err_t https_handler_generic(httpd_req_t *req)
 {
-
 #ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
     // check credentials
     if (!is_authentication_valid(req))

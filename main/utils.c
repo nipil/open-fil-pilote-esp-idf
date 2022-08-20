@@ -70,7 +70,6 @@ char *joinstr_nargs(char *sep, int nargs, ...)
         nsep = nargs - 1;
         len_sep = strlen(sep);
     }
-    ESP_LOGD(TAG, "nsep=%d len_sep=%d", nsep, len_sep);
 
     // memory
     int len = 0;
