@@ -59,9 +59,18 @@ char *substr(const char *src, int offset, int length)
 }
 
 /* Joins strings using separator, result MUST BE FREED BY THE CALLER */
-char *catstr_nargs(int nargs, ...)
+char *joinstr_nargs(char *sep, int nargs, ...)
 {
     va_list args;
+
+    // separator
+    int nsep = 0, len_sep = 0;
+    if (sep && nargs > 1)
+    {
+        nsep = nargs - 1;
+        len_sep = strlen(sep);
+    }
+    ESP_LOGD(TAG, "nsep=%d len_sep=%d", nsep, len_sep);
 
     // memory
     int len = 0;
@@ -72,6 +81,7 @@ char *catstr_nargs(int nargs, ...)
     }
     va_end(args);
     len += 1; // final NULL
+    len += nsep;
 
     // concatenate
     char *buf = malloc(len);
@@ -80,6 +90,13 @@ char *catstr_nargs(int nargs, ...)
     va_start(args, nargs);
     for (int i = 0; i < nargs; i++)
     {
+        // sep if needed
+        if (sep && i > 0)
+        {
+            strcpy(p, sep);
+            p += len_sep;
+        }
+        // source string
         char *a = va_arg(args, char *);
         strcpy(p, a);
         p += strlen(a);

@@ -72,16 +72,17 @@ void log_regerror(const char *TAG, regex_t *re, int res);
 char *substr(const char *src, int offset, int length);
 
 /*
- * Joins strings using separator, result MUST BE FREED BY THE CALLER
+ * Joins strings using separator
+ * - result MUST BE FREED BY THE CALLER
+ * - every variable argument must be a (char *)
+ * - parameter'sep' can be NULL to disable separators
  *
  * Use the macro if you want the pre-compiler to automatically compute the number of arguments
  * Use the function itself if/when you want to specify the number of arguments yourself
- *
- * Every variable argument must be a (char *)
  */
-#define catstr(...) \
-    catstr_nargs(PP_NARG(__VA_ARGS__) __VA_OPT__(, ) __VA_ARGS__)
-char *catstr_nargs(int nargs, ...);
+#define joinstr(sep, ...) \
+    joinstr_nargs(sep, PP_NARG(__VA_ARGS__) __VA_OPT__(, ) __VA_ARGS__)
+char *joinstr_nargs(char *sep, int nargs, ...);
 
 /*
  * Tries to match an string to a regex dynamically built from the variable arguments and separator
