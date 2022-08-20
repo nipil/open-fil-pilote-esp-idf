@@ -8,6 +8,7 @@
 #include "ofp.h"
 #include "utils.h"
 #include "api_hw.h"
+#include "api_accounts.h"
 
 static const char TAG[] = "webserver";
 
@@ -23,6 +24,9 @@ static const char route_ofp_js[] = "/ofp.js";
 
 static const char route_api_hardware[] = "^/ofp-api/v([[:digit:]]+)/hardware$";
 static const char route_api_hardware_id_parameters[] = "^/ofp-api/v([[:digit:]]+)/hardware/([[:alnum:]]+)/parameters$";
+
+static const char route_api_accounts[] = "^/ofp-api/v([[:digit:]]+)/accounts$";
+static const char route_api_accounts_id[] = "^/ofp-api/v([[:digit:]]+)/accounts/([[:alnum:]]+)$";
 
 // static const char route_api_orders[] = "^/ofp-api/v([[:digit:]]+)/orders$";
 static const char http_302_hdr[] = "302 Found";
@@ -122,11 +126,13 @@ static esp_err_t https_handler_get(httpd_req_t *req)
 
     esp_err_t result;
 
-
     if (api_route_try(&result, req, route_api_hardware, serve_api_get_hardware))
         return result;
 
     if (api_route_try(&result, req, route_api_hardware_id_parameters, serve_api_get_hardware_id_parameters))
+        return result;
+
+    if (api_route_try(&result, req, route_api_accounts, serve_api_get_accounts))
         return result;
 
     return httpd_resp_send_404(req);
@@ -139,6 +145,9 @@ static esp_err_t https_handler_post(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_hardware, serve_api_post_hardware))
         return result;
 
+    if (api_route_try(&result, req, route_api_accounts, serve_api_post_accounts))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
@@ -149,11 +158,21 @@ static esp_err_t https_handler_put(httpd_req_t *req)
 
 static esp_err_t https_handler_patch(httpd_req_t *req)
 {
+    esp_err_t result;
+
+    if (api_route_try(&result, req, route_api_accounts_id, serve_api_patch_accounts_id))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
 static esp_err_t https_handler_delete(httpd_req_t *req)
 {
+    esp_err_t result;
+
+    if (api_route_try(&result, req, route_api_accounts_id, serve_api_delete_accounts_id))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 

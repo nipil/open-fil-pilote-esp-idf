@@ -10,6 +10,7 @@ idf_component_register(
         "hw_m1e1.c"
         "hw_esp32.c"
         "api_hw.c"
+        "api_accounts.c"
     INCLUDE_DIRS
         "."
 )
