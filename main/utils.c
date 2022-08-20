@@ -184,7 +184,7 @@ regex_t *join_and_match_re_nargs(const char *str, int nmatch, regmatch_t *pmatch
     {
         regmatch_t *m = &pmatch[i];
         if (m->rm_so == -1)
-            break;
+            continue;
 
         char *sub = substr(str, m->rm_so, m->rm_eo - m->rm_so);
         ESP_LOGD(TAG, "REGEX match %i start=%li end=%li: %s", i, m->rm_so, m->rm_eo, sub);
