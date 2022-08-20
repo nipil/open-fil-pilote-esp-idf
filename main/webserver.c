@@ -7,6 +7,7 @@
 
 #include "webserver.h"
 #include "ofp.h"
+#include "utils.h"
 
 static const char TAG[] = "webserver";
 
@@ -17,13 +18,17 @@ static const char http_content_type_json[] = "application/json";
 static const char route_root[] = "/";
 static const char route_ofp_html[] = "/ofp.html";
 static const char route_ofp_js[] = "/ofp.js";
-static const char route_api_hw[] = "/ofp-api/v1/hardware"; // TODO: avoid repeating base API path
-
+static const char route_api_hardware[] = "^/ofp-api/v([[:digit:]]+)/hardware$";
+// static const char route_api_orders[] = "^/ofp-api/v([[:digit:]]+)/orders$";
 static const char http_302_hdr[] = "302 Found";
 static const char http_location_hdr[] = "Location";
 
 /* HTTPS server handle */
 static httpd_handle_t *app_server = NULL;
+
+/***************************************************************************/
+
+typedef esp_err_t (*api_serve_func)(httpd_req_t *req, struct re_result *captures);
 
 /***************************************************************************/
 
@@ -82,7 +87,7 @@ static esp_err_t serve_json(httpd_req_t *req, cJSON *node)
 
 /***************************************************************************/
 
-static esp_err_t serve_api_hardware(httpd_req_t *req)
+static esp_err_t serve_api_hardware(httpd_req_t *req, struct re_result *captures)
 {
     cJSON *root = cJSON_CreateObject();
 
@@ -109,6 +114,20 @@ static esp_err_t serve_api_hardware(httpd_req_t *req)
 
 /***************************************************************************/
 
+static bool api_route_try(esp_err_t *result, httpd_req_t *req, const char *re_str, api_serve_func handler)
+{
+    struct re_result *captures = re_match(re_str, req->uri);
+    if (captures != NULL)
+    {
+        *result = handler(req, captures);
+        re_free(captures);
+        return true;
+    }
+    return false;
+}
+
+/***************************************************************************/
+
 static esp_err_t https_handler_get(httpd_req_t *req)
 {
     // redirect root to static content
@@ -122,11 +141,11 @@ static esp_err_t https_handler_get(httpd_req_t *req)
     if (strcmp(req->uri, route_ofp_js) == 0)
         return serve_static_ofp_js(req);
 
-    // httpd_resp_set_type(req, http_content_type_html);
+    esp_err_t result;
 
-    // api content
-    if (strcmp(req->uri, route_api_hw) == 0)
-        return serve_api_hardware(req);
+
+    if (api_route_try(&result, req, route_api_hardware, serve_api_hardware))
+        return result;
 
     return httpd_resp_send_404(req);
 }
