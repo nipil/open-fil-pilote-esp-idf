@@ -187,7 +187,7 @@ struct re_result *re_match(const char *re_str, const char *str)
     return out;
 }
 
-void re_match_free(struct re_result *r)
+void re_free(struct re_result *r)
 {
     if (!r)
         return;

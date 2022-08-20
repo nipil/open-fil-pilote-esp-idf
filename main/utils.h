@@ -96,9 +96,9 @@ char *joinstr_nargs(char *sep, int nargs, ...);
  *
  * Returns NULL on failure
  *
- * The returned pointer (if not NULL) MUST BE FREED BY THE CALLER using re_match_free()
+ * The returned pointer (if not NULL) MUST BE FREED BY THE CALLER using re_free()
  */
 struct re_result *re_match(const char *re, const char *str);
-void re_match_free(struct re_result *r);
+void re_free(struct re_result *r);
 
 #endif /* UTILS_H */
