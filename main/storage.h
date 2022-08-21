@@ -23,4 +23,17 @@ void kv_set_u32(nvs_handle_t handle, const char *key, uint32_t value);
 void kv_set_i64(nvs_handle_t handle, const char *key, int64_t value);
 void kv_set_u64(nvs_handle_t handle, const char *key, uint64_t value);
 
+int8_t kv_get_i8(nvs_handle_t handle, const char *key, int8_t def_value);
+uint8_t kv_get_u8(nvs_handle_t handle, const char *key, uint8_t def_value);
+int16_t kv_get_i16(nvs_handle_t handle, const char *key, int16_t def_value);
+uint16_t kv_get_u16(nvs_handle_t handle, const char *key, uint16_t def_value);
+int32_t kv_get_i32(nvs_handle_t handle, const char *key, int32_t def_value);
+uint32_t kv_get_u32(nvs_handle_t handle, const char *key, uint32_t def_value);
+int64_t kv_get_i64(nvs_handle_t handle, const char *key, int64_t def_value);
+uint64_t kv_get_u64(nvs_handle_t handle, const char *key, uint64_t def_value);
+
+/* Returned memory MUST BE FREED (or owned) BY THE CALLER */
+char *kv_get_str(nvs_handle_t handle, const char *key);
+void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length);
+
 #endif /* STORAGE_H */
