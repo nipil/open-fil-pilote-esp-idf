@@ -406,14 +406,18 @@ void test_storage(void)
 {
     const char ns[] = "test";
 
-    /* test global */
+    uint8_t ui8;
+    char *buf;
+    void *p_blob;
+    size_t len;
 
+    ESP_LOGD(TAG, "==== general RAW =========================");
     part_list();
     kv_init();
     kv_stats();
     kv_list_ns(NULL);
 
-    /* test storing data */
+    ESP_LOGD(TAG, "==== test storing data RAW =========================");
 
     nvs_handle_t h = kv_open_ns(ns);
     kv_set_i8(h, "i8", INT8_MIN);
@@ -427,19 +431,19 @@ void test_storage(void)
     kv_set_str(h, "str", "foo");
     uint8_t data[] = {0x69, 0x51};
     kv_set_blob(h, "blob", data, sizeof(data));
+    kv_commit(h);
+    kv_close(h);
 
+    ESP_LOGD(TAG, "==== test storing data MACRO =======================");
     kvh_set(u8, ns, "mu8", 69);
     kvh_set(str, ns, "mstr", "toto");
     kvh_set(blob, ns, "mblob", data, sizeof(data));
 
-    kv_commit(h);
-    kv_close(h);
-
     /* test reading data */
 
-    h = kv_open_ns(ns);
-
     // should return stored
+    ESP_LOGD(TAG, "==== test reading stored RAW =========================");
+    h = kv_open_ns(ns);
     kv_get_i8(h, "i8", -1);
     kv_get_u8(h, "u8", +1);
     kv_get_i16(h, "i16", -1);
@@ -448,36 +452,12 @@ void test_storage(void)
     kv_get_u32(h, "u32", +1);
     kv_get_i64(h, "i64", -1);
     kv_get_u64(h, "u64", +1);
-
-    uint8_t ui8;
-    char *buf;
-    void *p_blob;
-    size_t len;
-
-    kvh_get(ui8, u8, ns, "mu8", 42);
-    ESP_LOGD(TAG, "%i", ui8);
-
-    kvh_get(buf, str, ns, "mstr");
-    if (buf != NULL)
-    {
-        ESP_LOGD(TAG, "%s", buf);
-        free(buf);
-    }
-
-    kvh_get(p_blob, blob, ns, "mblob", &len);
-    if (p_blob != NULL)
-    {
-        ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
-        free(p_blob);
-    }
-
     buf = kv_get_str(h, "str");
     if (buf != NULL)
     {
         ESP_LOGD(TAG, "%s", buf);
         free(buf);
     }
-
     p_blob = kv_get_blob(h, "blob", &len);
     ESP_LOGD(TAG, "blob %p", p_blob);
     if (p_blob != NULL)
@@ -485,8 +465,26 @@ void test_storage(void)
         ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
         free(p_blob);
     }
+    kv_close(h);
 
-    // should use defaults
+    ESP_LOGD(TAG, "==== test reading stored MACRO =========================");
+    kvh_get(ui8, u8, ns, "mu8", 42);
+    ESP_LOGD(TAG, "%i", ui8);
+    kvh_get(buf, str, ns, "mstr");
+    if (buf != NULL)
+    {
+        ESP_LOGD(TAG, "%s", buf);
+        free(buf);
+    }
+    kvh_get(p_blob, blob, ns, "mblob", &len);
+    if (p_blob != NULL)
+    {
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
+        free(p_blob);
+    }
+
+    ESP_LOGD(TAG, "==== test read defaults RAW =========================");
+    h = kv_open_ns(ns);
     kv_get_i8(h, "_i8", -1);
     kv_get_u8(h, "_u8", +1);
     kv_get_i16(h, "_i16", -1);
@@ -495,14 +493,12 @@ void test_storage(void)
     kv_get_u32(h, "_u32", +1);
     kv_get_i64(h, "_i64", -1);
     kv_get_u64(h, "_u64", +1);
-
     buf = kv_get_str(h, "str");
     if (buf != NULL)
     {
         ESP_LOGD(TAG, "%s", buf);
         free(buf);
     }
-
     p_blob = kv_get_blob(h, "blob", &len);
     ESP_LOGD(TAG, "blob %p", p_blob);
     if (p_blob != NULL)
@@ -510,17 +506,17 @@ void test_storage(void)
         ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
         free(p_blob);
     }
+    kv_close(h);
 
+    ESP_LOGD(TAG, "==== test read defaults MACRO =========================");
     kvh_get(ui8, u8, ns, "_mu8", 42);
     ESP_LOGD(TAG, "%i", ui8);
-
     kvh_get(buf, str, ns, "_mstr");
     if (buf != NULL)
     {
         ESP_LOGD(TAG, "%s but should be NULL", buf);
         free(buf);
     }
-
     kvh_get(p_blob, blob, ns, "_mblob", &len);
     if (p_blob != NULL)
     {
@@ -528,6 +524,4 @@ void test_storage(void)
         ESP_LOGW(TAG, "blob should be NULL");
         free(p_blob);
     }
-
-    kv_close(h);
 }
