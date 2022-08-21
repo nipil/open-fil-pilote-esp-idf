@@ -593,6 +593,13 @@ async function initHardwareParametersButtons() {
 async function loadHardwareParameters(hardwareId) {
     console.log('loadHardwareParameters', hardwareId);
 
+    let el = document.getElementById('hardwareCurrentParameters');
+
+    if (hardwareId === null) {
+        el.textContent = '';
+        return;
+    }
+
     let { parameters } = await apiGetHardwareParamsJson(hardwareId);
 
     let template = {
@@ -602,7 +609,6 @@ async function loadHardwareParameters(hardwareId) {
         ]
     };
 
-    let el = document.getElementById('hardwareCurrentParameters');
     el.innerHTML = json2html.render(parameters, template);
 }
 
