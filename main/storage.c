@@ -455,10 +455,21 @@ void test_storage(void)
     size_t len;
 
     kvh_get(ui8, u8, ns, "mu8", 42);
-    kvh_get(s, str, ns, "mstr");
-    kvh_get(p, blob, ns, "mblob", &l);
-    if (p != NULL)
-        free(p);
+    ESP_LOGD(TAG, "%i", ui8);
+
+    kvh_get(buf, str, ns, "mstr");
+    if (buf != NULL)
+    {
+        ESP_LOGD(TAG, "%s", buf);
+        free(buf);
+    }
+
+    kvh_get(p_blob, blob, ns, "mblob", &len);
+    if (p_blob != NULL)
+    {
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
+        free(p_blob);
+    }
 
     buf = kv_get_str(h, "str");
     if (buf != NULL)
