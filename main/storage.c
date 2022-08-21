@@ -511,18 +511,22 @@ void test_storage(void)
         free(p_blob);
     }
 
+    kvh_get(ui8, u8, ns, "_mu8", 42);
+    ESP_LOGD(TAG, "%i", ui8);
+
+    kvh_get(buf, str, ns, "_mstr");
     if (buf != NULL)
     {
-        ESP_LOGW(TAG, "buf should be NULL");
+        ESP_LOGD(TAG, "%s but should be NULL", buf);
         free(buf);
     }
 
-    blob = kv_get_blob(h, "_blob", &len);
-    ESP_LOGD(TAG, "blob %p", blob);
-    if (blob != NULL)
+    kvh_get(p_blob, blob, ns, "_mblob", &len);
+    if (p_blob != NULL)
     {
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
         ESP_LOGW(TAG, "blob should be NULL");
-        free(blob);
+        free(p_blob);
     }
 
     kv_close(h);
