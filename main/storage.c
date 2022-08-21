@@ -8,8 +8,6 @@
 
 static const char TAG[] = "storage";
 
-const char wifi_manager_nvs_namespace[] = "espwifimgr";
-
 void part_list(void)
 {
     esp_partition_iterator_t it_p = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
