@@ -8,7 +8,9 @@ void part_list(void);
 void kv_erase(void);
 void kv_stats(void);
 void kv_init(void);
-void kv_list_ns(const char *namespace);
+void kv_list_ns(const char *ns);
+
+nvs_handle_t kv_open_ns(const char *ns);
 
 void kv_set_i8(nvs_handle_t handle, const char *key, int8_t value);
 void kv_set_u8(nvs_handle_t handle, const char *key, uint8_t value);

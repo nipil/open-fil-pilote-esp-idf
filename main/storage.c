@@ -61,9 +61,9 @@ void kv_init(void)
     ESP_ERROR_CHECK(err);
 }
 
-void kv_list_ns(const char *namespace)
+void kv_list_ns(const char *ns)
 {
-    nvs_iterator_t it = nvs_entry_find("nvs", namespace, NVS_TYPE_ANY);
+    nvs_iterator_t it = nvs_entry_find("nvs", ns, NVS_TYPE_ANY);
     while (it != NULL)
     {
         nvs_entry_info_t info;
@@ -74,10 +74,10 @@ void kv_list_ns(const char *namespace)
     nvs_release_iterator(it);
 }
 
-nvs_handle_t kv_open_ns(const char *namespace)
+nvs_handle_t kv_open_ns(const char *ns)
 {
-    ESP_LOGD(TAG, "Open namespace %s", (namespace != NULL) ? namespace : "NULL");
-    assert(namespace != NULL);
+    ESP_LOGD(TAG, "Open namespace %s", (ns != NULL) ? ns : "NULL");
+    assert(ns != NULL);
     nvs_handle_t handle;
     esp_err_t err = nvs_open("storage", NVS_READWRITE, &handle);
     ESP_LOGD(TAG, "nvs_open: %s", esp_err_to_name(err));
