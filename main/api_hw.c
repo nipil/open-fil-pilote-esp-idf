@@ -4,8 +4,17 @@
 #include "ofp.h"
 #include "webserver.h"
 #include "api_hw.h"
+#include "storage.h"
 
 static const char TAG[] = "api_hw";
+
+const char stor_ns_hardware[] = "ofp_hardware";
+const char stor_key_current[] = "current_id";
+
+const char json_key_id[] = "id";
+const char json_key_current[] = "current";
+const char json_key_supported[] = "supported";
+const char json_key_description[] = "description";
 
 /***************************************************************************/
 
@@ -16,21 +25,32 @@ esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
+    // fetch current hardware id from storage, returns NULL if not found
+    char *current_hw_id;
+    kvh_get(current_hw_id, str, stor_ns_hardware, stor_key_current); // must be free'd after use
+
+    // provide hardware list
     cJSON *root = cJSON_CreateObject();
 
-    cJSON *supported = cJSON_CreateArray();
+    if (current_hw_id != NULL)
+    {
+        cJSON_AddStringToObject(root, json_key_current, current_hw_id);
+        free(current_hw_id);
+    }
+    else
+    {
+        cJSON_AddNullToObject(root, json_key_current);
+    }
+
+    cJSON *supported = cJSON_AddArrayToObject(root, json_key_supported);
     for (int i = 0; i < ofp_hw_list_get_count(); i++)
     {
         struct ofp_hw *hw = ofp_hw_list_get_hw_by_index(i);
         cJSON *j = cJSON_CreateObject();
-        cJSON_AddStringToObject(j, "id", hw->id);
-        cJSON_AddStringToObject(j, "description", hw->description);
+        cJSON_AddStringToObject(j, json_key_id, hw->id);
+        cJSON_AddStringToObject(j, json_key_description, hw->description);
         cJSON_AddItemToArray(supported, j);
     }
-    cJSON_AddItemToObject(root, "supported", supported);
-
-    cJSON *current = cJSON_CreateNull(); // TODO: replace with current value
-    cJSON_AddItemToObject(root, "current", current);
 
     // TODO: manage cache ?
 
