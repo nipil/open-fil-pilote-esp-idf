@@ -219,7 +219,7 @@ module.exports = {
     ]
   },
 
-  "/ofp-api/v1/hardware/OFP-10Z/parameters": {
+  "/ofp-api/v1/hardware/OFP10Z/parameters": {
     "parameters": [
       {
         "id": "dummy1",
