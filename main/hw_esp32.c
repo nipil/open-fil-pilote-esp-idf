@@ -3,7 +3,7 @@
 #include "hw_esp32.h"
 
 static struct ofp_hw hw_esp32 = {
-    .id = "esp32",
+    .id = "ESP32",
     .description = "Any ESP32, to target a new hardware or debug software without special hardware",
     .param_count = 2,
     .params = {
