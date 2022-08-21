@@ -191,15 +191,15 @@ module.exports = {
     "supported": [
       {
         "id": "ESP32",
-        "name": "modules ou DevKit seul"
+        "description": "modules ou DevKit seul"
       },
       {
         "id": "M1E1",
-        "name": "DevKit NodeMCU 30 pin + OFP M1 + OFP E1"
+        "description": "DevKit NodeMCU 30 pin + OFP M1 + OFP E1"
       },
       {
         "id": "OFP10Z",
-        "name": "Carte 10 zones avec afficheur et bouton"
+        "description": "Carte 10 zones avec afficheur et bouton"
       }
     ]
   },

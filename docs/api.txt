@@ -166,11 +166,11 @@ GET /ofp-api/v1/hardware
         "supported": [
             {
                 "id": "ESP32",
-                "name": "modules ou DevKit seul"
+                "description": "modules ou DevKit seul"
             },
             {
                 "id": "M1E1",
-                "name": "DevKit NodeMCU 30 pin + OFP M1 + OFP E1"
+                "description": "DevKit NodeMCU 30 pin + OFP M1 + OFP E1"
             },
             ...
         ]
