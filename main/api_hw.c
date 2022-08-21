@@ -65,6 +65,8 @@ esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
     return result;
 }
 
+/***************************************************************************/
+
 esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);
@@ -115,6 +117,8 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
     return result;
 }
 
+/***************************************************************************/
+
 esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);
@@ -122,5 +126,54 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    return httpd_resp_send_500(req);
+    ESP_LOGD(TAG, "content length %i", req->content_len);
+
+    int remaining = req->content_len;
+    const int buff_size = 64;
+    char buf[buff_size];
+
+    // fetch post data
+    do
+    {
+        // one block at a time
+        int amount = min_int(buff_size, remaining);
+        ESP_LOGD(TAG, "trying to fetching %i bytes", amount);
+        int ret = httpd_req_recv(req, buf, amount);
+
+        // check for errors
+        if (ret <= 0)
+        {
+            /* 0 return value indicates connection closed */
+            if (ret == 0)
+            {
+                ESP_LOGE(TAG, "httpd_req_recv error: connection closed");
+                return httpd_resp_send_500(req);
+            }
+
+            /* Check if timeout occurred */
+            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
+            {
+                /* In case of timeout one can choose to retry calling
+                 * httpd_req_recv(), but to keep it simple, here we
+                 * respond with an HTTP 408 (Request Timeout) error */
+                ESP_LOGE(TAG, "httpd_req_recv error: connection timeout");
+                httpd_resp_send_408(req);
+            }
+
+            /* In case of error, returning ESP_FAIL will
+             * ensure that the underlying socket is closed */
+            ESP_LOGE(TAG, "httpd_req_recv error: %s", esp_err_to_name(ret));
+            return httpd_resp_send_500(req);
+        }
+
+        ESP_LOGD(TAG, "received %i bytes", ret);
+
+        // display buffer
+        ESP_LOG_BUFFER_HEXDUMP(TAG, buf, ret, ESP_LOG_DEBUG);
+        remaining -= ret;
+        ESP_LOGD(TAG, "Remaining %i bytes", remaining);
+
+    } while (remaining > 0);
+
+    return httpd_resp_sendstr(req, "Success");
 }
