@@ -14,6 +14,7 @@ idf_component_register(
         "api_zones.c"
         "api_mgmt.c"
         "api_plannings.c"
+        "storage.c"
     INCLUDE_DIRS
         "."
 )
