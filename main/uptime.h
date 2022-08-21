@@ -1,7 +1,7 @@
 #ifndef UPTIME_H
 #define UPTIME_H
 
-#include <stdio.h>
+#include <time.h>
 
 #define UPTIME_LEAP_TRIGGER_SECONDS (5)
 #define UPTIME_LOOP_WAIT_MILLISECONDS (1000)
