@@ -23,6 +23,9 @@ void kv_set_u32(nvs_handle_t handle, const char *key, uint32_t value);
 void kv_set_i64(nvs_handle_t handle, const char *key, int64_t value);
 void kv_set_u64(nvs_handle_t handle, const char *key, uint64_t value);
 
+void kv_set_str(nvs_handle_t handle, const char *key, const char *value);
+void kv_set_blob(nvs_handle_t handle, const char *key, const void *value, size_t length);
+
 int8_t kv_get_i8(nvs_handle_t handle, const char *key, int8_t def_value);
 uint8_t kv_get_u8(nvs_handle_t handle, const char *key, uint8_t def_value);
 int16_t kv_get_i16(nvs_handle_t handle, const char *key, int16_t def_value);
