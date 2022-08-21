@@ -450,9 +450,9 @@ void test_storage(void)
     kv_get_u64(h, "u64", +1);
 
     uint8_t ui8;
-    char *s;
-    void *p;
-    size_t l;
+    char *buf;
+    void *p_blob;
+    size_t len;
 
     kvh_get(ui8, u8, ns, "mu8", 42);
     kvh_get(s, str, ns, "mstr");
@@ -460,17 +460,19 @@ void test_storage(void)
     if (p != NULL)
         free(p);
 
-    char *buf = kv_get_str(h, "str");
+    buf = kv_get_str(h, "str");
     if (buf != NULL)
-        free(buf);
-
-    size_t len;
-    void *blob = kv_get_blob(h, "blob", &len);
-    ESP_LOGD(TAG, "blob %p", blob);
-    if (blob != NULL)
     {
-        ESP_LOG_BUFFER_HEX_LEVEL(TAG, blob, len, ESP_LOG_DEBUG);
-        free(blob);
+        ESP_LOGD(TAG, "%s", buf);
+        free(buf);
+    }
+
+    p_blob = kv_get_blob(h, "blob", &len);
+    ESP_LOGD(TAG, "blob %p", p_blob);
+    if (p_blob != NULL)
+    {
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
+        free(p_blob);
     }
 
     // should use defaults
