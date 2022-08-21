@@ -187,7 +187,7 @@ module.exports = {
   },
 
   "/ofp-api/v1/hardware": {
-    "current": "M1E1",
+    "current": null,
     "supported": [
       {
         "id": "ESP32",
