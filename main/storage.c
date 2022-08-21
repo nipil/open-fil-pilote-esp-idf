@@ -6,6 +6,8 @@
 #include <nvs_flash.h>
 #include <nvs.h>
 
+#include "storage.h"
+
 static const char TAG[] = "storage";
 
 /* partition functions */
@@ -426,6 +428,10 @@ void test_storage(void)
     uint8_t data[] = {0x69, 0x51};
     kv_set_blob(h, "blob", data, sizeof(data));
 
+    kvh_set(u8, ns, "mu8", 69);
+    kvh_set(str, ns, "mstr", "toto");
+    kvh_set(blob, ns, "mblob", data, sizeof(data));
+
     kv_commit(h);
     kv_close(h);
 
@@ -442,6 +448,18 @@ void test_storage(void)
     kv_get_u32(h, "u32", +1);
     kv_get_i64(h, "i64", -1);
     kv_get_u64(h, "u64", +1);
+
+    uint8_t ui8;
+    char *s;
+    void *p;
+    size_t l;
+
+    kvh_get(ui8, u8, ns, "mu8", 42);
+    kvh_get(s, str, ns, "mstr");
+    kvh_get(p, blob, ns, "mblob", &l);
+    if (p != NULL)
+        free(p);
+
     char *buf = kv_get_str(h, "str");
     if (buf != NULL)
         free(buf);

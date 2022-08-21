@@ -3,6 +3,29 @@
 
 #include <nvs.h>
 
+/* macros for single value access */
+
+#define kvh_set(type_name, ns, key, val, ...)                           \
+    do                                                                  \
+    {                                                                   \
+        nvs_handle_t nvs_h;                                             \
+        nvs_h = kv_open_ns(ns);                                         \
+        kv_set_##type_name(nvs_h, key, val __VA_OPT__(, ) __VA_ARGS__); \
+        kv_commit(nvs_h);                                               \
+        kv_close(nvs_h);                                                \
+    } while (0)
+
+#define kvh_get(target, type_name, ns, key, ...)                            \
+    do                                                                      \
+    {                                                                       \
+        nvs_handle_t nvs_h;                                                 \
+        nvs_h = kv_open_ns(ns);                                             \
+        target = kv_get_##type_name(nvs_h, key __VA_OPT__(, ) __VA_ARGS__); \
+        kv_close(nvs_h);                                                    \
+    } while (0)
+
+/* functions */
+
 void part_list(void);
 
 void kv_erase(void);
