@@ -8,13 +8,19 @@
 
 static const char TAG[] = "api_hw";
 
-const char stor_ns_hardware[] = "ofp_hardware";
-const char stor_key_current[] = "current_id";
+static const char stor_ns_hardware[] = "ofp_hardware";
+static const char stor_key_current[] = "current_id";
 
-const char json_key_id[] = "id";
-const char json_key_current[] = "current";
-const char json_key_supported[] = "supported";
-const char json_key_description[] = "description";
+static const char json_key_current[] = "current";
+static const char json_key_description[] = "description";
+static const char json_key_id[] = "id";
+static const char json_key_parameters[] = "parameters";
+static const char json_key_supported[] = "supported";
+static const char json_key_type[] = "type";
+static const char json_key_value[] = "value";
+
+static const char json_type_number[] = "number";
+static const char json_type_string[] = "string";
 
 /***************************************************************************/
 
@@ -47,9 +53,9 @@ esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
     {
         struct ofp_hw *hw = ofp_hw_list_get_hw_by_index(i);
         cJSON *j = cJSON_CreateObject();
+        cJSON_AddItemToArray(supported, j);
         cJSON_AddStringToObject(j, json_key_id, hw->id);
         cJSON_AddStringToObject(j, json_key_description, hw->description);
-        cJSON_AddItemToArray(supported, j);
     }
 
     // TODO: manage cache ?
@@ -67,7 +73,46 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    return httpd_resp_send_500(req);
+    // find hardware
+    struct ofp_hw *hw = ofp_hw_list_find_hw_by_id(id);
+
+    // nothing found
+    if (hw == NULL)
+        return httpd_resp_send_404(req);
+
+    assert(hw->params != NULL);
+
+    // provide list of parameters
+    cJSON *root = cJSON_CreateObject();
+    cJSON *parameters = cJSON_AddArrayToObject(root, json_key_parameters);
+    for (int i = 0; i < hw->param_count; i++)
+    {
+        struct ofp_hw_param *param = &hw->params[i];
+        cJSON *j = cJSON_CreateObject();
+        cJSON_AddItemToArray(parameters, j);
+        cJSON_AddStringToObject(j, json_key_id, param->id);
+        cJSON_AddStringToObject(j, json_key_description, param->description);
+        switch (param->type)
+        {
+        case HW_OFP_PARAM_INTEGER:
+            cJSON_AddStringToObject(j, json_key_type, json_type_number);
+            cJSON_AddNumberToObject(j, json_key_value, param->value.int_);
+            break;
+        case HW_OFP_PARAM_STRING:
+            cJSON_AddStringToObject(j, json_key_type, json_type_string);
+            cJSON_AddStringToObject(j, json_key_value, param->value.string_);
+            break;
+        default:
+            cJSON_Delete(root);
+            return httpd_resp_send_500(req);
+        }
+    }
+
+    // TODO: manage cache ?
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
+    return result;
 }
 
 esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
