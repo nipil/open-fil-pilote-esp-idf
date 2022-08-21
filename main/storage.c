@@ -1,5 +1,5 @@
-
 #include <stdio.h>
+#include <string.h>
 #include <esp_log.h>
 #include <esp_check.h>
 #include <esp_partition.h>
@@ -9,6 +9,10 @@
 #include "storage.h"
 
 static const char TAG[] = "storage";
+
+static const char default_nvs_partition_name[] = NVS_DEFAULT_PART_NAME;
+
+static const char null_str[] = "NULL";
 
 /* partition functions */
 
@@ -26,18 +30,22 @@ void part_list(void)
 
 /* NVS backend management */
 
-void kv_erase(void)
+void kv_erase(const char *part_name)
 {
+    if (part_name == NULL)
+        part_name = default_nvs_partition_name;
     ESP_LOGW(TAG, "Erasing flash... Every settings will be deleted.");
-    esp_err_t err = nvs_flash_erase();
+    esp_err_t err = nvs_flash_erase_partition(part_name);
     ESP_LOGD(TAG, "nvs_flash_erase: %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
 }
 
-void kv_stats(void)
+void kv_stats(const char *part_name)
 {
+    if (part_name == NULL)
+        part_name = default_nvs_partition_name;
     nvs_stats_t nvs_stats;
-    esp_err_t err = nvs_get_stats(NULL, &nvs_stats);
+    esp_err_t err = nvs_get_stats(part_name, &nvs_stats);
     ESP_LOGD(TAG, "nvs_get_stats: %s", esp_err_to_name(err));
     if (err != ESP_OK)
     {
@@ -48,15 +56,17 @@ void kv_stats(void)
              nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
 }
 
-void kv_init(void)
+void kv_init(const char *part_name)
 {
-    esp_err_t err = nvs_flash_init();
+    if (part_name == NULL)
+        part_name = default_nvs_partition_name;
+    esp_err_t err = nvs_flash_init_partition(part_name);
     ESP_LOGD(TAG, "nvs_flash_init: %s", esp_err_to_name(err));
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
     {
         ESP_LOGI(TAG, "Mounting error: %s", esp_err_to_name(err));
         // NVS partition was truncated and needs to be erased
-        kv_erase();
+        kv_erase(part_name);
         // Retry nvs_flash_init
         ESP_LOGI(TAG, "Retrying mounting flash...");
         err = nvs_flash_init();
@@ -65,9 +75,48 @@ void kv_init(void)
     ESP_ERROR_CHECK(err);
 }
 
-void kv_list_ns(const char *ns)
+void kv_deinit(const char *part_name)
 {
-    nvs_iterator_t it = nvs_entry_find("nvs", ns, NVS_TYPE_ANY);
+    if (part_name == NULL)
+        part_name = default_nvs_partition_name;
+    esp_err_t err = nvs_flash_deinit_partition(part_name);
+    ESP_ERROR_CHECK(err);
+}
+
+/* all-in-one functions */
+void kv_clear_ns(const char *ns)
+{
+    ESP_LOGD(TAG, "Clear namespace %s", (ns != NULL) ? ns : null_str);
+    assert(ns != NULL);
+    nvs_handle handle = kv_open_ns(ns);
+    esp_err_t err = nvs_erase_all(handle);
+    ESP_ERROR_CHECK(err);
+    kv_commit(handle);
+    kv_close(handle);
+}
+
+void kv_delete_key_ns(const char *ns, const char *key)
+{
+    ESP_LOGD(TAG, "Delete key '%s' from namespace %s", (key != NULL) ? key : null_str, (ns != NULL) ? ns : null_str);
+    assert(ns != NULL);
+    nvs_handle handle = kv_open_ns(ns);
+    kv_delete_key(handle, key);
+    kv_commit(handle);
+    kv_close(handle);
+}
+
+/*
+ * Lists key-value in partition name and namespace
+ * if part_name is NULL, then use default_nvs_partition_name
+ * if ns is NULL, list key-values in all namespaces
+ */
+void kv_list_ns(const char *part_name, const char *ns)
+{
+    if (part_name == NULL)
+    {
+        part_name = default_nvs_partition_name;
+    }
+    nvs_iterator_t it = nvs_entry_find(part_name, ns, NVS_TYPE_ANY);
     while (it != NULL)
     {
         nvs_entry_info_t info;
@@ -80,7 +129,7 @@ void kv_list_ns(const char *ns)
 
 nvs_handle_t kv_open_ns(const char *ns)
 {
-    ESP_LOGD(TAG, "Open namespace %s", (ns != NULL) ? ns : "NULL");
+    ESP_LOGD(TAG, "Open namespace %s", (ns != NULL) ? ns : null_str);
     assert(ns != NULL);
     nvs_handle_t handle;
     esp_err_t err = nvs_open(ns, NVS_READWRITE, &handle);
@@ -101,6 +150,21 @@ void kv_close(nvs_handle_t handle)
 {
     ESP_LOGD(TAG, "Closing handle %u", handle);
     nvs_close(handle);
+}
+
+void kv_delete_key(nvs_handle_t handle, const char *key)
+{
+    assert(key != NULL);
+    assert(strlen(key) != 0);
+    esp_err_t err = nvs_erase_key(handle, key);
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_clear(nvs_handle_t handle)
+{
+    ESP_LOGD(TAG, "Clear opened namespace");
+    esp_err_t err = nvs_erase_all(handle);
+    ESP_ERROR_CHECK(err);
 }
 
 /* NVS setters */
@@ -171,7 +235,7 @@ void kv_set_u64(nvs_handle_t handle, const char *key, uint64_t value)
 
 void kv_set_str(nvs_handle_t handle, const char *key, const char *value)
 {
-    ESP_LOGD(TAG, "kv_set_str key=%s value=%s", key, (value != NULL) ? value : "NULL");
+    ESP_LOGD(TAG, "kv_set_str key=%s value=%s", key, (value != NULL) ? value : null_str);
     assert(value != NULL);
     esp_err_t err = nvs_set_str(handle, key, value);
     ESP_LOGD(TAG, "nvs_set_str %s", esp_err_to_name(err));
@@ -404,7 +468,7 @@ void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length)
 /* unit tests */
 void test_storage(void)
 {
-    const char ns[] = "test";
+    const char ns[] = "test_storage";
 
     uint8_t ui8;
     char *buf;
@@ -413,9 +477,15 @@ void test_storage(void)
 
     ESP_LOGD(TAG, "==== general RAW =========================");
     part_list();
-    kv_init();
-    kv_stats();
-    kv_list_ns(NULL);
+    kv_init(NULL);  // default partition
+    kv_stats(NULL); // default partition
+
+    ESP_LOGD(TAG, "---- ");
+    kv_list_ns(NULL, NULL); // default partition, every namespace
+    ESP_LOGD(TAG, "---- ");
+    kv_clear_ns(ns); // default partition, specific namespace
+    ESP_LOGD(TAG, "---- ");
+    kv_list_ns(NULL, NULL); // default partition, every namespace
 
     ESP_LOGD(TAG, "==== test storing data RAW =========================");
 
@@ -493,14 +563,14 @@ void test_storage(void)
     kv_get_u32(h, "_u32", +1);
     kv_get_i64(h, "_i64", -1);
     kv_get_u64(h, "_u64", +1);
-    buf = kv_get_str(h, "str");
+    buf = kv_get_str(h, "_str");
     if (buf != NULL)
     {
         ESP_LOGD(TAG, "%s", buf);
         free(buf);
     }
-    p_blob = kv_get_blob(h, "blob", &len);
-    ESP_LOGD(TAG, "blob %p", p_blob);
+    p_blob = kv_get_blob(h, "_blob", &len);
+    ESP_LOGD(TAG, "p_blob %p", p_blob);
     if (p_blob != NULL)
     {
         ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
@@ -524,4 +594,15 @@ void test_storage(void)
         ESP_LOGW(TAG, "blob should be NULL");
         free(p_blob);
     }
+
+    ESP_LOGD(TAG, "==== VALUES =========================");
+    kv_list_ns(NULL, ns); // default partition, specific namespace
+    ESP_LOGD(TAG, "---- ");
+    h = kv_open_ns(ns);
+    kv_delete_key(h, "mblob");
+    kv_close(h);
+    ESP_LOGD(TAG, "---- ");
+    kv_delete_key_ns(ns, "mstr");
+    ESP_LOGD(TAG, "---- ");
+    kv_list_ns(NULL, ns); // default partition, specific namespace
 }

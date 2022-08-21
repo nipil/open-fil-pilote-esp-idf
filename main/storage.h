@@ -24,18 +24,27 @@
         kv_close(nvs_h);                                                    \
     } while (0)
 
-/* functions */
-
+/* partition functions */
 void part_list(void);
+void kv_erase(const char *part_name);
+void kv_stats(const char *part_name);
 
-void kv_erase(void);
-void kv_stats(void);
-void kv_init(void);
-void kv_list_ns(const char *ns);
+void kv_init(const char *part_name);
+void kv_deinit(const char *part_name);
 
+void kv_list_ns(const char *part_name, const char *ns); // use NULL, NULL to list everything from the default partition
+
+/* wrapper functions */
+void kv_clear_ns(const char *ns);
+void kv_delete_key_ns(const char *ns, const char *key);
+
+/* functions requiring an opened handle */
 nvs_handle_t kv_open_ns(const char *ns);
 void kv_commit(nvs_handle_t handle);
 void kv_close(nvs_handle_t handle);
+
+void kv_clear(nvs_handle_t handle);
+void kv_delete_key(nvs_handle_t handle, const char *key);
 
 void kv_set_i8(nvs_handle_t handle, const char *key, int8_t value);
 void kv_set_u8(nvs_handle_t handle, const char *key, uint8_t value);
@@ -58,8 +67,7 @@ uint32_t kv_get_u32(nvs_handle_t handle, const char *key, uint32_t def_value);
 int64_t kv_get_i64(nvs_handle_t handle, const char *key, int64_t def_value);
 uint64_t kv_get_u64(nvs_handle_t handle, const char *key, uint64_t def_value);
 
-/* Returned memory MUST BE FREED (or owned) BY THE CALLER */
-char *kv_get_str(nvs_handle_t handle, const char *key);
-void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length);
+char *kv_get_str(nvs_handle_t handle, const char *key);                  /* Returned memory MUST BE FREED (or owned) BY THE CALLER */
+void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length); /* Returned memory MUST BE FREED (or owned) BY THE CALLER */
 
 #endif /* STORAGE_H */
