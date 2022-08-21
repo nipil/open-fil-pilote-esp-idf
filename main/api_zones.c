@@ -5,7 +5,7 @@
 #include "webserver.h"
 #include "api_accounts.h"
 
-static const char TAG[] = "api_accounts";
+static const char TAG[] = "api_zones";
 
 /***************************************************************************/
 
