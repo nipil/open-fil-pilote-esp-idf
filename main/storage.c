@@ -74,6 +74,99 @@ void kv_list_ns(const char *namespace)
     nvs_release_iterator(it);
 }
 
+nvs_handle_t kv_open_ns(const char *namespace)
+{
+    ESP_LOGD(TAG, "Open namespace %s", (namespace != NULL) ? namespace : "NULL");
+    assert(namespace != NULL);
+    nvs_handle_t handle;
+    esp_err_t err = nvs_open("storage", NVS_READWRITE, &handle);
+    ESP_LOGD(TAG, "nvs_open: %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+    return handle;
+}
+
+void kv_set_i8(nvs_handle_t handle, const char *key, int8_t value)
+{
+    ESP_LOGD(TAG, "kv_set_i8 key=%s value=%i", key, value);
+    esp_err_t err = nvs_set_i8(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_i8 %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_u8(nvs_handle_t handle, const char *key, uint8_t value)
+{
+    ESP_LOGD(TAG, "kv_set_u8 key=%s value=%u", key, value);
+    esp_err_t err = nvs_set_u8(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_u8 %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_i16(nvs_handle_t handle, const char *key, int16_t value)
+{
+    ESP_LOGD(TAG, "kv_set_i16 key=%s value=%i", key, value);
+    esp_err_t err = nvs_set_i16(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_i16 %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_u16(nvs_handle_t handle, const char *key, uint16_t value)
+{
+    ESP_LOGD(TAG, "kv_set_u16 key=%s value=%u", key, value);
+    esp_err_t err = nvs_set_u16(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_u16 %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_i32(nvs_handle_t handle, const char *key, int32_t value)
+{
+    ESP_LOGD(TAG, "kv_set_i32 key=%s value=%i", key, value);
+    esp_err_t err = nvs_set_i32(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_i32 %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_u32(nvs_handle_t handle, const char *key, uint32_t value)
+{
+    ESP_LOGD(TAG, "kv_set_u32 key=%s value=%u", key, value);
+    esp_err_t err = nvs_set_u32(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_u32 %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_i64(nvs_handle_t handle, const char *key, int64_t value)
+{
+    ESP_LOGD(TAG, "kv_set_i64 key=%s value=%lli", key, value);
+    esp_err_t err = nvs_set_i64(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_i64 %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_u64(nvs_handle_t handle, const char *key, uint64_t value)
+{
+    ESP_LOGD(TAG, "kv_set_u64 key=%s value=%llu", key, value);
+    esp_err_t err = nvs_set_u64(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_u64 %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_str(nvs_handle_t handle, const char *key, const char *value)
+{
+    ESP_LOGD(TAG, "kv_set_str key=%s value=%s", key, (value != NULL) ? value : "NULL");
+    assert(value != NULL);
+    esp_err_t err = nvs_set_str(handle, key, value);
+    ESP_LOGD(TAG, "nvs_set_str %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_set_blob(nvs_handle_t handle, const char *key, const void *value, size_t length)
+{
+    ESP_LOGD(TAG, "kv_set_i8 key=%s value=%p length=%u", key, value, length);
+    assert(value != NULL);
+    esp_err_t err = nvs_set_blob(handle, key, value, length);
+    ESP_LOGD(TAG, "nvs_set_blob %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
 void test_storage(void)
 {
     part_list();
@@ -81,4 +174,23 @@ void test_storage(void)
     kv_stats();
     kv_list_ns(NULL);
 
+    esp_err_t err;
+
+    nvs_handle_t h = kv_open_ns("test");
+    kv_set_i8(h, "i8", INT8_MIN);
+    kv_set_u8(h, "u8", UINT8_MAX);
+    kv_set_i16(h, "i16", INT16_MIN);
+    kv_set_u16(h, "u16", UINT16_MAX);
+    kv_set_i32(h, "i32", INT32_MIN);
+    kv_set_u32(h, "u32", UINT32_MAX);
+    kv_set_i64(h, "i64", INT64_MIN);
+    kv_set_u64(h, "u64", UINT64_MAX);
+    kv_set_str(h, "str", "foo");
+    uint8_t blob[] = {0x69, 0x51};
+    kv_set_blob(h, "blob", blob, sizeof(blob));
+
+    err = nvs_commit(h);
+    ESP_ERROR_CHECK(err);
+
+    nvs_close(h);
 }
