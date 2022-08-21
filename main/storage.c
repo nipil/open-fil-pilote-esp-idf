@@ -8,6 +8,8 @@
 
 static const char TAG[] = "storage";
 
+/* partition functions */
+
 void part_list(void)
 {
     esp_partition_iterator_t it_p = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
@@ -19,6 +21,8 @@ void part_list(void)
         it_p = esp_partition_next(it_p);
     }
 }
+
+/* NVS backend management */
 
 void kv_erase(void)
 {
@@ -96,6 +100,8 @@ void kv_close(nvs_handle_t handle)
     ESP_LOGD(TAG, "Closing handle %u", handle);
     nvs_close(handle);
 }
+
+/* NVS setters */
 
 void kv_set_i8(nvs_handle_t handle, const char *key, int8_t value)
 {
@@ -180,6 +186,8 @@ void kv_set_blob(nvs_handle_t handle, const char *key, const void *value, size_t
     ESP_LOGD(TAG, "nvs_set_blob %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
 }
+
+/* NVS getters */
 
 int8_t kv_get_i8(nvs_handle_t handle, const char *key, int8_t def_value)
 {
@@ -391,6 +399,7 @@ void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length)
     return buf; // caller MUST FREE returned value if not NULL
 }
 
+/* unit tests */
 void test_storage(void)
 {
     const char ns[] = "test";

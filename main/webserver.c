@@ -53,6 +53,7 @@ static httpd_handle_t *app_server = NULL;
 
 /***************************************************************************/
 
+/* template for every API handler */
 typedef esp_err_t (*api_serve_func)(httpd_req_t *req, struct re_result *captures);
 
 /***************************************************************************/
@@ -112,6 +113,15 @@ esp_err_t serve_json(httpd_req_t *req, cJSON *node)
 
 /***************************************************************************/
 
+/*
+ * Helper function for API entrypoints
+ *
+ * Tries to match the provided regex to the given URL
+ * If it matches, calls the api handler function
+ * 
+ * Returns true if the regex matches (ie. no other route should be tested), false otherwise
+ * Updates result with the handler value, so that caller can act upon it or forward to caller
+ */
 static bool api_route_try(esp_err_t *result, httpd_req_t *req, const char *re_str, api_serve_func handler)
 {
     struct re_result *captures = re_match(re_str, req->uri);
@@ -245,6 +255,7 @@ static esp_err_t https_handler_delete(httpd_req_t *req)
 
 static bool is_authentication_valid(httpd_req_t *req)
 {
+    // TODO: check actual accounts
     return httpd_basic_auth(req, "admin", "admin") == ESP_OK;
 }
 

@@ -32,6 +32,11 @@ time_t uptime_get_time(void)
     return uptime;
 }
 
+/*
+ * Applies the required time delta to the snapshotted boot time
+ *
+ * Call it periodically or whenever we detect a clock change
+ */
 bool uptime_sync_check(void)
 {
     portMUX_TYPE mutex_system_start = portMUX_INITIALIZER_UNLOCKED;

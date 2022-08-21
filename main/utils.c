@@ -23,7 +23,6 @@ void localtime_to_string(struct tm *timeinfo, char *buf, int buf_len)
 }
 
 /* display current localtime */
-
 void log_current_localtime(const char *tag)
 {
     time_t now;
@@ -37,7 +36,6 @@ void log_current_localtime(const char *tag)
 }
 
 /* log regex error message */
-
 void log_regerror(const char *TAG, regex_t *re, int res)
 {
     int n = regerror(res, re, NULL, 0);
@@ -48,7 +46,6 @@ void log_regerror(const char *TAG, regex_t *re, int res)
 }
 
 /* creates a copy of a substring, which MUST BE FREED BY THE CALLER */
-
 char *substr(const char *src, int offset, int length)
 {
     char *dest = malloc(length + 1);
@@ -128,7 +125,6 @@ struct re_result *re_match(const char *re_str, const char *str)
     if (res != 0)
     {
         log_regerror(TAG, &re, res);
-        // assert(res == 0);
         return NULL;
     }
 
@@ -197,10 +193,11 @@ struct re_result *re_match(const char *re_str, const char *str)
     return out;
 }
 
+/* frees the results from re_match */
 void re_free(struct re_result *r)
 {
     assert(r != NULL);
-    if (!r)
+    if (!r) // if asserts are disabled
         return;
     if (!r->strings)
         return;
@@ -212,6 +209,7 @@ void re_free(struct re_result *r)
     free(r);
 }
 
+/* safe access and conversion */
 int re_get_int(struct re_result *result, int index)
 {
     assert(result != NULL);
@@ -219,6 +217,7 @@ int re_get_int(struct re_result *result, int index)
     return atoi(result->strings[index]);
 }
 
+/* safe access */
 char *re_get_string(struct re_result *result, int index)
 {
     assert(result != NULL);
