@@ -105,4 +105,7 @@ void re_free(struct re_result *r);
 int re_get_int(struct re_result *result, int index);
 char *re_get_string(struct re_result *result, int index);
 
+/* comparison functions */
+inline int min_int(const int a, const int b) { return ((a < b) ? a : b); }
+
 #endif /* UTILS_H */
