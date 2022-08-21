@@ -175,5 +175,9 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
 
     } while (remaining > 0);
 
+    // Content-Type: application/x-www-form-urlencoded
+    // foo azérty ! toto % caca @ choubinou " di#ze
+    // hardware_type=ESP32&hardware_parameter_name_sample_param=foo+az%C3%A9rty+%21+toto+%25+caca+%40+choubinou+%22+di%23ze&hardware_parameter_name_another_param=42
+
     return httpd_resp_sendstr(req, "Success");
 }
