@@ -485,8 +485,21 @@ void test_storage(void)
     kv_get_i64(h, "_i64", -1);
     kv_get_u64(h, "_u64", +1);
 
-    // returns NULL as default value
-    buf = kv_get_str(h, "_str");
+    buf = kv_get_str(h, "str");
+    if (buf != NULL)
+    {
+        ESP_LOGD(TAG, "%s", buf);
+        free(buf);
+    }
+
+    p_blob = kv_get_blob(h, "blob", &len);
+    ESP_LOGD(TAG, "blob %p", p_blob);
+    if (p_blob != NULL)
+    {
+        ESP_LOG_BUFFER_HEX_LEVEL(TAG, p_blob, len, ESP_LOG_DEBUG);
+        free(p_blob);
+    }
+
     if (buf != NULL)
     {
         ESP_LOGW(TAG, "buf should be NULL");
