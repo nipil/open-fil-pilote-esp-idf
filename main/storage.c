@@ -80,7 +80,7 @@ nvs_handle_t kv_open_ns(const char *ns)
     assert(ns != NULL);
     nvs_handle_t handle;
     esp_err_t err = nvs_open("storage", NVS_READWRITE, &handle);
-    ESP_LOGD(TAG, "nvs_open: %s", esp_err_to_name(err));
+    ESP_LOGD(TAG, "nvs_open: %s handle %u", esp_err_to_name(err), handle);
     ESP_ERROR_CHECK(err);
     return handle;
 }
