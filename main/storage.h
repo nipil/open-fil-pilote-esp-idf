@@ -1,6 +1,8 @@
 #ifndef STORAGE_H
 #define STORAGE_H
 
+#include <nvs.h>
+
 void part_list(void);
 
 void kv_erase(void);
