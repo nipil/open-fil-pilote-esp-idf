@@ -85,6 +85,20 @@ nvs_handle_t kv_open_ns(const char *ns)
     return handle;
 }
 
+void kv_commit(nvs_handle_t handle)
+{
+    ESP_LOGD(TAG, "Committing handle %u", handle);
+    esp_err_t err = nvs_commit(handle);
+    ESP_LOGD(TAG, "nvs_commit: %s", esp_err_to_name(err));
+    ESP_ERROR_CHECK(err);
+}
+
+void kv_close(nvs_handle_t handle)
+{
+    ESP_LOGD(TAG, "Closing handle %u", handle);
+    nvs_close(handle);
+}
+
 void kv_set_i8(nvs_handle_t handle, const char *key, int8_t value)
 {
     ESP_LOGD(TAG, "kv_set_i8 key=%s value=%i", key, value);
@@ -174,8 +188,6 @@ void test_storage(void)
     kv_stats();
     kv_list_ns(NULL);
 
-    esp_err_t err;
-
     nvs_handle_t h = kv_open_ns("test");
     kv_set_i8(h, "i8", INT8_MIN);
     kv_set_u8(h, "u8", UINT8_MAX);
@@ -189,8 +201,6 @@ void test_storage(void)
     uint8_t blob[] = {0x69, 0x51};
     kv_set_blob(h, "blob", blob, sizeof(blob));
 
-    err = nvs_commit(h);
-    ESP_ERROR_CHECK(err);
-
-    nvs_close(h);
+    kv_commit(h);
+    kv_close(h);
 }
