@@ -157,6 +157,12 @@ void kv_delete_key(nvs_handle_t handle, const char *key)
     assert(key != NULL);
     assert(strlen(key) != 0);
     esp_err_t err = nvs_erase_key(handle, key);
+    ESP_LOGD(TAG, "nvs_erase_key %s", esp_err_to_name(err));
+    if (err == ESP_ERR_NVS_NOT_FOUND)
+    {
+        ESP_LOGW(TAG, "NVS delete key %s not found", key);
+        return;
+    }
     ESP_ERROR_CHECK(err);
 }
 
