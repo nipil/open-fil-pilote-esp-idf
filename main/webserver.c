@@ -370,3 +370,50 @@ void webserver_stop(void)
     httpd_ssl_stop(app_server);
     app_server = NULL;
 }
+
+/* received the required amount of data from incoming request body */
+esp_err_t get_request_data(httpd_req_t *req, char *buf, size_t len)
+{
+    assert(req != NULL);
+    assert(buf != NULL);
+    ESP_LOGD(TAG, "Needing %i bytes total", len);
+
+    int remaining = len;
+    while (remaining > 0)
+    {
+        // one block at a time
+        ESP_LOGD(TAG, "Requesting %i bytes", remaining);
+        int ret = httpd_req_recv(req, buf, remaining);
+
+        // Received some data
+        if (ret > 0)
+        {
+            ESP_LOGD(TAG, "Received %i bytes", ret);
+            remaining -= ret;
+            buf += ret;
+            continue;
+        }
+
+        // connection closed
+        if (ret == 0)
+        {
+            ESP_LOGE(TAG, "httpd_req_recv error: connection closed");
+            return httpd_resp_send_err(req, 500, "connection closed");
+        }
+
+        // timeout
+        if (ret == HTTPD_SOCK_ERR_TIMEOUT)
+        {
+            // do not bother retrying
+            ESP_LOGE(TAG, "httpd_req_recv error: connection timeout");
+            return httpd_resp_send_408(req);
+        }
+
+        // In case of error, returning ESP_FAIL will ensure that the underlying socket is closed
+        const char *msg = esp_err_to_name(ret);
+        ESP_LOGE(TAG, "httpd_req_recv error: %s", msg);
+        return httpd_resp_send_err(req, 500, msg);
+    }
+
+    return ESP_OK;
+}
