@@ -42,7 +42,15 @@ menu "Open Fil Pilote"
                 We are running multiple HTTPD servers simultaneously (wifimanager, ofp ui and api, others...)
                 We need to specify different control port for each server or these will not start
                 In any case, avoid the default ESP-IDF value of 32768.
-            
+
+        config OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP
+            int "Defines the maximum size for a single operation on input request data"
+            default 1024
+            help
+                In order to not overload the memory, limit the amount of data that can be processed
+                in single atomic operations (e.g. form data decoding, json decoding, etc...)
+                This value defines the reusable buffer size for multiple block operations (uploads)
+
     endmenu
 
 endmenu
