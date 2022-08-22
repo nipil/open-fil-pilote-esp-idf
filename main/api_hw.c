@@ -1,6 +1,8 @@
 #include <cjson.h>
 #include <esp_log.h>
 
+#include "sdkconfig.h"
+
 #include "ofp.h"
 #include "webserver.h"
 #include "api_hw.h"
@@ -122,62 +124,61 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
 esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);
-    ESP_LOGD(TAG, "serve_api_post_hardware version=%i", version);
+    ESP_LOGD(TAG, "Serve_api_post_hardware version=%i", version);
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    ESP_LOGD(TAG, "content length %i", req->content_len);
+    const int max_size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP;
 
-    int remaining = req->content_len;
-    const int buff_size = 64;
-    char buf[buff_size];
+    // TODO: check Content-type header ?
 
-    // fetch post data
-    do
+    // check
+    ESP_LOGD(TAG, "Content length %i", req->content_len);
+    if (req->content_len > max_size)
     {
-        // one block at a time
-        int amount = min_int(buff_size, remaining);
-        ESP_LOGD(TAG, "trying to fetching %i bytes", amount);
-        int ret = httpd_req_recv(req, buf, amount);
+        ESP_LOGE(TAG, "Request body (%i) is larger than atomic buffer (%i)", req->content_len, max_size);
+        return httpd_resp_send_500(req);
+    }
 
-        // check for errors
-        if (ret <= 0)
-        {
-            /* 0 return value indicates connection closed */
-            if (ret == 0)
-            {
-                ESP_LOGE(TAG, "httpd_req_recv error: connection closed");
-                return httpd_resp_send_500(req);
-            }
+    // alloc
+    int req_size = min_int(req->content_len, max_size);
+    char *buf = malloc(req_size);
+    assert(buf != NULL);
 
-            /* Check if timeout occurred */
-            if (ret == HTTPD_SOCK_ERR_TIMEOUT)
-            {
-                /* In case of timeout one can choose to retry calling
-                 * httpd_req_recv(), but to keep it simple, here we
-                 * respond with an HTTP 408 (Request Timeout) error */
-                ESP_LOGE(TAG, "httpd_req_recv error: connection timeout");
-                return httpd_resp_send_408(req);
-            }
+    // read
+    esp_err_t res = get_request_data(req, buf, req_size);
+    if (res != ESP_OK)
+    {
+        free(buf);
+        ESP_LOGE(TAG, "Could not read request data: %s", esp_err_to_name(res));
+        return res;
+    }
 
-            /* In case of error, returning ESP_FAIL will
-             * ensure that the underlying socket is closed */
-            ESP_LOGE(TAG, "httpd_req_recv error: %s", esp_err_to_name(ret));
-            return httpd_resp_send_500(req);
-        }
+    // dump
+    ESP_LOG_BUFFER_HEXDUMP(TAG, buf, req_size, ESP_LOG_DEBUG);
 
-        ESP_LOGD(TAG, "received %i bytes", ret);
+    // decode
+    struct ofp_form_data *data = form_data_parse(buf);
+    free(buf);
+    if (data == NULL)
+    {
+        ESP_LOGD(TAG, "Error parsing x-www-form-urlencoded data");
+        return httpd_resp_send_err(req, 400, "Malformed request body");
+    }
 
-        // display buffer
-        ESP_LOG_BUFFER_HEXDUMP(TAG, buf, ret, ESP_LOG_DEBUG);
-        remaining -= ret;
-        ESP_LOGD(TAG, "Remaining %i bytes", remaining);
+    // dump
+    ESP_LOGD(TAG, "Param count %d", data->count);
+    for (int i = 0; i < data->count; i++)
+    {
+        struct ofp_form_param *param = &data->params[i];
+        ESP_LOGD(TAG, "name '%s' value '%s'", param->name ? param->name : "NULL", param->value ? param->value : "NULL");
+    }
 
-    } while (remaining > 0);
+    // TODO: match param name with expected
+    // TODO: check value type and convert if needed
 
-    // Content-Type: application/x-www-form-urlencoded
-    // foo azérty ! toto % caca @ choubinou " di#ze
-    // hardware_type=ESP32&sample_param=foo+az%C3%A9rty+%21+toto+%25+caca+%40+choubinou+%22+di%23ze&another_param=42
+    // cleanup
+    form_data_free(data);
 
     return httpd_resp_sendstr(req, "Success");
 }
