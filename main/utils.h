@@ -108,7 +108,13 @@ char *re_get_string(struct re_result *result, int index);
 /* comparison functions */
 inline int min_int(const int a, const int b) { return ((a < b) ? a : b); }
 
-/* string splitting functions */
+/* 
+ * string splitting functions
+ *
+ * Returns NULL on failure
+ *
+ * The returned pointer (if not NULL) MUST BE FREED BY THE CALLER using split_string_free()
+ */
 struct split_result
 {
     int count;
