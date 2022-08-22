@@ -224,3 +224,75 @@ char *re_get_string(struct re_result *result, int index)
     assert(index >= 0 && index < result->count);
     return result->strings[index];
 }
+
+void split_string_free(struct split_result *splits)
+{
+    assert(splits != NULL);
+    if (splits == NULL) // failsafe if asserts are disabled
+        return;
+    if (splits->strings != NULL)
+    {
+        free(splits->strings);
+    }
+    free(splits);
+}
+
+struct split_result *split_string(const char *str, char sep)
+{
+    assert(str != NULL);
+    if (str == NULL) // fail safe if asserts are disabled
+        return NULL;
+
+    int src_len = strlen(str);
+
+    // empty string
+    if (src_len == 0)
+    {
+        struct split_result *empty = malloc(sizeof(struct split_result *));
+        assert(empty != NULL);
+        empty->count = 0;
+        empty->strings = NULL;
+        return empty;
+    }
+
+    // count
+    int count = 0;
+    for (int i = 0; i < src_len; i++)
+        if (str[i] == sep)
+            count++;
+
+    // N separators means N+1 strings
+    count++;
+
+    // allocate
+    struct split_result *splits = malloc(sizeof(struct split_result *));
+    assert(splits != NULL);
+    splits->count = count;
+    splits->strings = malloc(count * sizeof(char *));
+    assert(splits->strings != NULL);
+
+    // extract
+    int current = 0;
+    int last = 0;
+    for (int i = 0; i <= src_len /* capture last empty string too */; i++)
+    {
+        // guard clause to skip non-sep characters
+        if (i < src_len && str[i] != sep)
+            continue;
+
+        // found separator, compute length
+        int sub_len = i - last;
+        char *sub = substr(str, last, sub_len); // must freed by caller
+        ESP_LOGD(TAG, "split_string %i is %s", current, sub);
+
+        // store
+        splits->strings[current] = sub;
+        current++;
+
+        last = i + 1; // skip separator and restart from there
+    }
+
+    // verify that we captured everything
+    assert(current == count);
+    return splits;
+}
