@@ -245,7 +245,7 @@ struct split_result *split_string(const char *str, char sep)
 
     int src_len = strlen(str);
 
-    // empty string
+    /* An empty input string is not an error, just return an empty struct */
     if (src_len == 0)
     {
         struct split_result *empty = malloc(sizeof(struct split_result *));
@@ -255,7 +255,7 @@ struct split_result *split_string(const char *str, char sep)
         return empty;
     }
 
-    // count
+    // count separators to determine how much memory we need to allocate
     int count = 0;
     for (int i = 0; i < src_len; i++)
         if (str[i] == sep)
