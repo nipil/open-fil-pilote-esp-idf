@@ -108,7 +108,7 @@ char *re_get_string(struct re_result *result, int index);
 /* comparison functions */
 inline int min_int(const int a, const int b) { return ((a < b) ? a : b); }
 
-/* 
+/*
  * string splitting functions
  *
  * Returns NULL on failure
@@ -124,7 +124,7 @@ struct split_result
 void split_string_free(struct split_result *splits);
 struct split_result *split_string(const char *str, char sep);
 
-/* 
+/*
  * decode application/x-www-form-urlencoded
  *
  * Returns NULL on failure
