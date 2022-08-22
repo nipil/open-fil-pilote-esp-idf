@@ -143,7 +143,7 @@ struct re_result *re_match(const char *re_str, const char *str)
         tmp++;
     }
     nmatch++; // for the whole match
-    ESP_LOGD(TAG, "nmatch=%d", nmatch++);
+    ESP_LOGD(TAG, "nmatch=%d", nmatch);
 
     // alloc
     regmatch_t *pmatch = malloc(nmatch * sizeof(regmatch_t));
