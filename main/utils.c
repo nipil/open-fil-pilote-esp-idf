@@ -283,7 +283,7 @@ struct split_result *split_string(const char *str, char sep)
         // found separator, compute length
         int sub_len = i - last;
         char *sub = substr(str, last, sub_len); // must freed by caller
-        ESP_LOGD(TAG, "split_string %i is %s", current, sub);
+        // ESP_LOGD(TAG, "split_string %i is %s", current, sub);
 
         // store
         splits->strings[current] = sub;
