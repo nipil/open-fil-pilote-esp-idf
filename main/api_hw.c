@@ -157,7 +157,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
                  * httpd_req_recv(), but to keep it simple, here we
                  * respond with an HTTP 408 (Request Timeout) error */
                 ESP_LOGE(TAG, "httpd_req_recv error: connection timeout");
-                httpd_resp_send_408(req);
+                return httpd_resp_send_408(req);
             }
 
             /* In case of error, returning ESP_FAIL will
