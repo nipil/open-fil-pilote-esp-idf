@@ -118,7 +118,7 @@ esp_err_t serve_json(httpd_req_t *req, cJSON *node)
  *
  * Tries to match the provided regex to the given URL
  * If it matches, calls the api handler function
- * 
+ *
  * Returns true if the regex matches (ie. no other route should be tested), false otherwise
  * Updates result with the handler value, so that caller can act upon it or forward to caller
  */
