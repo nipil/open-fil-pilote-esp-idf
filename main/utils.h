@@ -147,4 +147,17 @@ struct ofp_form_data
 void form_data_free(struct ofp_form_data *data);
 struct ofp_form_data *form_data_parse(const char *data);
 
+/*
+ * Converts a URL-encoded string back to plaintext
+ *
+ * Returned pointer (if not NULL) MUST BE FREED BY THE CALLER
+ */
+char *form_data_decode_str(const char *str);
+
+/*
+ * Converts an hexadecimal ASCII character [a-fA-F0-9] to its corresponding (0..15) value
+ * Returns -1 if provided character is not hexadecimal
+ */
+int hex_char_to_val(const char c);
+
 #endif /* UTILS_H */

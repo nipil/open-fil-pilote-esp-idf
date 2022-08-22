@@ -367,16 +367,32 @@ struct ofp_form_data *form_data_parse(const char *data)
         // skip invalid params
         if (res == NULL || res->count != 3) // manually set capture count from param_re string
         {
-            ESP_LOGW(TAG, "Skipping invalid application/x-www-form-urlencoded part '%s' from data '%s'", param_raw_string, data);
+            ESP_LOGW(TAG, "Skipping invalid part '%s' from application/x-www-form-urlencoded data '%s'", param_raw_string, data);
             if (res != NULL) // if it has unexpected number of captures
                 re_free(res);
             continue;
         }
 
-        // store the result
+        // url-decode key and value
         struct ofp_form_param *target = &out->params[out->count];
-        target->name = strdup(res->strings[1]);  // key   // TODO: decode
-        target->value = strdup(res->strings[2]); // value // TODO: decode
+        const char *key_enc = res->strings[1];
+        char *key_dec = form_data_decode_str(key_enc);
+        if (key_dec == NULL)
+        {
+            ESP_LOGW(TAG, "Skipping parameter %s: invalid url-encoded name '%s'", param_raw_string, key_enc);
+            continue;
+        }
+        const char *val_enc = res->strings[2];
+        char *val_dec = form_data_decode_str(val_enc);
+        if (val_dec == NULL)
+        {
+            ESP_LOGW(TAG, "Skipping parameter '%s': invalid url-encoded value '%s'", param_raw_string, val_enc);
+            continue;
+        }
+
+        // store
+        target->name = key_dec;
+        target->value = val_dec;
         out->count++;
 
         // cleanup re
@@ -388,4 +404,111 @@ struct ofp_form_data *form_data_parse(const char *data)
 
     // finally
     return out;
+}
+
+// returned value, if not NULL, MUST be freed by the caller */
+char *form_data_decode_str(const char *str)
+{
+    // ESP_LOGD(TAG, "form_data_decode_str: %s", str ? str : "NULL");
+    assert(str != NULL);
+    if (str == NULL) // failsafe if asserts are disabled
+    {
+        return NULL;
+    }
+
+    int src_len = strlen(str);
+
+    // decoded is shorter or as long as encoded source
+    // include terminating NULL character
+    char *decoded = malloc(src_len + 1); // MUST be freed by the caller
+    char *out = decoded;
+
+    // conversion statemachine
+    enum url_decode_state
+    {
+        UD_NORMAL = 0,
+        UD_PERCENT_FIRST = 1,
+        UD_PERCENT_SECOND = 2
+    };
+    enum url_decode_state state = UD_NORMAL;
+
+    char value;
+    int tmp;
+    for (int i = 0; i < src_len; i++)
+    {
+        char c = str[i];
+        // ESP_LOGD(TAG, "state %i out %i index %i char %c", state, out - decoded, i, c);
+        switch (state)
+        {
+        case UD_NORMAL:
+            if (c == '+')
+            {
+                *out++ = ' ';
+                // ESP_LOGD(TAG, "Decoding space");
+                continue;
+            }
+            if (c == '%')
+            {
+                state = UD_PERCENT_FIRST;
+                // ESP_LOGD(TAG, "Starting, Percent1");
+                continue;
+            }
+            *out++ = c;
+            // ESP_LOGD(TAG, "Copying 0x%02X %c", c, c);
+            break;
+
+        case UD_PERCENT_FIRST:
+            tmp = hex_char_to_val(c);
+            // ESP_LOGD(TAG, "hex_char_to_val %i", tmp);
+            if (tmp == -1)
+            {
+                // ESP_LOGD(TAG, "Percent1 invalid character");
+                free(decoded);
+                return NULL;
+            }
+            value = tmp << 4;
+            state = UD_PERCENT_SECOND;
+            // ESP_LOGD(TAG, "Percent1, value 0x%02X, going Percent2", value);
+            continue;
+
+        case UD_PERCENT_SECOND:
+            tmp = hex_char_to_val(c);
+            // ESP_LOGD(TAG, "hex_char_to_val %i", tmp);
+            if (tmp == -1)
+            {
+                // ESP_LOGD(TAG, "Percent2 invalid character");
+                free(decoded);
+                return NULL;
+            }
+            value += tmp;
+            // ESP_LOGD(TAG, "Storing byte 0x%02X then normal", value);
+            *out++ = value;
+            state = UD_NORMAL;
+            continue;
+        }
+    }
+    // ESP_LOGD(TAG, "End loop");
+
+    *out = '\0'; // final NULL terminator
+
+    // ESP_LOGD(TAG, "Result: %s, original length %i final length %i", decoded, src_len, out - decoded);
+    return decoded;
+}
+
+/* Converts an hexadecimal digit to its value, or return -1 if invalid */
+int hex_char_to_val(const char c)
+{
+    if (c >= 'A' && c <= 'F')
+    {
+        return c - 'A' + 0x0A;
+    }
+    if (c >= 'a' && c <= 'f')
+    {
+        return c - 'a' + 0x0A;
+    }
+    if (c >= '0' && c <= '9')
+    {
+        return c - '0';
+    }
+    return -1;
 }
