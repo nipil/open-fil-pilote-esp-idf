@@ -447,7 +447,7 @@ void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length)
     }
 
     // allocate memory
-    ESP_LOGD(TAG, "nvs_get_blob len=%u (includes \\0)", buf_len);
+    ESP_LOGD(TAG, "nvs_get_blob len=%u", buf_len);
     buf = malloc(buf_len);
     assert(buf != NULL);
     if (buf == NULL) // if asserts are disabled
