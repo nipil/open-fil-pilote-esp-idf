@@ -118,4 +118,27 @@ struct split_result
 void split_string_free(struct split_result *splits);
 struct split_result *split_string(const char *str, char sep);
 
+/* 
+ * decode application/x-www-form-urlencoded
+ *
+ * Returns NULL on failure
+ *
+ * The returned pointer (if not NULL) MUST BE FREED BY THE CALLER using form_data_free()
+ */
+
+struct ofp_form_param
+{
+    char *name;
+    char *value;
+};
+
+struct ofp_form_data
+{
+    int count;
+    struct ofp_form_param *params;
+};
+
+void form_data_free(struct ofp_form_data *data);
+struct ofp_form_data *form_data_parse(const char *data);
+
 #endif /* UTILS_H */

@@ -296,3 +296,96 @@ struct split_result *split_string(const char *str, char sep)
     assert(current == count);
     return splits;
 }
+
+/* decode application/x-www-form-urlencoded form data */
+
+void form_data_free(struct ofp_form_data *data)
+{
+    assert(data != NULL);
+    if (data == NULL) // failsafe if asserts are disabled
+        return;
+    if (data->params != NULL)
+    {
+        for (int i = 0; i < data->count; i++)
+        {
+            struct ofp_form_param *param = &data->params[i];
+            if (param->name != NULL)
+                free(param->name);
+            if (param->value != NULL)
+                free(param->value);
+        }
+        free(data->params);
+    }
+    free(data);
+}
+
+struct ofp_form_data *form_data_parse(const char *data)
+{
+    assert(data != NULL);
+    if (data == NULL) // failsafe if asserts are disabled
+        return NULL;
+
+    // extract param strings
+    struct split_result *params_raw = split_string(data, '&');
+    if (params_raw == NULL)
+        return NULL;
+
+    /*
+     * Not having any params is not an error
+     * Just return an empty list
+     * This behaviour is similar to JavaScript
+     */
+    if (params_raw->count == 0)
+    {
+        struct ofp_form_data *out = malloc(sizeof(struct ofp_form_data));
+        assert(out != NULL);
+        out->count = 0;
+        out->params = NULL;
+        split_string_free(params_raw);
+        return out;
+    }
+
+    // allocate
+    struct ofp_form_data *out = malloc(sizeof(struct ofp_form_data));
+    assert(out != NULL);
+    out->count = 0;
+    out->params = malloc(params_raw->count * sizeof(struct ofp_form_param));
+    assert(out->params != NULL);
+
+    // split params into key/value pairs
+    for (int i = 0; i < params_raw->count; i++)
+    {
+        // initialize params
+        struct ofp_form_param *param = &out->params[i];
+        param->name = NULL;
+        param->value = NULL;
+
+        // extract key/value pairs
+        char *param_raw_string = params_raw->strings[i];
+        struct re_result *res = re_match("^([^=]+)=([^=]*)$", param_raw_string); // MUST BE FREED BY CALLER
+
+        // skip invalid params
+        if (res == NULL || res->count != 3) // manually set capture count from param_re string
+        {
+            ESP_LOGW(TAG, "Skipping invalid application/x-www-form-urlencoded part '%s' from data '%s'", param_raw_string, data);
+            if (res != NULL) // if it has unexpected number of captures
+                re_free(res);
+            continue;
+        }
+
+        // store the result
+        struct ofp_form_param *target = &out->params[out->count];
+        target->name = strdup(res->strings[1]);  // key   // TODO: decode
+        target->value = strdup(res->strings[2]); // value // TODO: decode
+        out->count++;
+
+        // cleanup re
+        re_free(res);
+    }
+
+    // cleanup splits
+    split_string_free(params_raw);
+
+    // finally
+    return out;
+}
