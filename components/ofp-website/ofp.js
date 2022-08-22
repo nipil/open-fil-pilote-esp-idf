@@ -604,7 +604,7 @@ async function loadHardwareParameters(hardwareId) {
 
     let template = {
         '<>': 'div', 'class': 'form-floating mb-3', 'html': [
-            { '<>': 'input', 'type': '${type}', 'class': 'form-control', 'id': 'hardware_parameter_id_${id}', 'name': 'hardware_parameter_name_${id}', 'value': '${value}' },
+            { '<>': 'input', 'type': '${type}', 'class': 'form-control', 'id': 'hardware_parameter_id_${id}', 'name': '${id}', 'value': '${value}' },
             { '<>': 'label', 'for': 'hardware_parameter_id_${id}', 'html': '${description}' }
         ]
     };
