@@ -38,7 +38,7 @@ void log_current_localtime(const char *tag)
 /* log regex error message */
 void log_regerror(const char *TAG, regex_t *re, int res)
 {
-    int n = regerror(res, re, NULL, 0);
+    int n = regerror(res, re, NULL, 0); // includes NULL terminator
     char *err = malloc(n);
     regerror(res, re, err, n);
     ESP_LOGE(TAG, "REGEX: %s", err);
@@ -355,7 +355,7 @@ struct ofp_form_data *form_data_parse(const char *data)
     // split params into key/value pairs
     for (int i = 0; i < params_raw->count; i++)
     {
-        // initialize params
+        // initialize default params values
         struct ofp_form_param *param = &out->params[i];
         param->name = NULL;
         param->value = NULL;
