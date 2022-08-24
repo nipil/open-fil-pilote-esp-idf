@@ -10,8 +10,8 @@
 
 static const char TAG[] = "api_hw";
 
-static const char stor_ns_hardware[] = "ofp_hardware";
-static const char stor_key_current[] = "current_id";
+static const char stor_ns_ofp[] = "ofp";
+static const char stor_key_hardware_type[] = "hardware_type";
 
 static const char json_key_current[] = "current";
 static const char json_key_description[] = "description";
@@ -24,8 +24,6 @@ static const char json_key_value[] = "value";
 static const char json_type_number[] = "number";
 static const char json_type_string[] = "string";
 
-static const char param_hw_type[] = "hardware_type";
-
 /***************************************************************************/
 
 esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
@@ -37,7 +35,7 @@ esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
 
     // fetch current hardware id from storage, returns NULL if not found
     char *current_hw_id;
-    kvh_get(current_hw_id, str, stor_ns_hardware, stor_key_current); // must be free'd after use
+    kvh_get(current_hw_id, str, stor_ns_ofp, stor_key_hardware_type); // must be free'd after use
 
     // provide hardware list
     cJSON *root = cJSON_CreateObject();
@@ -146,19 +144,11 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_err(req, 400, "Malformed request body");
     }
 
-    // dump
-    ESP_LOGD(TAG, "Param count %d", data->count);
-    for (int i = 0; i < data->count; i++)
-    {
-        struct ofp_form_param *param = &data->params[i];
-        ESP_LOGD(TAG, "name '%s' value '%s'", param->name ? param->name : "NULL", param->value ? param->value : "NULL");
-    }
-
     // get the requested hardware
-    char *form_hw_current = form_data_get_str(data, param_hw_type);
+    char *form_hw_current = form_data_get_str(data, stor_key_hardware_type);
     if (form_hw_current == NULL)
     {
-        ESP_LOGW(TAG, "%s parameter not found", param_hw_type);
+        ESP_LOGW(TAG, "Missing parameter '%s'", stor_key_hardware_type); // TODO: give incorrect value in msg
         form_data_free(data);
         return httpd_resp_send_err(req, 400, "Hardware type not provided");
     }
@@ -167,22 +157,22 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     struct ofp_hw *hw = ofp_hw_list_find_hw_by_id(form_hw_current);
     if (hw == NULL)
     {
-        ESP_LOGW(TAG, "%s parameter not found", param_hw_type);
+        ESP_LOGW(TAG, "Unknown hardware '%s'", form_hw_current);
         form_data_free(data);
-        return httpd_resp_send_err(req, 400, "Unknown hardware type");
+        return httpd_resp_send_err(req, 400, "Unknown hardware type"); // TODO: give incorrect value in msg
     }
 
     // iterate desired hardware parameters
     for (int i = 0; i < hw->param_count; i++)
     {
-        char *hw_param_id = hw->params[i].id;
+        const char *hw_param_id = hw->params[i].id;
         ESP_LOGD(TAG, "search for form parameter %s", hw_param_id);
         char *form_param_value = form_data_get_str(data, hw_param_id);
 
         // search for hardware parameter
         if (form_param_value == NULL)
         {
-            ESP_LOGE(TAG, "%s parameter not found", hw_param_id);
+            ESP_LOGW(TAG, "Missing parameter '%s'", hw_param_id); // TODO: give incorrect value in msg
             form_data_free(data);
             return httpd_resp_send_err(req, 400, "Missing parameter");
         }
@@ -193,16 +183,42 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
         {
             if (!parse_int(form_param_value, &value))
             {
-                ESP_LOGW(TAG, "%s invalid integer", hw_param_id);
+                ESP_LOGW(TAG, "Invalid format for integer parameter '%s': %s", hw_param_id, form_param_value);
                 form_data_free(data);
                 return httpd_resp_send_err(req, 400, "Invalid parameter");
             }
         }
     }
 
-    // if we reached here, everything is correct, store the updated parameters
+    // if we reached here, everything is correct, store the updated parameters without checking for errors
+    ESP_LOGD(TAG, "Request is valid, storing data");
 
-    // TODO: store in NVS
+    // store new hardware type
+    nvs_handle_t h = kv_open_ns(stor_ns_ofp);
+    kv_set_str(h, stor_key_hardware_type, form_hw_current);
+    kv_commit(h);
+    kv_close(h);
+
+    // store hardware parameters in dedicated hardware namespace
+    h = kv_open_ns(form_hw_current);
+    for (int i = 0; i < hw->param_count; i++)
+    {
+        struct ofp_hw_param *hw_param = &hw->params[i];
+        char *form_param_value = form_data_get_str(data, hw_param->id);
+        int n;
+        switch (hw_param->type)
+        {
+        case HW_OFP_PARAM_INTEGER:
+            parse_int(form_param_value, &n);
+            kv_set_i32(h, hw_param->id, n);
+            break;
+        case HW_OFP_PARAM_STRING:
+            kv_set_str(h, hw_param->id, form_param_value);
+            break;
+        }
+    }
+    kv_commit(h);
+    kv_close(h);
 
     // cleanup
     form_data_free(data);
