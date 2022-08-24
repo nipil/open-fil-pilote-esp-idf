@@ -561,7 +561,7 @@ async function apiGetHardwareParamsJson(hardwareId) {
 async function loadHardwareSupported() {
     let { current, supported } = await apiGetHardwareTypesJson();
 
-    let template = { '<>': 'option', 'value': '${id}', 'html': '${description}' };
+    let template = { '<>': 'option', 'value': '${id}', 'html': '${id}: ${description}' };
 
     let el = document.getElementById('hardwareSupportedSelect');
     el.innerHTML = json2html.render(supported, template);
