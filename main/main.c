@@ -77,4 +77,12 @@ void app_main()
 	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &wifi_manager_connected_callback);
 	wifi_manager_set_callback(WM_EVENT_STA_DISCONNECTED, &wifi_manager_disconnected_callback);
 #endif /* OFP_NO_NETWORKING */
+
+	// Wait for log burst
+	vTaskDelay(pdMS_TO_TICKS(1000)); // ms
+
+	// List NVS content
+	ESP_LOGI(TAG, "listing NVS content...");
+	kv_list_ns(NULL, NULL);
+	ESP_LOGI(TAG, "app_main finished");
 }
