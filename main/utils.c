@@ -257,6 +257,8 @@ struct split_result *split_string(const char *str, char sep)
         return empty;
     }
 
+    // ESP_LOGD(TAG, "split input %s", str);
+
     // count separators to determine how much memory we need to allocate
     int count = 0;
     for (int i = 0; i < src_len; i++)
