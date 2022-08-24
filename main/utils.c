@@ -495,6 +495,18 @@ char *form_data_decode_str(const char *str)
     return decoded;
 }
 
+/* searchs for a parameter name, and returns the value */
+char *form_data_get_str(struct ofp_form_data *data, const char *name)
+{
+    assert(data != NULL);
+    assert(name != NULL);
+
+    for (int i = 0; i < data->count; i++)
+        if (strcmp(data->params[i].name, name) == 0)
+            return data->params[i].value;
+
+    return NULL;
+}
 /* Converts an hexadecimal digit to its value, or return -1 if invalid */
 int hex_char_to_val(const char c)
 {

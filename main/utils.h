@@ -146,6 +146,7 @@ struct ofp_form_data
 
 void form_data_free(struct ofp_form_data *data);
 struct ofp_form_data *form_data_parse(const char *data);
+char *form_data_get_str(struct ofp_form_data *data, const char *name);
 
 /*
  * Converts a URL-encoded string back to plaintext
