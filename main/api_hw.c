@@ -24,6 +24,8 @@ static const char json_key_value[] = "value";
 static const char json_type_number[] = "number";
 static const char json_type_string[] = "string";
 
+static const char param_hw_type[] = "hardware_type";
+
 /***************************************************************************/
 
 esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
@@ -121,6 +123,14 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
 
 /***************************************************************************/
 
+/*
+ * stores hardware parameters (NEEDS REBOOT TO TAKE INTO ACCOUNT)
+ * 'hardware_type' param name is reserved, and sets hardware type for next reboot
+ * other parameter names, if match hardware, will be updated in NVS for next reboot
+ *
+ * Every parameter present in the hardware definition is required to be present
+ * in the request or the request will be considered invalir. No partial updates.
+ */
 esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);
@@ -144,11 +154,59 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
         ESP_LOGD(TAG, "name '%s' value '%s'", param->name ? param->name : "NULL", param->value ? param->value : "NULL");
     }
 
-    // TODO: match param name with expected
-    // TODO: check value type and convert if needed
+    // get the requested hardware
+    char *form_hw_current = form_data_get_str(data, param_hw_type);
+    if (form_hw_current == NULL)
+    {
+        ESP_LOGW(TAG, "%s parameter not found", param_hw_type);
+        form_data_free(data);
+        return httpd_resp_send_err(req, 400, "Hardware type not provided");
+    }
+
+    // search if the requested hardware is known
+    struct ofp_hw *hw = ofp_hw_list_find_hw_by_id(form_hw_current);
+    if (hw == NULL)
+    {
+        ESP_LOGW(TAG, "%s parameter not found", param_hw_type);
+        form_data_free(data);
+        return httpd_resp_send_err(req, 400, "Unknown hardware type");
+    }
+
+    // iterate desired hardware parameters
+    for (int i = 0; i < hw->param_count; i++)
+    {
+        char *hw_param_id = hw->params[i].id;
+        ESP_LOGD(TAG, "search for form parameter %s", hw_param_id);
+        char *form_param_value = form_data_get_str(data, hw_param_id);
+
+        // search for hardware parameter
+        if (form_param_value == NULL)
+        {
+            ESP_LOGE(TAG, "%s parameter not found", hw_param_id);
+            form_data_free(data);
+            return httpd_resp_send_err(req, 400, "Missing parameter");
+        }
+
+        // verify parameter type if needed
+        int value;
+        if (hw->params[i].type == HW_OFP_PARAM_INTEGER)
+        {
+            if (!parse_int(form_param_value, &value))
+            {
+                ESP_LOGW(TAG, "%s invalid integer", hw_param_id);
+                form_data_free(data);
+                return httpd_resp_send_err(req, 400, "Invalid parameter");
+            }
+        }
+    }
+
+    // if we reached here, everything is correct, store the updated parameters
+
+    // TODO: store in NVS
 
     // cleanup
     form_data_free(data);
 
+    // TODO, return a page polling the status page and redirecting to main page once status is ok
     return httpd_resp_sendstr(req, "Success");
 }
