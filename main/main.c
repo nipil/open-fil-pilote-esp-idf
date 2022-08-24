@@ -60,6 +60,9 @@ static void register_hardware(void)
 
 void app_main()
 {
+	// initialize storage
+	kv_init(NULL);
+
 	// compensate uptime according to clock leap from SNTP
 	uptime_sync_start();
 
