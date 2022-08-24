@@ -162,9 +162,9 @@ char *form_data_decode_str(const char *str);
 int hex_char_to_val(const char c);
 
 /*
- * Verifies the format of a string and if correct, converts to its value 
+ * Verifies the format of a string and if correct, converts to its value
  * Returns true if successful, false if the format is invalid (spaces, etc)
  */
-bool parse_int(const char * str, int *target);
+bool parse_int(const char *str, int *target);
 
 #endif /* UTILS_H */
