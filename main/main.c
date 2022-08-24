@@ -80,7 +80,7 @@ void app_main()
 #endif /* OFP_NO_NETWORKING */
 
 	// Wait for log burst
-	vTaskDelay(pdMS_TO_TICKS(1000)); // ms
+	wait_sec(10);
 
 	// List NVS content
 	ESP_LOGI(TAG, "listing NVS content...");
