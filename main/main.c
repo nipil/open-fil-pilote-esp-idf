@@ -14,6 +14,7 @@
 #include "sntp.h"
 #include "webserver.h"
 #include "m_dns.h"
+#include "storage.h"
 
 // hardware
 #include "hw_esp32.h"
