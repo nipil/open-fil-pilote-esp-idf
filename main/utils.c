@@ -516,14 +516,15 @@ char *form_data_get_str(struct ofp_form_data *data, const char *name)
 }
 
 /* verifies format and convert */
-bool parse_int(const char * str, int *target)
+bool parse_int(const char *str, int *target)
 {
     assert(str != NULL);
     assert(target != NULL);
 
     ESP_LOGD(TAG, "input integer string: %s", str);
-	struct re_result *res = re_match(parse_int_re_str, str);
-    if (res == NULL) {
+    struct re_result *res = re_match(parse_int_re_str, str);
+    if (res == NULL)
+    {
         return false;
     }
 
