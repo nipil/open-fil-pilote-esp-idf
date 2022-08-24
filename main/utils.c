@@ -8,6 +8,8 @@
 
 static const char *TAG = "utils";
 
+static const char parse_int_re_str[] = "^(-|\\+)?([[:digit:]]+)$";
+
 /* converts time to localtime using timezone */
 void time_to_localtime(time_t *val, struct tm *timeinfo)
 {
@@ -507,6 +509,27 @@ char *form_data_get_str(struct ofp_form_data *data, const char *name)
 
     return NULL;
 }
+
+/* verifies format and convert */
+bool parse_int(const char * str, int *target)
+{
+    assert(str != NULL);
+    assert(target != NULL);
+
+    ESP_LOGD(TAG, "input integer string: %s", str);
+	struct re_result *res = re_match(parse_int_re_str, str);
+    if (res == NULL) {
+        return false;
+    }
+
+    // cleanup
+    re_free(res);
+
+    // return
+    *target = atoi(str);
+    return true;
+}
+
 /* Converts an hexadecimal digit to its value, or return -1 if invalid */
 int hex_char_to_val(const char c)
 {
