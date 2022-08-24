@@ -13,4 +13,10 @@ void webserver_stop(void);
 /* received the required amount of data from incoming request body */
 esp_err_t webserver_get_request_data(httpd_req_t *req, char *buf, size_t len);
 
+/*
+ * receive and parse form data from incoming request
+ * MUST BE FREED by the caller using form_data_free() from utils.h
+ */
+struct ofp_form_data *webserver_form_data_from_req(httpd_req_t *req);
+
 #endif /* WEBSERVER_H */

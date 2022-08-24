@@ -128,40 +128,8 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    const int max_size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP;
-
-    // TODO: check Content-type header ?
-
-    ESP_LOGD(TAG, "Content length %i", req->content_len);
-
-    // include space for a NULL terminator as content is processed as a string
-    int needed = req->content_len + 1;
-    if (needed > max_size)
-    {
-        ESP_LOGE(TAG, "Request body (%i) is larger than atomic buffer (%i)", needed, max_size);
-        return httpd_resp_send_500(req);
-    }
-
-    // alloc
-    char *buf = malloc(needed); // add NULL terminator (we process this as string)
-    assert(buf != NULL);
-
-    // read
-    esp_err_t res = get_request_data(req, buf, req->content_len);
-    if (res != ESP_OK)
-    {
-        free(buf);
-        ESP_LOGE(TAG, "Could not read request data: %s", esp_err_to_name(res));
-        return res;
-    }
-    buf[req->content_len] = '\0'; // add NULL terminator
-
-    // dump
-    ESP_LOG_BUFFER_HEXDUMP(TAG, buf, req->content_len, ESP_LOG_DEBUG);
-
-    // decode
-    struct ofp_form_data *data = form_data_parse(buf);
-    free(buf);
+    // get params
+    struct ofp_form_data *data = webserver_form_data_from_req(req);
     if (data == NULL)
     {
         ESP_LOGD(TAG, "Error parsing x-www-form-urlencoded data");
