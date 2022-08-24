@@ -167,4 +167,8 @@ int hex_char_to_val(const char c);
  */
 bool parse_int(const char *str, int *target);
 
+/* wait functions */
+void wait_ms(uint32_t ms);
+void wait_sec(uint32_t sec);
+
 #endif /* UTILS_H */

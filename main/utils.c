@@ -3,6 +3,8 @@
 #include <regex.h>
 #include <string.h>
 #include <esp_log.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 #include "utils.h"
 
@@ -552,4 +554,15 @@ int hex_char_to_val(const char c)
         return c - '0';
     }
     return -1;
+}
+
+/* wait functions */
+void wait_ms(uint32_t ms)
+{
+    vTaskDelay(pdMS_TO_TICKS(ms));
+}
+
+void wait_sec(uint32_t sec)
+{
+    vTaskDelay(pdMS_TO_TICKS(sec * 1000));
 }
