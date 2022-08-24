@@ -299,7 +299,10 @@ struct split_result *split_string(const char *str, char sep)
     return splits;
 }
 
-/* decode application/x-www-form-urlencoded form data */
+/*
+ * decode application/x-www-form-urlencoded form data
+ * See https://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.1
+ */
 
 void form_data_free(struct ofp_form_data *data)
 {
