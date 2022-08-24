@@ -231,6 +231,16 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     // cleanup
     form_data_free(data);
 
-    // TODO, return a page polling the status page and redirecting to main page once status is ok
-    return httpd_resp_sendstr(req, "Success");
+    // serve keep-alive page
+    esp_err_t result = serve_static_ofp_reload(req);
+    ESP_LOGI(TAG, "Serving test/redirect page result: %s", esp_err_to_name(result));
+
+    // dump some dev stats
+    uint32_t min = esp_get_minimum_free_heap_size();
+    ESP_LOGD(TAG, "Minimum heap that has ever been available: %u", min);
+
+    // restart immediately
+    esp_restart();
+
+    return result;
 }

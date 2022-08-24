@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Open Fil Pilote - reload</title>
+
+    <script type="text/javascript">
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        function handleHttpErrors(response) {
+            if (!response.ok) {
+                throw Error(response.status);
+            }
+            return response;
+        }
+
+        async function get(url) {
+            try {
+                await fetch(url).then(handleHttpErrors);
+                return true;
+            }
+            catch (err) {
+                return false;
+            }
+        }
+
+        function init() {
+            let n = 1;
+            let intervalId = window.setInterval(async function () {
+                let el = document.getElementById('progressbar');
+                el.innerHTML = `Essai n&deg;${n++}...`;
+                let result = await get('/ofp-api/v1/status');
+                if (result) {
+                    clearInterval(intervalId);
+                    el.innerHTML = 'Succ&egrave;s !'
+                    document.location.href = '/ofp.html';
+                }
+            }, 5000);
+        }
+
+    </script>
+
+</head>
+
+<body onload="init()">
+    <h1>En attente de red&eacute;marrage</h1>
+    <p>Info : une tentative toutes les 5 secondes.</p>
+    <p id="progressbar">En attente...</p>
+
+</body>
+
+</html>
