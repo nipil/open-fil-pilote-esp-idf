@@ -231,7 +231,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     // cleanup
     form_data_free(data);
 
-    // serve keep-alive page
+    // serve keep-alive page (cannot redirect to it, as we will reboot shortly ...)
     esp_err_t result = serve_static_ofp_reload(req);
     ESP_LOGI(TAG, "Serving test/redirect page result: %s", esp_err_to_name(result));
 
