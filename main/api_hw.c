@@ -87,6 +87,9 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
     assert(hw->params != NULL);
 
     // provide list of parameters
+    char *str;
+    int num;
+    nvs_handle_t h = kv_open_ns(id);
     cJSON *root = cJSON_CreateObject();
     cJSON *parameters = cJSON_AddArrayToObject(root, json_key_parameters);
     for (int i = 0; i < hw->param_count; i++)
@@ -99,18 +102,23 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
         switch (param->type)
         {
         case HW_OFP_PARAM_INTEGER:
+            num = kv_get_i32(h, param->id, param->value.int_);
             cJSON_AddStringToObject(j, json_key_type, json_type_number);
-            cJSON_AddNumberToObject(j, json_key_value, param->value.int_);
+            cJSON_AddNumberToObject(j, json_key_value, num);
             break;
         case HW_OFP_PARAM_STRING:
+            str = kv_get_str(h, param->id);
+            if (str == NULL)
+                str = param->value.string_;
             cJSON_AddStringToObject(j, json_key_type, json_type_string);
-            cJSON_AddStringToObject(j, json_key_value, param->value.string_);
+            cJSON_AddStringToObject(j, json_key_value, str);
             break;
         default:
             cJSON_Delete(root);
             return httpd_resp_send_500(req);
         }
     }
+    kv_close(h);
 
     // TODO: manage cache ?
 
