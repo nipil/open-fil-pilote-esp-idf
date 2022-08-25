@@ -231,16 +231,6 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     // cleanup
     form_data_free(data);
 
-    // serve keep-alive page (cannot redirect to it, as we will reboot shortly ...)
-    esp_err_t result = serve_static_ofp_reload(req);
-    ESP_LOGI(TAG, "Serving test/redirect page result: %s", esp_err_to_name(result));
-
-    // dump some dev stats
-    uint32_t min = esp_get_minimum_free_heap_size();
-    ESP_LOGD(TAG, "Minimum heap that has ever been available: %u", min);
-
-    // restart immediately
-    esp_restart();
-
-    return result;
+    // then we will reboot
+    return serve_redirect(req, "/ofp-api/v1/reboot");
 }
