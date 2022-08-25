@@ -9,4 +9,6 @@ esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures);
 
 esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures);
 
+esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures);
+
 #endif /* API_MGMT_H */
