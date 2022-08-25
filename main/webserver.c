@@ -62,6 +62,28 @@ typedef esp_err_t (*api_serve_func)(httpd_req_t *req, struct re_result *captures
 
 /***************************************************************************/
 
+/* disable web serving */
+void webserver_disable(void)
+{
+    portMUX_TYPE mutex_serving_enabled = portMUX_INITIALIZER_UNLOCKED;
+    taskENTER_CRITICAL(&mutex_serving_enabled);
+    serving_enabled = false;
+    taskEXIT_CRITICAL(&mutex_serving_enabled);
+}
+
+/* disable web serving */
+static bool webserver_is_enabled(void)
+{
+    bool ret;
+    portMUX_TYPE mutex_serving_enabled = portMUX_INITIALIZER_UNLOCKED;
+    taskENTER_CRITICAL(&mutex_serving_enabled);
+    ret = serving_enabled;
+    taskEXIT_CRITICAL(&mutex_serving_enabled);
+    return ret;
+}
+
+/***************************************************************************/
+
 static esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_start, const unsigned char *binary_end, const char *http_content_type)
 {
     /*
@@ -296,7 +318,7 @@ static esp_err_t https_handler_generic(httpd_req_t *req)
         return authentication_reject(req);
 #endif
 
-    if (!serving_enabled)
+    if (!webserver_is_enabled())
     {
         ESP_LOGW(TAG, "HTTP serving is disabled, skipping request to %s", req->uri);
         return httpd_resp_send_err(req, 503, "Service Unavailable");

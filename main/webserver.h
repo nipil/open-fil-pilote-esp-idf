@@ -25,5 +25,4 @@ struct ofp_form_data *webserver_form_data_from_req(httpd_req_t *req);
 /* this is a static page waiting for device to be up (polls status) */
 esp_err_t serve_static_ofp_wait_html(httpd_req_t *req);
 
-
 #endif /* WEBSERVER_H */
