@@ -15,4 +15,7 @@ void uptime_sync_start(void);
 /* allow to request an immediate check (returns true if clock changed) */
 bool uptime_sync_check(void);
 
+/* computes actual uptime in seconds */
+time_t get_system_uptime(void);
+
 #endif /* UPTIME_H */

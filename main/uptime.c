@@ -97,3 +97,11 @@ void uptime_sync_start(void)
     // I (2548) uptime: StackHighWaterMark min changed: cur=432, max=-1, min=432
     xTaskCreatePinnedToCore(uptime_sync_task, "sync_system_task", 2048, NULL, 1, NULL, 1);
 }
+
+/* computes actual uptime in seconds */
+time_t get_system_uptime(void)
+{
+    time_t now;
+    time(&now);
+    return now - system_start;
+}
