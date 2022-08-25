@@ -124,8 +124,17 @@ async function loadStatus() {
     el.appendChild(d);
 
     d = document.createElement('div');
-    d.innerText = `Connect\u00E9 au Wifi depuis ${secondsToDuration(uptime.wifi)}`;
+    d.innerText = `Connect\u00E9 au Wifi depuis ${secondsToDuration(uptime.wifi.current_uptime)} (${Math.floor(100 * uptime.wifi.cumulated_uptime / uptime.system)}%)`;
     el.appendChild(d);
+
+    d = document.createElement('div');
+    d.innerText = `${uptime.wifi.successes} connexions r\u00E9ussies pour ${uptime.wifi.attempts} tentatives (${Math.floor(100 * uptime.wifi.successes / uptime.wifi.attempts)}%)`;
+    el.appendChild(d);
+
+    d = document.createElement('div');
+    d.innerText = `${uptime.wifi.disconnects} d\u00E9connexions détectées depuis le dernier démarrage`;
+    el.appendChild(d);
+
 }
 
 /*******************************************************************************/
