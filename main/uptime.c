@@ -16,18 +16,21 @@ static const char TAG[] = "uptime";
 static time_t system_start = 0;
 static time_t last_time = 0;
 
+/* mutex variables */
+portMUX_TYPE mutex_uptime_system_start = portMUX_INITIALIZER_UNLOCKED;
+portMUX_TYPE mutex_uptime_last_time = portMUX_INITIALIZER_UNLOCKED;
+portMUX_TYPE mutex_uptime_last_connect = portMUX_INITIALIZER_UNLOCKED;
+
 /* calculate corrected system uptime */
 time_t uptime_get_time(void)
 {
-    portMUX_TYPE mutex_system_start = portMUX_INITIALIZER_UNLOCKED;
-
     time_t now, uptime;
     time(&now);
 
     /* critical section for system_start */
-    taskENTER_CRITICAL(&mutex_system_start);
+    taskENTER_CRITICAL(&mutex_uptime_system_start);
     uptime = now - system_start;
-    taskEXIT_CRITICAL(&mutex_system_start);
+    taskEXIT_CRITICAL(&mutex_uptime_system_start);
 
     return uptime;
 }
@@ -39,25 +42,23 @@ time_t uptime_get_time(void)
  */
 bool uptime_sync_check(void)
 {
-    portMUX_TYPE mutex_system_start = portMUX_INITIALIZER_UNLOCKED;
-    portMUX_TYPE mutex_last_time = portMUX_INITIALIZER_UNLOCKED;
     time_t now, delta;
 
     time(&now);
 
     /* critical section for last_time_seen */
-    taskENTER_CRITICAL(&mutex_last_time);
+    taskENTER_CRITICAL(&mutex_uptime_last_time);
     delta = now - last_time;
     last_time = now;
-    taskEXIT_CRITICAL(&mutex_last_time);
+    taskEXIT_CRITICAL(&mutex_uptime_last_time);
 
     // leap detected, take into account
     if (abs(delta) > UPTIME_LEAP_TRIGGER_SECONDS)
     {
         /* critical section for system_start */
-        taskENTER_CRITICAL(&mutex_system_start);
+        taskENTER_CRITICAL(&mutex_uptime_system_start);
         system_start += delta;
-        taskEXIT_CRITICAL(&mutex_system_start);
+        taskEXIT_CRITICAL(&mutex_uptime_system_start);
 
         ESP_LOGI(TAG, "Clock leap detected (delta=%+li), uptime changed accordingly.", delta);
         return true;
