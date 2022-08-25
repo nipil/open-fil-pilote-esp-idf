@@ -8,6 +8,26 @@ static const char TAG[] = "ofp";
 
 static struct ofp_hw_list hw_list = {.hw_count = 0, .hw = {NULL}};
 
+static const struct ofp_order_info order_info[] = {
+    {.id = "offload",
+     .name = "Arr&ecirc;t / D&eacute;lestage",
+     .class = "secondary"},
+    {.id = "nofreeze",
+     .name = "Hors-gel",
+     .class = "info"},
+    {.id = "economy",
+     .name = "Economie",
+     .class = "success"},
+    {.id = "cozy",
+     .name = "Confort",
+     .class = "danger"},
+    {.id = "cozyminus2",
+     .name = "Confort-2&deg;",
+     .class = "warning"},
+    {.id = "cozyminus1",
+     .name = "Confort-1&deg;",
+     .class = "warning"}};
+
 /*
  * Make a hardware available to the system.
  *
@@ -52,4 +72,10 @@ struct ofp_hw *ofp_hw_list_find_hw_by_id(char *hw_id)
         }
     }
     return NULL;
+}
+
+const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id)
+{
+    assert(order_id < HW_OFP_ORDER_ID_ENUM_SIZE);
+    return &order_info[order_id];
 }

@@ -8,26 +8,6 @@
 
 static const char TAG[] = "api_zones";
 
-static const struct ofp_order_info order_info[] = {
-    {.id = "offload",
-     .name = "Arr&ecirc;t / D&eacute;lestage",
-     .class = "secondary"},
-    {.id = "nofreeze",
-     .name = "Hors-gel",
-     .class = "info"},
-    {.id = "economy",
-     .name = "Economie",
-     .class = "success"},
-    {.id = "cozyminus1",
-     .name = "Confort-1&deg;",
-     .class = "warning"},
-    {.id = "cozyminus2",
-     .name = "Confort-2&deg;",
-     .class = "warning"},
-    {.id = "cozy",
-     .name = "Confort",
-     .class = "danger"}};
-
 static const char stor_ns_ofp[] = "ofp";
 
 static const char stor_key_zone_override[] = "override";
@@ -49,10 +29,11 @@ esp_err_t serve_api_get_orders(httpd_req_t *req, struct re_result *captures)
 
     for (int i = 0; i < HW_OFP_ORDER_ID_ENUM_SIZE; i++)
     {
+        const struct ofp_order_info *info = ofp_order_info_by_num_id(i);
         cJSON *order = cJSON_CreateObject();
-        cJSON_AddStringToObject(order, stor_key_id, order_info[i].id);
-        cJSON_AddStringToObject(order, stor_key_name, order_info[i].name);
-        cJSON_AddStringToObject(order, stor_key_class, order_info[i].class);
+        cJSON_AddStringToObject(order, stor_key_id, info->id);
+        cJSON_AddStringToObject(order, stor_key_name, info->name);
+        cJSON_AddStringToObject(order, stor_key_class, info->class);
         cJSON_AddItemToArray(orders, order);
     }
 
