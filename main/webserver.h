@@ -10,6 +10,9 @@ esp_err_t serve_json(httpd_req_t *req, cJSON *node);
 void webserver_start(void);
 void webserver_stop(void);
 
+/* set up flag preventing web server from serving any new request */
+void webserver_disable(void);
+
 /* received the required amount of data from incoming request body */
 esp_err_t webserver_get_request_data(httpd_req_t *req, char *buf, size_t len);
 

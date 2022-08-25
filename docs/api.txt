@@ -1,5 +1,12 @@
 ---------------------------------------------------------------------
 
+POST /ofp-api/v1/reboot
+    --> serve HTML page
+        testing status entrypoint every second
+        once status is successful, redirect to /
+
+---------------------------------------------------------------------
+
 GET /ofp-api/v1/status
     {
         "uptime": {

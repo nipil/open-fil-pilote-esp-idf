@@ -51,6 +51,9 @@ static const char http_location_hdr[] = "Location";
 /* HTTPS server handle */
 static httpd_handle_t *app_server = NULL;
 
+/* flag to enable/disable httpd serving globally */
+static bool serving_enabled = true;
+
 /***************************************************************************/
 
 /* template for every API handler */
@@ -284,6 +287,12 @@ static esp_err_t https_handler_generic(httpd_req_t *req)
     if (!is_authentication_valid(req))
         return authentication_reject(req);
 #endif
+
+    if (!serving_enabled)
+    {
+        ESP_LOGW(TAG, "HTTP serving is disabled, skipping request to %s", req->uri);
+        return httpd_resp_send_err(req, 503, "Service Unavailable");
+    }
 
     // handle requests
     if (req->method == HTTP_GET)
