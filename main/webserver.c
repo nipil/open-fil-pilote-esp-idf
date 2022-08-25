@@ -321,7 +321,7 @@ static esp_err_t https_handler_generic(httpd_req_t *req)
     if (!webserver_is_enabled())
     {
         ESP_LOGW(TAG, "HTTP serving is disabled, skipping request to %s", req->uri);
-        return httpd_resp_send_err(req, 503, "Service Unavailable");
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Service Unavailable");
     }
 
     // handle requests
@@ -444,7 +444,7 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
         if (ret == 0)
         {
             ESP_LOGE(TAG, "httpd_req_recv error: connection closed");
-            return httpd_resp_send_err(req, 500, "connection closed");
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Connection closed");
         }
 
         // timeout
@@ -458,7 +458,7 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
         // In case of error, returning ESP_FAIL will ensure that the underlying socket is closed
         const char *msg = esp_err_to_name(ret);
         ESP_LOGE(TAG, "httpd_req_recv error: %s", msg);
-        return httpd_resp_send_err(req, 500, msg);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, msg);
     }
 
     return ESP_OK;

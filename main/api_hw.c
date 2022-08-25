@@ -149,7 +149,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     if (data == NULL)
     {
         ESP_LOGD(TAG, "Error parsing x-www-form-urlencoded data");
-        return httpd_resp_send_err(req, 400, "Malformed request body");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Malformed request body");
     }
 
     // get the requested hardware
@@ -158,7 +158,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     {
         ESP_LOGW(TAG, "Missing parameter '%s'", stor_key_hardware_type); // TODO: give incorrect value in msg
         form_data_free(data);
-        return httpd_resp_send_err(req, 400, "Hardware type not provided");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Hardware type not provided");
     }
 
     // search if the requested hardware is known
@@ -167,7 +167,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     {
         ESP_LOGW(TAG, "Unknown hardware '%s'", form_hw_current);
         form_data_free(data);
-        return httpd_resp_send_err(req, 400, "Unknown hardware type"); // TODO: give incorrect value in msg
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Unknown hardware type"); // TODO: give incorrect value in msg
     }
 
     // iterate desired hardware parameters
@@ -182,7 +182,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
         {
             ESP_LOGW(TAG, "Missing parameter '%s'", hw_param_id); // TODO: give incorrect value in msg
             form_data_free(data);
-            return httpd_resp_send_err(req, 400, "Missing parameter");
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing parameter");
         }
 
         // verify parameter type if needed
@@ -193,7 +193,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
             {
                 ESP_LOGW(TAG, "Invalid format for integer parameter '%s': %s", hw_param_id, form_param_value);
                 form_data_free(data);
-                return httpd_resp_send_err(req, 400, "Invalid parameter");
+                return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
             }
         }
     }
