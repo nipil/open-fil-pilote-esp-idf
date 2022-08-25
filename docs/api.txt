@@ -10,8 +10,14 @@ GET /ofp-api/v1/reboot
 GET /ofp-api/v1/status
     {
         "uptime": {
-            "system": 43210,
-            "wifi": 3679
+            "system": 20,
+            "wifi": {
+                "attempts": 1,
+                "successes": 1,
+                "disconnects": 0,
+                "cumulated_uptime": 0,
+                "last_connect_time": 14
+            }
         }
     }
 

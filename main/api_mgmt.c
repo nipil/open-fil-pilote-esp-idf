@@ -45,6 +45,10 @@ esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures)
     time_t sys_uptime = get_system_uptime();
     const struct uptime_wifi *wi = uptime_get_wifi_stats();
 
+    time_t current_wifi_uptime;
+    time(&current_wifi_uptime);
+    current_wifi_uptime -= wi->last_connect_time;
+
     // provide hardware list
     cJSON *root = cJSON_CreateObject();
     cJSON *uptime = cJSON_AddObjectToObject(root, "uptime");
@@ -53,8 +57,8 @@ esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures)
     cJSON_AddNumberToObject(wifi, "attempts", wi->attempts);
     cJSON_AddNumberToObject(wifi, "successes", wi->successes);
     cJSON_AddNumberToObject(wifi, "disconnects", wi->disconnects);
-    cJSON_AddNumberToObject(wifi, "cumulated_uptime", wi->cumulated_uptime);
-    cJSON_AddNumberToObject(wifi, "last_connect_time", wi->last_connect_time);
+    cJSON_AddNumberToObject(wifi, "cumulated_uptime", wi->cumulated_uptime + current_wifi_uptime);
+    cJSON_AddNumberToObject(wifi, "current_uptime", current_wifi_uptime);
 
     // TODO: manage cache ?
 
