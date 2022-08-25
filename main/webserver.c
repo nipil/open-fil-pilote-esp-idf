@@ -465,6 +465,47 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
 }
 
 /*
+ * received the required amount of data from incoming request body
+ *
+ * Dynamically alloc a buff and ADD NULL terminator
+ *
+ * Memory MUST BE FREED BY CALLER !
+ *
+ * Maximum size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP
+ */
+char *webserver_get_request_data_atomic(httpd_req_t *req)
+{
+    const int max_size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP;
+
+    ESP_LOGD(TAG, "Content length %i", req->content_len);
+
+    // include space for a NULL terminator as content is processed as a string
+    int needed = req->content_len + 1;
+    if (needed > max_size)
+    {
+        ESP_LOGE(TAG, "Request body (%i) is larger than atomic buffer (%i)", needed, max_size);
+        return NULL;
+    }
+
+    // alloc
+    char *buf = malloc(needed); // add NULL terminator (we process this as string)
+    assert(buf != NULL);
+
+    // read
+    esp_err_t res = webserver_read_request_data(req, buf, req->content_len);
+    if (res != ESP_OK)
+    {
+        free(buf);
+        ESP_LOGE(TAG, "Could not read request data: %s", esp_err_to_name(res));
+        return NULL;
+    }
+
+    buf[req->content_len] = '\0'; // add NULL terminator
+
+    return buf; // MUST BE FREED BY CALLER
+}
+
+/*
  * receive and parse form data from incoming request
  * MUST BE FREED by the caller using form_data_free() from utils.h
  */
