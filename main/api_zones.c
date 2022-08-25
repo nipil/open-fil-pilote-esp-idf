@@ -4,8 +4,13 @@
 #include "ofp.h"
 #include "webserver.h"
 #include "api_accounts.h"
+#include "storage.h"
 
 static const char TAG[] = "api_zones";
+
+static const char stor_ns_ofp[] = "ofp";
+
+static const char stor_key_zone_override[] = "override";
 
 /***************************************************************************/
 
@@ -47,7 +52,19 @@ esp_err_t serve_api_get_override(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    return httpd_resp_send_500(req);
+    char *override;
+    kvh_get(override, str, stor_ns_ofp, stor_key_zone_override); // must be free'd after use
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON_AddStringToObject(root, stor_key_zone_override, override ? override : "none");
+    if (override)
+        free(override);
+
+    // TODO: manage cache ?
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
+    return result;
 }
 
 esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
