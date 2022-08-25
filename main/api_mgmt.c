@@ -7,6 +7,29 @@
 
 static const char TAG[] = "api_mgmt";
 
+#define REBOOT_WAIT_SEC 10
+
+/***************************************************************************/
+
+static void mgmt_queue_reboot_wait_task(void *pvParameters)
+{
+    ESP_LOGI(TAG, "Rebooting in %i seconds...", REBOOT_WAIT_SEC);
+    wait_sec(REBOOT_WAIT_SEC);
+    ESP_LOGI(TAG, "Rebooting NOW !");
+    esp_restart();
+}
+
+void mgmt_queue_reboot(void)
+{
+    // notify the webserver to not serve anything anymore
+    webserver_disable();
+
+    // start task for delayed reboot
+    TaskHandle_t xHandle = NULL;
+    xTaskCreatePinnedToCore(mgmt_queue_reboot_wait_task, "mgmt_queue_reboot_wait_task", 2048, NULL, 1, NULL, 1);
+    configASSERT(xHandle);
+}
+
 /***************************************************************************/
 
 esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures)
@@ -29,6 +52,9 @@ esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
     // dump some dev stats before rebooting
     uint32_t min = esp_get_minimum_free_heap_size();
     ESP_LOGD(TAG, "Minimum heap that has ever been available: %u", min);
+
+    // prepare restart, giving it the time to serve the page and cleanup
+    mgmt_queue_reboot();
 
     // serve wait page
     return serve_static_ofp_wait_html(req);
