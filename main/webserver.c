@@ -17,9 +17,9 @@ static const char TAG[] = "webserver";
 
 /* constants for efficient memory management */
 
-static const char http_content_type_html[] = "text/html";
+static const char http_content_type_html[] = HTTPD_TYPE_TEXT;
 static const char http_content_type_js[] = "text/javascript";
-static const char http_content_type_json[] = "application/json";
+static const char http_content_type_json[] = HTTPD_TYPE_JSON;
 
 static const char route_root[] = "/";
 static const char route_ofp_html[] = "/ofp.html";
