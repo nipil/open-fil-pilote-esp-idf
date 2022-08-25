@@ -93,11 +93,11 @@ static esp_err_t serve_static_ofp_js(httpd_req_t *req)
     return serve_from_asm(req, ofp_js_start, ofp_js_end, http_content_type_js);
 }
 
-esp_err_t serve_static_ofp_reload(httpd_req_t *req)
+esp_err_t serve_static_ofp_wait_html(httpd_req_t *req)
 {
-    extern const unsigned char ofp_reload_html_start[] asm("_binary_ofp_reload_html_start");
-    extern const unsigned char ofp_reload_html_end[] asm("_binary_ofp_reload_html_end");
-    return serve_from_asm(req, ofp_reload_html_start, ofp_reload_html_end, http_content_type_html);
+    extern const unsigned char ofp_wait_html_start[] asm("_binary_ofp_wait_html_start");
+    extern const unsigned char ofp_wait_html_end[] asm("_binary_ofp_wait_html_end");
+    return serve_from_asm(req, ofp_wait_html_start, ofp_wait_html_end, http_content_type_html);
 }
 
 /***************************************************************************/

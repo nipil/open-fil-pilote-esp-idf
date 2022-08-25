@@ -29,6 +29,9 @@ esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
     // dump some dev stats before rebooting
     uint32_t min = esp_get_minimum_free_heap_size();
     ESP_LOGD(TAG, "Minimum heap that has ever been available: %u", min);
+
+    // serve wait page
+    return serve_static_ofp_wait_html(req);
 }
 
 esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)

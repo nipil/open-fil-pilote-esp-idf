@@ -22,7 +22,8 @@ esp_err_t webserver_get_request_data(httpd_req_t *req, char *buf, size_t len);
  */
 struct ofp_form_data *webserver_form_data_from_req(httpd_req_t *req);
 
-/* publish helper function to wait until reboot is done */
-esp_err_t serve_static_ofp_reload(httpd_req_t *req);
+/* this is a static page waiting for device to be up (polls status) */
+esp_err_t serve_static_ofp_wait_html(httpd_req_t *req);
+
 
 #endif /* WEBSERVER_H */
