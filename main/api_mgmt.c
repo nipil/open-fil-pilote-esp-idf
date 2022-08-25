@@ -3,6 +3,7 @@
 
 #include "ofp.h"
 #include "webserver.h"
+#include "uptime.h"
 #include "api_mgmt.h"
 
 static const char TAG[] = "api_mgmt";
@@ -41,7 +42,19 @@ esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    return httpd_resp_send_500(req);
+    time_t sys_uptime = get_system_uptime();
+
+    // provide hardware list
+    cJSON *root = cJSON_CreateObject();
+    cJSON *uptime = cJSON_AddObjectToObject(root, "uptime");
+    cJSON_AddNumberToObject(uptime, "system", sys_uptime);
+    cJSON_AddNumberToObject(uptime, "wifi", 0); // TODO: actual value
+
+    // TODO: manage cache ?
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
+    return result;
 }
 
 esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
