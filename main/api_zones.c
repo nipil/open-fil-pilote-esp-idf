@@ -15,6 +15,8 @@ static const char stor_key_id[] = "id";
 static const char stor_key_name[] = "name";
 static const char stor_key_class[] = "class";
 
+static const char stor_val_none[] = "none";
+
 /***************************************************************************/
 
 esp_err_t serve_api_get_orders(httpd_req_t *req, struct re_result *captures)
@@ -74,7 +76,7 @@ esp_err_t serve_api_get_override(httpd_req_t *req, struct re_result *captures)
     kvh_get(override, str, stor_ns_ofp, stor_key_zone_override); // must be free'd after use
 
     cJSON *root = cJSON_CreateObject();
-    cJSON_AddStringToObject(root, stor_key_zone_override, override ? override : "none");
+    cJSON_AddStringToObject(root, stor_key_zone_override, override ? override : stor_val_none);
     if (override)
         free(override);
 
