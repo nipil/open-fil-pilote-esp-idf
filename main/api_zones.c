@@ -94,5 +94,62 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    return httpd_resp_send_500(req);
+    // read
+    char *buf = webserver_get_request_data_atomic(req);
+    if (buf == NULL)
+    {
+        ESP_LOGW(TAG, "Failed getting request data");
+        return ESP_FAIL;
+    }
+
+    // parse
+    cJSON *root = cJSON_Parse(buf);
+
+    // cleanup
+    free(buf);
+
+    // parse error
+    if (root == NULL)
+    {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            ESP_LOGW(TAG, "JSON parse error, before: %s", error_ptr);
+        }
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
+    }
+
+    // required string parameter
+    cJSON *override = cJSON_GetObjectItemCaseSensitive(root, stor_key_zone_override);
+    if (override == NULL)
+    {
+        ESP_LOGW(TAG, "Missing JSON element %s", stor_key_zone_override);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
+    }
+    if (!cJSON_IsString(override) || (override->valuestring == NULL))
+    {
+        ESP_LOGW(TAG, "Invalid type or value for element %s", stor_key_zone_override);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+    }
+
+    // special value
+    if (strcmp(override->valuestring, stor_val_none) == 0)
+    {
+        kvh_set(str, stor_ns_ofp, stor_key_zone_override, override->valuestring);
+        return httpd_resp_sendstr(req, "");
+    }
+
+    // generic values
+    const struct ofp_order_info *info = ofp_order_info_by_str_id(override->valuestring);
+    if (override == NULL)
+    {
+        ESP_LOGW(TAG, "Invalid order override %s", override->valuestring);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+    }
+
+    ESP_LOGD(TAG, "matched order %s", info->name);
+    kvh_set(str, stor_ns_ofp, stor_key_zone_override, override->valuestring);
+
+    // return success
+    return httpd_resp_sendstr(req, "");
 }
