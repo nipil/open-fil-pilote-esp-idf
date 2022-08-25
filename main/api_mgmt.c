@@ -26,7 +26,7 @@ void mgmt_queue_reboot(void)
 
     // start task for delayed reboot
     TaskHandle_t xHandle = NULL;
-    xTaskCreatePinnedToCore(mgmt_queue_reboot_wait_task, "mgmt_queue_reboot_wait_task", 2048, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(mgmt_queue_reboot_wait_task, "mgmt_queue_reboot_wait_task", 2048, NULL, 1, &xHandle, 1);
     configASSERT(xHandle);
 }
 
