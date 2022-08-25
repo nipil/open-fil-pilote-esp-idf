@@ -38,6 +38,7 @@ static const char route_api_zones_id[] = "^/ofp-api/v([[:digit:]]+)/zones/([[:al
 
 static const char route_api_upgrade[] = "^/ofp-api/v([[:digit:]]+)/upgrade$";
 static const char route_api_status[] = "^/ofp-api/v([[:digit:]]+)/status$";
+static const char route_api_reboot[] = "^/ofp-api/v([[:digit:]]+)/reboot$";
 
 static const char route_api_plannings[] = "^/ofp-api/v([[:digit:]]+)/plannings$";
 static const char route_api_planning_id[] = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)$";
@@ -187,6 +188,13 @@ static esp_err_t https_handler_get(httpd_req_t *req)
         return result;
 
     if (api_route_try(&result, req, route_api_planning_id, serve_api_get_plannings_id))
+        return result;
+
+    /*
+     * This one is a GET because we can not redirect to POST
+     * and by choice because any tool can do a GET
+     */
+    if (api_route_try(&result, req, route_api_reboot, serve_api_get_reboot))
         return result;
 
     return httpd_resp_send_404(req);

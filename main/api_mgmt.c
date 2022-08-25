@@ -19,6 +19,15 @@ esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures)
     return httpd_resp_send_500(req);
 }
 
+esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
+{
+    int version = re_get_int(captures, 1);
+    ESP_LOGD(TAG, "serve_api_get_reboot version=%i", version);
+    if (version != 1)
+        return httpd_resp_send_404(req);
+    return httpd_resp_send_500(req);
+}
+
 esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);
