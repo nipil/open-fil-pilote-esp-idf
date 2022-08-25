@@ -109,7 +109,6 @@ module.exports = {
       }
     ]
   },
-
   "/ofp-api/v1/plannings": {
     "plannings": [
       {
@@ -126,7 +125,6 @@ module.exports = {
       }
     ]
   },
-
   "/ofp-api/v1/plannings/0": {
     "slots": [
       {
@@ -155,7 +153,6 @@ module.exports = {
       }
     ]
   },
-
   "/ofp-api/v1/plannings/1": {
     "slots": [
       {
@@ -168,7 +165,6 @@ module.exports = {
       }
     ]
   },
-
   "/ofp-api/v1/plannings/2": {
     "slots": [
       {
@@ -185,7 +181,6 @@ module.exports = {
       }
     ]
   },
-
   "/ofp-api/v1/hardware": {
     "current": null,
     "supported": [
@@ -204,10 +199,8 @@ module.exports = {
     ]
   },
   "/ofp-api/v1/hardware/ESP32/parameters": {
-    "parameters": [
-    ]
+    "parameters": []
   },
-
   "/ofp-api/v1/hardware/M1E1/parameters": {
     "parameters": [
       {
@@ -218,7 +211,6 @@ module.exports = {
       }
     ]
   },
-
   "/ofp-api/v1/hardware/OFP10Z/parameters": {
     "parameters": [
       {
@@ -235,31 +227,18 @@ module.exports = {
       }
     ]
   },
-
   "/ofp-api/v1/status": {
     "uptime": {
-      "system": 43210,
-      "wifi": 3679
+      "system": 795341,
+      "wifi": {
+        "attempts": 150,
+        "successes": 147,
+        "disconnects": 146,
+        "cumulated_uptime": 765316,
+        "last_connect_time": 90123
+      }
     }
   },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   "/customMockData/1": {
