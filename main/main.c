@@ -31,9 +31,17 @@ static void display_ip(ip_event_got_ip_t *param, char *msg)
 	ESP_LOGI(TAG, "%s : %s", msg, str_ip);
 }
 
+static void wifi_manager_attempt_callback(void *pvParameter)
+{
+	ESP_LOGD(TAG, "STA associated");
+	uptime_track_wifi_attempt();
+	ESP_LOGD(TAG, "Association processing finished.");
+}
+
 static void wifi_manager_connected_callback(void *pvParameter)
 {
 	display_ip((ip_event_got_ip_t *)pvParameter, "STA Connected. IP is");
+	uptime_track_wifi_success();
 	mdns_start();
 	webserver_start();
 	sntp_task_start();
@@ -43,6 +51,7 @@ static void wifi_manager_connected_callback(void *pvParameter)
 static void wifi_manager_disconnected_callback(void *pvParameter)
 {
 	ESP_LOGI(TAG, "STA Disconnected");
+	uptime_track_wifi_disconnect();
 	mdns_stop();
 	webserver_stop();
 	sntp_task_stop();
@@ -75,6 +84,7 @@ void app_main()
 	wifi_manager_start();
 
 	/* register a callback as an example to how you can integrate your code with the wifi manager */
+	wifi_manager_set_callback(WM_ORDER_CONNECT_STA, &wifi_manager_attempt_callback);
 	wifi_manager_set_callback(WM_EVENT_STA_GOT_IP, &wifi_manager_connected_callback);
 	wifi_manager_set_callback(WM_EVENT_STA_DISCONNECTED, &wifi_manager_disconnected_callback);
 #endif /* OFP_NO_NETWORKING */
