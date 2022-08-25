@@ -11,22 +11,24 @@ static const char TAG[] = "api_mgmt";
 
 /***************************************************************************/
 
-static void mgmt_queue_reboot_wait_task(void *pvParameters)
+static void reboot_wait(void *pvParameters)
 {
     ESP_LOGI(TAG, "Rebooting in %i seconds...", REBOOT_WAIT_SEC);
     wait_sec(REBOOT_WAIT_SEC);
+
     ESP_LOGI(TAG, "Rebooting NOW !");
+    // Task should NOT exit (or BY DEFAULT it causes FreeRTOS to abort()
     esp_restart();
 }
 
-void mgmt_queue_reboot(void)
+static void mgmt_queue_reboot(void)
 {
     // notify the webserver to not serve anything anymore
     webserver_disable();
 
     // start task for delayed reboot
     TaskHandle_t xHandle = NULL;
-    xTaskCreatePinnedToCore(mgmt_queue_reboot_wait_task, "mgmt_queue_reboot_wait_task", 2048, NULL, 1, &xHandle, 1);
+    xTaskCreatePinnedToCore(reboot_wait, "reboot_wait", 2048, NULL, 1, &xHandle, 1);
     configASSERT(xHandle);
 }
 
