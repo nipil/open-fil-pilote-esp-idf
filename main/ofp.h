@@ -22,6 +22,13 @@ enum ofp_order_id
     HW_OFP_ORDER_ID_ENUM_SIZE
 } ofp_order_id;
 
+struct ofp_order_info
+{
+    char id[OFP_MAX_LEN_ID];
+    char name[OFP_MAX_LEN_VALUE];
+    char class[OFP_MAX_LEN_ID];
+};
+
 /* hardware */
 
 enum ofp_hw_param_type
