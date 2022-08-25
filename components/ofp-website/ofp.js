@@ -141,8 +141,8 @@ async function loadStatus() {
 
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
-    putUrlJson('/ofp-api/v1/override', { override: override }).catch(logError);
-    loadZoneOverrides().catch(logError);
+    await putUrlJson('/ofp-api/v1/override', { override: override }).catch(logError);
+    await loadZoneOverrides().catch(logError);
 }
 
 async function apiGetOrderTypesJson() {
@@ -200,14 +200,14 @@ async function loadZoneOverrides() {
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
     let name = promptNonEmptyString(`Entrez le nouveu nom de la zone '${zoneId}'`);
-    patchUrlJson(`/ofp-api/v1/zones/${zoneId}`, { desc: name }).catch(logError);
-    loadZoneConfiguration().catch(logError);
+    await patchUrlJson(`/ofp-api/v1/zones/${zoneId}`, { desc: name }).catch(logError);
+    await loadZoneConfiguration().catch(logError);
 }
 
 async function changeZoneValue(zoneId, value) {
     console.log("changeZoneValue", zoneId, value);
-    patchUrlJson(`/ofp-api/v1/zones/${zoneId}`, { mode: value }).catch(logError);
-    loadZoneConfiguration().catch(logError);
+    await patchUrlJson(`/ofp-api/v1/zones/${zoneId}`, { mode: value }).catch(logError);
+    await loadZoneConfiguration().catch(logError);
 }
 
 async function apiGetZonesJson() {
@@ -302,21 +302,21 @@ async function initPlanningCreate() {
 
 async function createPlanning(name) {
     console.log('createPlanning', name);
-    postUrlJson(`/ofp-api/v1/plannings`, { name: name }).catch(logError);
-    loadPlanningList().catch(logError);
+    await postUrlJson(`/ofp-api/v1/plannings`, { name: name }).catch(logError);
+    await loadPlanningList().catch(logError);
 }
 
 async function renamePlanning(id) {
     console.log('renamePlanning', id);
     let name = promptNonEmptyString('Entrez le nouveau nom du planning');
-    patchUrlJson(`/ofp-api/v1/plannings/${id}`, { name: name }).catch(logError);
-    loadPlanningList().catch(logError);
+    await patchUrlJson(`/ofp-api/v1/plannings/${id}`, { name: name }).catch(logError);
+    await loadPlanningList().catch(logError);
 }
 
 async function deletePlanning(id) {
     console.log('deletePlanning', id);
-    deleteUrl(`/ofp-api/v1/plannings/${id}`).catch(logError);
-    loadPlanningList().catch(logError);
+    await deleteUrl(`/ofp-api/v1/plannings/${id}`).catch(logError);
+    await loadPlanningList().catch(logError);
 }
 
 function getSelectedPlanning() {
@@ -363,26 +363,26 @@ async function apiGetPlanningSlotsJson(planningId) {
 
 async function changePlanningSlotMode(planningId, startId, newMode) {
     console.log('changePlanningSlotMode', planningId, startId, newMode);
-    putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`, { mode: newMode }).catch(logError);
-    loadPlanningSlots(planningId).catch(logError);
+    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`, { mode: newMode }).catch(logError);
+    await loadPlanningSlots(planningId).catch(logError);
 }
 
 async function changePlanningSlotStart(planningId, startId, newStart) {
     console.log('changePlanningSlotStart', planningId, startId, newStart);
-    putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`, { start: newStart }).catch(logError);
-    loadPlanningSlots(planningId).catch(logError);
+    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`, { start: newStart }).catch(logError);
+    await loadPlanningSlots(planningId).catch(logError);
 }
 
 async function deletePlanningSlot(planningId, startId) {
     console.log('deletePlanningSlot', planningId, startId);
-    deleteUrl(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`).catch(logError);
-    loadPlanningSlots(planningId).catch(logError);
+    await deleteUrl(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`).catch(logError);
+    await loadPlanningSlots(planningId).catch(logError);
 }
 
 async function addPlanningSlot(planningId, startId, order) {
     console.log('addPlanningSlot', planningId, startId, order);
-    postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { start: startId, mode: order }).catch(logError);
-    loadPlanningSlots(planningId).catch(logError);
+    await postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { start: startId, mode: order }).catch(logError);
+    await loadPlanningSlots(planningId).catch(logError);
 }
 
 async function loadPlanningSlots(planningId) {
@@ -467,8 +467,8 @@ async function accountCreate(userId, cleartextPassword) {
     if (userId.length === 0) return null;
     cleartextPassword = userId.trim();
     if (cleartextPassword.length === 0) return null;
-    postUrlJson('/ofp-api/v1/accounts', { id: userId, password: cleartextPassword }).catch(logError);
-    loadAccounts().catch(logError);
+    await postUrlJson('/ofp-api/v1/accounts', { id: userId, password: cleartextPassword }).catch(logError);
+    await loadAccounts().catch(logError);
 }
 
 async function initAccountCreate() {
@@ -484,14 +484,14 @@ async function accountDelete(userId) {
     console.log('accountDelete', userId);
     userId = userId.trim();
     if (userId.length === 0) return null;
-    deleteUrl(`/ofp-api/v1/accounts/${userId}`).catch(logError);
-    loadAccounts().catch(logError);
+    await deleteUrl(`/ofp-api/v1/accounts/${userId}`).catch(logError);
+    await loadAccounts().catch(logError);
 }
 
 async function accountPasswordReset(userId) {
     console.log('accountPasswordReset', userId);
     let password = promptNonEmptyString(`Entrez le nouveu password du compte '${userId}'`);
-    patchUrlJson(`/ofp-api/v1/accounts/${userId}`, { password: password }).catch(logError);
+    await patchUrlJson(`/ofp-api/v1/accounts/${userId}`, { password: password }).catch(logError);
 }
 
 async function loadAccounts() {
@@ -545,7 +545,7 @@ async function uploadFirmware(file) {
     console.log("uploadFirmware", file);
     let formData = new FormData();
     formData.set('file', file);
-    postUrl('/ofp-api/v1/upgrade', formData).catch(logError);
+    await postUrl('/ofp-api/v1/upgrade', formData).catch(logError);
 }
 
 async function initFirmwareButtons() {
@@ -624,7 +624,7 @@ async function loadHardwareParameters(hardwareId) {
 /*******************************************************************************/
 
 async function ofp_init() {
-    Promise.all([
+    await Promise.all([
         loadStatus(),
         loadZoneOverrides(),
         loadZoneConfiguration(),
