@@ -443,7 +443,7 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
         // connection closed
         if (ret == 0)
         {
-            ESP_LOGE(TAG, "httpd_req_recv error: connection closed");
+            ESP_LOGW(TAG, "httpd_req_recv error: connection closed");
             return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Connection closed");
         }
 
@@ -451,13 +451,13 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
         if (ret == HTTPD_SOCK_ERR_TIMEOUT)
         {
             // do not bother retrying
-            ESP_LOGE(TAG, "httpd_req_recv error: connection timeout");
+            ESP_LOGW(TAG, "httpd_req_recv error: connection timeout");
             return httpd_resp_send_408(req);
         }
 
         // In case of error, returning ESP_FAIL will ensure that the underlying socket is closed
         const char *msg = esp_err_to_name(ret);
-        ESP_LOGE(TAG, "httpd_req_recv error: %s", msg);
+        ESP_LOGW(TAG, "httpd_req_recv error: %s", msg);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, msg);
     }
 
@@ -483,7 +483,7 @@ char *webserver_get_request_data_atomic(httpd_req_t *req)
     int needed = req->content_len + 1;
     if (needed > max_size)
     {
-        ESP_LOGE(TAG, "Request body (%i) is larger than atomic buffer (%i)", needed, max_size);
+        ESP_LOGW(TAG, "Request body (%i) is larger than atomic buffer (%i)", needed, max_size);
         return NULL;
     }
 
@@ -496,7 +496,7 @@ char *webserver_get_request_data_atomic(httpd_req_t *req)
     if (res != ESP_OK)
     {
         free(buf);
-        ESP_LOGE(TAG, "Could not read request data: %s", esp_err_to_name(res));
+        ESP_LOGW(TAG, "Could not read request data: %s", esp_err_to_name(res));
         return NULL;
     }
 
@@ -514,7 +514,7 @@ struct ofp_form_data *webserver_form_data_from_req(httpd_req_t *req)
     char *buf = webserver_get_request_data_atomic(req);
     if (buf == NULL)
     {
-        ESP_LOGE(TAG, "Failed getting request data");
+        ESP_LOGW(TAG, "Failed getting request data");
         return NULL;
     }
 
