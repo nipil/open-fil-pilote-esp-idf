@@ -25,7 +25,10 @@ esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
     ESP_LOGD(TAG, "serve_api_get_reboot version=%i", version);
     if (version != 1)
         return httpd_resp_send_404(req);
-    return httpd_resp_send_500(req);
+
+    // dump some dev stats before rebooting
+    uint32_t min = esp_get_minimum_free_heap_size();
+    ESP_LOGD(TAG, "Minimum heap that has ever been available: %u", min);
 }
 
 esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
