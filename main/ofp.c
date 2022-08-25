@@ -79,3 +79,12 @@ const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id
     assert(order_id < HW_OFP_ORDER_ID_ENUM_SIZE);
     return &order_info[order_id];
 }
+
+const struct ofp_order_info *ofp_order_info_by_str_id(char *order_id)
+{
+    assert(order_id != NULL);
+    for (int i = 0; i < HW_OFP_ORDER_ID_ENUM_SIZE; i++)
+        if (strcmp(order_id, order_info[i].id) == 0)
+            return &order_info[i];
+    return NULL;
+}
