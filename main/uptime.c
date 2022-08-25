@@ -15,6 +15,7 @@ static const char TAG[] = "uptime";
 /* global variables */
 static time_t system_start = 0;
 static time_t last_time = 0;
+static struct uptime_wifi wifi_stats = {0};
 
 /* mutex variables */
 portMUX_TYPE mutex_uptime_system_start = portMUX_INITIALIZER_UNLOCKED;
@@ -59,6 +60,11 @@ bool uptime_sync_check(void)
         taskENTER_CRITICAL(&mutex_uptime_system_start);
         system_start += delta;
         taskEXIT_CRITICAL(&mutex_uptime_system_start);
+
+        /* critical section for wifi_stats.last_connect_time */
+        taskENTER_CRITICAL(&mutex_uptime_last_connect);
+        wifi_stats.last_connect_time += delta;
+        taskEXIT_CRITICAL(&mutex_uptime_last_connect);
 
         ESP_LOGI(TAG, "Clock leap detected (delta=%+li), uptime changed accordingly.", delta);
         return true;
@@ -105,4 +111,66 @@ time_t get_system_uptime(void)
     time_t now;
     time(&now);
     return now - system_start;
+}
+
+/* wifi tracking functions */
+const struct uptime_wifi *uptime_get_wifi_stats(void)
+{
+    ESP_LOGD(TAG,
+             "attempts %i, successes %i, disconnects %i, cumulated %li, last_connect %li",
+             wifi_stats.attempts,
+             wifi_stats.successes,
+             wifi_stats.disconnects,
+             wifi_stats.cumulated_uptime,
+             wifi_stats.last_connect_time);
+
+    return &wifi_stats;
+}
+
+void uptime_track_wifi_attempt(void)
+{
+    ESP_LOGD(TAG, "wifi attempt");
+    wifi_stats.attempts++;
+}
+
+void uptime_track_wifi_success(void)
+{
+    ESP_LOGD(TAG, "wifi success");
+    wifi_stats.successes++;
+
+    time_t now;
+    time(&now);
+    ESP_LOGD(TAG, "last %li", now);
+
+    /* critical section for wifi_stats.last_connect_time */
+    taskENTER_CRITICAL(&mutex_uptime_last_connect);
+    wifi_stats.last_connect_time = now;
+    taskEXIT_CRITICAL(&mutex_uptime_last_connect);
+}
+
+void uptime_track_wifi_disconnect(void)
+{
+    ESP_LOGD(TAG, "wifi success");
+
+    wifi_stats.disconnects++;
+
+    /* critical section for wifi_stats.last_connect_time */
+    taskENTER_CRITICAL(&mutex_uptime_last_connect);
+    time_t tmp = wifi_stats.last_connect_time;
+    taskEXIT_CRITICAL(&mutex_uptime_last_connect);
+
+    if (tmp == 0)
+        return;
+
+    time_t now, delta;
+    time(&now);
+
+    /* critical section for wifi_stats.last_connect_time */
+    taskENTER_CRITICAL(&mutex_uptime_last_connect);
+    delta = now - wifi_stats.last_connect_time;
+    wifi_stats.last_connect_time = 0;
+    taskEXIT_CRITICAL(&mutex_uptime_last_connect);
+
+    wifi_stats.cumulated_uptime += delta;
+    ESP_LOGD(TAG, "delta %li", delta);
 }
