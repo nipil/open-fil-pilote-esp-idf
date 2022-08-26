@@ -19,7 +19,7 @@ void mdns_start(void)
 
     // set mDNS hostname (required if you want to advertise services)
     ESP_ERROR_CHECK(mdns_hostname_set(mdns_hostname));
-    ESP_LOGI(TAG, "mdns hostname set to: %s.local", mdns_hostname);
+    ESP_LOGI(TAG, "MDNS hostname: %s.local", mdns_hostname);
 
     // set default mDNS instance name
     ESP_ERROR_CHECK(mdns_instance_name_set(mdns_instance));

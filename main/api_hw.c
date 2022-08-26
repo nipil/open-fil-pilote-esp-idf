@@ -156,7 +156,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     char *form_hw_current = form_data_get_str(data, stor_key_hardware_type);
     if (form_hw_current == NULL)
     {
-        ESP_LOGW(TAG, "Missing parameter '%s'", stor_key_hardware_type); // TODO: give incorrect value in msg
+        ESP_LOGD(TAG, "Missing parameter '%s'", stor_key_hardware_type); // TODO: give incorrect value in msg
         form_data_free(data);
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Hardware type not provided");
     }
@@ -165,7 +165,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     struct ofp_hw *hw = ofp_hw_list_find_hw_by_id(form_hw_current);
     if (hw == NULL)
     {
-        ESP_LOGW(TAG, "Unknown hardware '%s'", form_hw_current);
+        ESP_LOGD(TAG, "Unknown hardware '%s'", form_hw_current);
         form_data_free(data);
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Unknown hardware type"); // TODO: give incorrect value in msg
     }
@@ -174,13 +174,13 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     for (int i = 0; i < hw->param_count; i++)
     {
         const char *hw_param_id = hw->params[i].id;
-        ESP_LOGD(TAG, "search for form parameter %s", hw_param_id);
+        ESP_LOGV(TAG, "search for form parameter %s", hw_param_id);
         char *form_param_value = form_data_get_str(data, hw_param_id);
 
         // search for hardware parameter
         if (form_param_value == NULL)
         {
-            ESP_LOGW(TAG, "Missing parameter '%s'", hw_param_id); // TODO: give incorrect value in msg
+            ESP_LOGD(TAG, "Missing parameter '%s'", hw_param_id); // TODO: give incorrect value in msg
             form_data_free(data);
             return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing parameter");
         }
@@ -191,7 +191,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
         {
             if (!parse_int(form_param_value, &value))
             {
-                ESP_LOGW(TAG, "Invalid format for integer parameter '%s': %s", hw_param_id, form_param_value);
+                ESP_LOGD(TAG, "Invalid format for integer parameter '%s': %s", hw_param_id, form_param_value);
                 form_data_free(data);
                 return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
             }
@@ -199,7 +199,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     }
 
     // if we reached here, everything is correct, store the updated parameters without checking for errors
-    ESP_LOGD(TAG, "Request is valid, storing data");
+    ESP_LOGV(TAG, "Request is valid, storing data");
 
     // store new hardware type
     nvs_handle_t h = kv_open_ns(stor_ns_ofp);

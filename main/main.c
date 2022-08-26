@@ -35,7 +35,7 @@ static void wifi_manager_attempt_callback(void *pvParameter)
 {
 	ESP_LOGD(TAG, "STA associated");
 	uptime_track_wifi_attempt();
-	ESP_LOGD(TAG, "Association processing finished.");
+	ESP_LOGV(TAG, "Association processing finished.");
 }
 
 static void wifi_manager_connected_callback(void *pvParameter)
@@ -45,7 +45,7 @@ static void wifi_manager_connected_callback(void *pvParameter)
 	mdns_start();
 	webserver_start();
 	sntp_task_start();
-	ESP_LOGI(TAG, "Connection processing finished.");
+	ESP_LOGV(TAG, "Connection processing finished.");
 }
 
 static void wifi_manager_disconnected_callback(void *pvParameter)
@@ -55,7 +55,7 @@ static void wifi_manager_disconnected_callback(void *pvParameter)
 	mdns_stop();
 	webserver_stop();
 	sntp_task_stop();
-	ESP_LOGI(TAG, "Disconnection processing finished.");
+	ESP_LOGV(TAG, "Disconnection processing finished.");
 }
 
 /***************************************************************************/
@@ -93,7 +93,6 @@ void app_main()
 	wait_sec(10);
 
 	// List NVS content
-	ESP_LOGI(TAG, "listing NVS content...");
 	kv_list_ns(NULL, NULL);
-	ESP_LOGI(TAG, "app_main finished");
+	ESP_LOGD(TAG, "app_main finished");
 }

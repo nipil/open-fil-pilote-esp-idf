@@ -121,7 +121,7 @@ char *joinstr_nargs(char *sep, int nargs, ...)
  */
 struct re_result *re_match(const char *re_str, const char *str)
 {
-    // ESP_LOGD(TAG, "re_str=%s str=%s", re_str, str);
+    ESP_LOGV(TAG, "re_str=%s str=%s", re_str, str);
 
     // compile
     regex_t re;
@@ -147,7 +147,7 @@ struct re_result *re_match(const char *re_str, const char *str)
         tmp++;
     }
     nmatch++; // for the whole match
-    // ESP_LOGD(TAG, "nmatch=%d", nmatch);
+    ESP_LOGV(TAG, "nmatch=%d", nmatch);
 
     // alloc
     regmatch_t *pmatch = malloc(nmatch * sizeof(regmatch_t));
@@ -155,7 +155,7 @@ struct re_result *re_match(const char *re_str, const char *str)
 
     // match
     res = regexec(&re, str, nmatch, pmatch, 0);
-    // ESP_LOGD(TAG, "regexec=%d", res);
+    ESP_LOGV(TAG, "regexec=%d", res);
     if (res != 0)
     {
         if (res != REG_NOMATCH)
@@ -179,11 +179,11 @@ struct re_result *re_match(const char *re_str, const char *str)
         if (m->rm_so == -1)
         {
             smatch[i] = NULL;
-            ESP_LOGD(TAG, "smatch[%d]=NULL", i);
+            ESP_LOGV(TAG, "smatch[%d]=NULL", i);
             continue;
         }
         smatch[i] = substr(str, m->rm_so, m->rm_eo - m->rm_so); // MUST BE FREED BY CALLER
-        // ESP_LOGD(TAG, "smatch[%d]=%s", i, smatch[i]);
+        ESP_LOGV(TAG, "smatch[%d]=%s", i, smatch[i]);
     }
 
     // cleanup
@@ -252,6 +252,7 @@ struct split_result *split_string(const char *str, char sep)
     /* An empty input string is not an error, just return an empty struct */
     if (src_len == 0)
     {
+        ESP_LOGV(TAG, "split empty src");
         struct split_result *empty = malloc(sizeof(struct split_result *));
         assert(empty != NULL);
         empty->count = 0;
@@ -259,7 +260,7 @@ struct split_result *split_string(const char *str, char sep)
         return empty;
     }
 
-    // ESP_LOGD(TAG, "split input %s", str);
+    ESP_LOGV(TAG, "split input %s", str);
 
     // count separators to determine how much memory we need to allocate
     int count = 0;
@@ -269,6 +270,7 @@ struct split_result *split_string(const char *str, char sep)
 
     // N separators means N+1 strings
     count++;
+    ESP_LOGV(TAG, "split sep count %i", count);
 
     // allocate
     struct split_result *splits = malloc(sizeof(struct split_result *));
@@ -289,7 +291,7 @@ struct split_result *split_string(const char *str, char sep)
         // found separator, compute length
         int sub_len = i - last;
         char *sub = substr(str, last, sub_len); // must freed by caller
-        // ESP_LOGD(TAG, "split_string %i is %s", current, sub);
+        ESP_LOGV(TAG, "split_string %i is %s", current, sub);
 
         // store
         splits->strings[current] = sub;
@@ -310,6 +312,8 @@ struct split_result *split_string(const char *str, char sep)
 
 void form_data_free(struct ofp_form_data *data)
 {
+    ESP_LOGV(TAG, "form_data_free %p", data);
+
     assert(data != NULL);
     if (data == NULL) // failsafe if asserts are disabled
         return;
@@ -346,6 +350,7 @@ struct ofp_form_data *form_data_parse(const char *data)
      */
     if (params_raw->count == 0)
     {
+        ESP_LOGV(TAG, "form data parse no params");
         struct ofp_form_data *out = malloc(sizeof(struct ofp_form_data));
         assert(out != NULL);
         out->count = 0;
@@ -371,12 +376,13 @@ struct ofp_form_data *form_data_parse(const char *data)
 
         // extract key/value pairs
         char *param_raw_string = params_raw->strings[i];
+        ESP_LOGV(TAG, "form_data param_str %s", param_raw_string);
         struct re_result *res = re_match("^([^=]+)=([^=]*)$", param_raw_string); // MUST BE FREED BY CALLER
 
         // skip invalid params
         if (res == NULL || res->count != 3) // manually set capture count from param_re string
         {
-            ESP_LOGW(TAG, "Skipping invalid part '%s' from application/x-www-form-urlencoded data '%s'", param_raw_string, data);
+            ESP_LOGD(TAG, "Skipping invalid part '%s' from application/x-www-form-urlencoded data '%s'", param_raw_string, data);
             if (res != NULL) // if it has unexpected number of captures
                 re_free(res);
             continue;
@@ -384,20 +390,26 @@ struct ofp_form_data *form_data_parse(const char *data)
 
         // url-decode key and value
         struct ofp_form_param *target = &out->params[out->count];
+
         const char *key_enc = res->strings[1];
+        ESP_LOGV(TAG, "form_data key_enc %s", key_enc);
         char *key_dec = form_data_decode_str(key_enc);
         if (key_dec == NULL)
         {
-            ESP_LOGW(TAG, "Skipping parameter %s: invalid url-encoded name '%s'", param_raw_string, key_enc);
+            ESP_LOGD(TAG, "Skipping parameter %s: invalid url-encoded name '%s'", param_raw_string, key_enc);
             continue;
         }
+        ESP_LOGV(TAG, "form_data key_dec %s", key_dec);
+
         const char *val_enc = res->strings[2];
+        ESP_LOGV(TAG, "form_data val_enc %s", val_enc);
         char *val_dec = form_data_decode_str(val_enc);
         if (val_dec == NULL)
         {
-            ESP_LOGW(TAG, "Skipping parameter '%s': invalid url-encoded value '%s'", param_raw_string, val_enc);
+            ESP_LOGD(TAG, "Skipping parameter '%s': invalid url-encoded value '%s'", param_raw_string, val_enc);
             continue;
         }
+        ESP_LOGV(TAG, "form_data val_dec %s", val_dec);
 
         // store
         target->name = key_dec;
@@ -453,54 +465,54 @@ char *form_data_decode_str(const char *str)
             if (c == '+')
             {
                 *out++ = ' ';
-                // ESP_LOGD(TAG, "Decoding space");
+                ESP_LOGV(TAG, "Decoding space");
                 continue;
             }
             if (c == '%')
             {
                 state = UD_PERCENT_FIRST;
-                // ESP_LOGD(TAG, "Starting, Percent1");
+                ESP_LOGV(TAG, "Starting, Percent1");
                 continue;
             }
             *out++ = c;
-            // ESP_LOGD(TAG, "Copying 0x%02X %c", c, c);
+            ESP_LOGV(TAG, "Copying 0x%02X %c", c, c);
             break;
 
         case UD_PERCENT_FIRST:
             tmp = hex_char_to_val(c);
-            // ESP_LOGD(TAG, "hex_char_to_val %i", tmp);
+            ESP_LOGV(TAG, "hex_char_to_val %i", tmp);
             if (tmp == -1)
             {
-                // ESP_LOGD(TAG, "Percent1 invalid character");
+                ESP_LOGV(TAG, "Percent1 invalid character");
                 free(decoded);
                 return NULL;
             }
             value = tmp << 4;
             state = UD_PERCENT_SECOND;
-            // ESP_LOGD(TAG, "Percent1, value 0x%02X, going Percent2", value);
+            ESP_LOGV(TAG, "Percent1, value 0x%02X, going Percent2", value);
             continue;
 
         case UD_PERCENT_SECOND:
             tmp = hex_char_to_val(c);
-            // ESP_LOGD(TAG, "hex_char_to_val %i", tmp);
+            ESP_LOGV(TAG, "hex_char_to_val %i", tmp);
             if (tmp == -1)
             {
-                // ESP_LOGD(TAG, "Percent2 invalid character");
+                ESP_LOGV(TAG, "Percent2 invalid character");
                 free(decoded);
                 return NULL;
             }
             value += tmp;
-            // ESP_LOGD(TAG, "Storing byte 0x%02X then normal", value);
+            ESP_LOGV(TAG, "Storing byte 0x%02X then normal", value);
             *out++ = value;
             state = UD_NORMAL;
             continue;
         }
     }
-    // ESP_LOGD(TAG, "End loop");
+    ESP_LOGV(TAG, "End loop");
 
     *out = '\0'; // final NULL terminator
 
-    // ESP_LOGD(TAG, "Result: %s, original length %i final length %i", decoded, src_len, out - decoded);
+    ESP_LOGD(TAG, "Result: %s, original length %i final length %i", decoded, src_len, out - decoded);
     return decoded;
 }
 
@@ -523,7 +535,7 @@ bool parse_int(const char *str, int *target)
     assert(str != NULL);
     assert(target != NULL);
 
-    ESP_LOGD(TAG, "input integer string: %s", str);
+    ESP_LOGV(TAG, "input integer string: %s", str);
     struct re_result *res = re_match(parse_int_re_str, str);
     if (res == NULL)
     {
@@ -559,10 +571,12 @@ int hex_char_to_val(const char c)
 /* wait functions */
 void wait_ms(uint32_t ms)
 {
+    ESP_LOGV(TAG, "wait_ms %i", ms);
     vTaskDelay(pdMS_TO_TICKS(ms));
 }
 
 void wait_sec(uint32_t sec)
 {
+    ESP_LOGV(TAG, "wait_sec %i", sec);
     vTaskDelay(pdMS_TO_TICKS(sec * 1000));
 }

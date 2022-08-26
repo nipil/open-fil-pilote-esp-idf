@@ -114,7 +114,7 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
-            ESP_LOGW(TAG, "JSON parse error, before: %s", error_ptr);
+            ESP_LOGD(TAG, "JSON parse error, before: %s", error_ptr);
         }
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
     }
@@ -123,12 +123,12 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
     cJSON *override = cJSON_GetObjectItemCaseSensitive(root, stor_key_zone_override);
     if (override == NULL)
     {
-        ESP_LOGW(TAG, "Missing JSON element %s", stor_key_zone_override);
+        ESP_LOGD(TAG, "Missing JSON element %s", stor_key_zone_override);
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
     }
     if (!cJSON_IsString(override) || (override->valuestring == NULL))
     {
-        ESP_LOGW(TAG, "Invalid type or value for element %s", stor_key_zone_override);
+        ESP_LOGD(TAG, "Invalid type or value for element %s", stor_key_zone_override);
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
     }
 
@@ -143,7 +143,7 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
     const struct ofp_order_info *info = ofp_order_info_by_str_id(override->valuestring);
     if (override == NULL)
     {
-        ESP_LOGW(TAG, "Invalid order override %s", override->valuestring);
+        ESP_LOGD(TAG, "Invalid order override %s", override->valuestring);
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
     }
 

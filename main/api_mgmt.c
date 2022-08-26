@@ -76,7 +76,7 @@ esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
 
     // dump some dev stats before rebooting
     uint32_t min = esp_get_minimum_free_heap_size();
-    ESP_LOGD(TAG, "Minimum heap that has ever been available: %u", min);
+    ESP_LOGI(TAG, "Minimum heap that has ever been available: %u", min);
 
     // prepare restart, giving it the time to serve the page and cleanup
     mgmt_queue_reboot();

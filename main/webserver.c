@@ -95,7 +95,7 @@ static esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_st
      */
     size_t binary_len = binary_end - binary_start - 1;
 
-    ESP_LOGD(TAG, "Serve_from_asm start %p end %p size %i", binary_start, binary_end, binary_len);
+    ESP_LOGV(TAG, "Serve_from_asm start %p end %p size %i", binary_start, binary_end, binary_len);
     httpd_resp_set_type(req, http_content_type);
     httpd_resp_send(req, (const char *)binary_start, binary_len);
     return ESP_OK;
@@ -422,19 +422,19 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
 {
     assert(req != NULL);
     assert(buf != NULL);
-    ESP_LOGD(TAG, "Needing %i bytes total", len);
+    ESP_LOGV(TAG, "Needing %i bytes total", len);
 
     int remaining = len;
     while (remaining > 0)
     {
         // one block at a time
-        ESP_LOGD(TAG, "Requesting %i bytes", remaining);
+        ESP_LOGV(TAG, "Requesting %i bytes", remaining);
         int ret = httpd_req_recv(req, buf, remaining);
 
         // Received some data
         if (ret > 0)
         {
-            ESP_LOGD(TAG, "Received %i bytes", ret);
+            ESP_LOGV(TAG, "Received %i bytes", ret);
             remaining -= ret;
             buf += ret;
             continue;
@@ -443,7 +443,7 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
         // connection closed
         if (ret == 0)
         {
-            ESP_LOGW(TAG, "httpd_req_recv error: connection closed");
+            ESP_LOGD(TAG, "httpd_req_recv error: connection closed");
             return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Connection closed");
         }
 
@@ -451,13 +451,13 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
         if (ret == HTTPD_SOCK_ERR_TIMEOUT)
         {
             // do not bother retrying
-            ESP_LOGW(TAG, "httpd_req_recv error: connection timeout");
+            ESP_LOGD(TAG, "httpd_req_recv error: connection timeout");
             return httpd_resp_send_408(req);
         }
 
         // In case of error, returning ESP_FAIL will ensure that the underlying socket is closed
         const char *msg = esp_err_to_name(ret);
-        ESP_LOGW(TAG, "httpd_req_recv error: %s", msg);
+        ESP_LOGD(TAG, "httpd_req_recv error: %s", msg);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, msg);
     }
 
@@ -477,13 +477,13 @@ char *webserver_get_request_data_atomic(httpd_req_t *req)
 {
     const int max_size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP;
 
-    ESP_LOGD(TAG, "Content length %i", req->content_len);
+    ESP_LOGV(TAG, "Content length %i", req->content_len);
 
     // include space for a NULL terminator as content is processed as a string
     int needed = req->content_len + 1;
     if (needed > max_size)
     {
-        ESP_LOGW(TAG, "Request body (%i) is larger than atomic buffer (%i)", needed, max_size);
+        ESP_LOGD(TAG, "Request body (%i) is larger than atomic buffer (%i)", needed, max_size);
         return NULL;
     }
 
@@ -496,7 +496,7 @@ char *webserver_get_request_data_atomic(httpd_req_t *req)
     if (res != ESP_OK)
     {
         free(buf);
-        ESP_LOGW(TAG, "Could not read request data: %s", esp_err_to_name(res));
+        ESP_LOGD(TAG, "Could not read request data: %s", esp_err_to_name(res));
         return NULL;
     }
 
@@ -514,7 +514,7 @@ struct ofp_form_data *webserver_form_data_from_req(httpd_req_t *req)
     char *buf = webserver_get_request_data_atomic(req);
     if (buf == NULL)
     {
-        ESP_LOGW(TAG, "Failed getting request data");
+        ESP_LOGD(TAG, "Failed getting request data");
         return NULL;
     }
 

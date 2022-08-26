@@ -116,7 +116,7 @@ time_t get_system_uptime(void)
 /* wifi tracking functions */
 const struct uptime_wifi *uptime_get_wifi_stats(void)
 {
-    ESP_LOGD(TAG,
+    ESP_LOGV(TAG,
              "attempts %i, successes %i, disconnects %i, cumulated %li, last_connect %li",
              wifi_stats.attempts,
              wifi_stats.successes,
@@ -129,18 +129,18 @@ const struct uptime_wifi *uptime_get_wifi_stats(void)
 
 void uptime_track_wifi_attempt(void)
 {
-    ESP_LOGD(TAG, "wifi attempt");
     wifi_stats.attempts++;
+    ESP_LOGV(TAG, "wifi uptime_track_wifi_attempt %i", wifi_stats.attempts);
 }
 
 void uptime_track_wifi_success(void)
 {
-    ESP_LOGD(TAG, "wifi success");
+    ESP_LOGV(TAG, "uptime_track_wifi_success");
     wifi_stats.successes++;
 
     time_t now;
     time(&now);
-    ESP_LOGD(TAG, "last %li", now);
+    ESP_LOGV(TAG, "last %li", now);
 
     /* critical section for wifi_stats.last_connect_time */
     taskENTER_CRITICAL(&mutex_uptime_last_connect);
@@ -150,7 +150,7 @@ void uptime_track_wifi_success(void)
 
 void uptime_track_wifi_disconnect(void)
 {
-    ESP_LOGD(TAG, "wifi success");
+    ESP_LOGV(TAG, "uptime_track_wifi_disconnect");
 
     wifi_stats.disconnects++;
 
@@ -172,5 +172,5 @@ void uptime_track_wifi_disconnect(void)
     taskEXIT_CRITICAL(&mutex_uptime_last_connect);
 
     wifi_stats.cumulated_uptime += delta;
-    ESP_LOGD(TAG, "delta %li", delta);
+    ESP_LOGV(TAG, "delta %li", delta);
 }
