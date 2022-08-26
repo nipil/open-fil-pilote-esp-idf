@@ -1,6 +1,7 @@
 #include <cjson.h>
 #include <esp_log.h>
 
+#include "str.h"
 #include "ofp.h"
 #include "webserver.h"
 #include "api_plannings.h"

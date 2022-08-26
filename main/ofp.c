@@ -2,6 +2,7 @@
 
 #include <esp_log.h>
 
+#include "str.h"
 #include "ofp.h"
 
 static const char TAG[] = "ofp";

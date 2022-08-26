@@ -4,6 +4,7 @@
 
 #include "httpd_basic_auth.h"
 
+#include "str.h"
 #include "webserver.h"
 #include "ofp.h"
 #include "utils.h"
@@ -14,40 +15,6 @@
 #include "api_plannings.h"
 
 static const char TAG[] = "webserver";
-
-/* constants for efficient memory management */
-
-static const char http_content_type_html[] = HTTPD_TYPE_TEXT;
-static const char http_content_type_js[] = "text/javascript";
-static const char http_content_type_json[] = HTTPD_TYPE_JSON;
-
-static const char route_root[] = "/";
-static const char route_ofp_html[] = "/ofp.html";
-static const char route_ofp_js[] = "/ofp.js";
-
-static const char route_api_hardware[] = "^/ofp-api/v([[:digit:]]+)/hardware$";
-static const char route_api_hardware_id_parameters[] = "^/ofp-api/v([[:digit:]]+)/hardware/([[:alnum:]]+)/parameters$";
-
-static const char route_api_accounts[] = "^/ofp-api/v([[:digit:]]+)/accounts$";
-static const char route_api_accounts_id[] = "^/ofp-api/v([[:digit:]]+)/accounts/([[:alnum:]]+)$";
-
-static const char route_api_orders[] = "^/ofp-api/v([[:digit:]]+)/orders$";
-static const char route_api_override[] = "^/ofp-api/v([[:digit:]]+)/override$";
-static const char route_api_zones[] = "^/ofp-api/v([[:digit:]]+)/zones$";
-static const char route_api_zones_id[] = "^/ofp-api/v([[:digit:]]+)/zones/([[:alnum:]]+)$";
-
-static const char route_api_upgrade[] = "^/ofp-api/v([[:digit:]]+)/upgrade$";
-static const char route_api_status[] = "^/ofp-api/v([[:digit:]]+)/status$";
-static const char route_api_reboot[] = "^/ofp-api/v([[:digit:]]+)/reboot$";
-
-static const char route_api_plannings[] = "^/ofp-api/v([[:digit:]]+)/plannings$";
-static const char route_api_planning_id[] = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)$";
-static const char route_api_planning_id_slots[] = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)/slots$";
-static const char route_api_planning_id_slots_id[] = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)/slots/((2[0-3]|[0-1][[:digit:]])h[0-5][[:digit:]])$";
-
-static const char http_302_hdr[] = "302 Found";
-
-static const char http_location_hdr[] = "Location";
 
 /* HTTPS server handle */
 static httpd_handle_t *app_server = NULL;

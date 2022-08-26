@@ -1,5 +1,6 @@
 #include <stddef.h>
 
+#include "str.h"
 #include "hw_esp32.h"
 
 static struct ofp_hw hw_esp32 = {

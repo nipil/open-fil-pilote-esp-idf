@@ -6,11 +6,10 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "str.h"
 #include "utils.h"
 
 static const char *TAG = "utils";
-
-static const char parse_int_re_str[] = "^(-|\\+)?([[:digit:]]+)$";
 
 /* converts time to localtime using timezone */
 void time_to_localtime(time_t *val, struct tm *timeinfo)

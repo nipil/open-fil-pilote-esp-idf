@@ -8,6 +8,7 @@
 /* menu autoconfig */
 #include "sdkconfig.h"
 
+#include "str.h"
 #include "ofp.h"
 #include "uptime.h"
 #include "utils.h"

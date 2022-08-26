@@ -6,13 +6,10 @@
 #include <nvs_flash.h>
 #include <nvs.h>
 
+#include "str.h"
 #include "storage.h"
 
 static const char TAG[] = "storage";
-
-static const char default_nvs_partition_name[] = NVS_DEFAULT_PART_NAME;
-
-static const char null_str[] = "NULL";
 
 /* partition functions */
 

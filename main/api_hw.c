@@ -3,26 +3,13 @@
 
 #include "sdkconfig.h"
 
+#include "str.h"
 #include "ofp.h"
 #include "webserver.h"
 #include "api_hw.h"
 #include "storage.h"
 
 static const char TAG[] = "api_hw";
-
-static const char stor_ns_ofp[] = "ofp";
-static const char stor_key_hardware_type[] = "hardware_type";
-
-static const char json_key_current[] = "current";
-static const char json_key_description[] = "description";
-static const char json_key_id[] = "id";
-static const char json_key_parameters[] = "parameters";
-static const char json_key_supported[] = "supported";
-static const char json_key_type[] = "type";
-static const char json_key_value[] = "value";
-
-static const char json_type_number[] = "number";
-static const char json_type_string[] = "string";
 
 /***************************************************************************/
 

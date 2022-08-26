@@ -3,8 +3,8 @@
 #include <esp_log.h>
 #include <esp_sntp.h>
 
+#include "str.h"
 #include "sntp.h"
-
 #include "utils.h"
 #include "uptime.h"
 

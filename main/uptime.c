@@ -8,6 +8,7 @@
 #include "esp_system.h"
 #include "esp_log.h"
 
+#include "str.h"
 #include "uptime.h"
 
 static const char TAG[] = "uptime";

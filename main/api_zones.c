@@ -1,21 +1,13 @@
 #include <cjson.h>
 #include <esp_log.h>
 
+#include "str.h"
 #include "ofp.h"
 #include "webserver.h"
 #include "api_accounts.h"
 #include "storage.h"
 
 static const char TAG[] = "api_zones";
-
-static const char stor_ns_ofp[] = "ofp";
-
-static const char stor_key_zone_override[] = "override";
-static const char stor_key_id[] = "id";
-static const char stor_key_name[] = "name";
-static const char stor_key_class[] = "class";
-
-static const char stor_val_none[] = "none";
 
 /***************************************************************************/
 
