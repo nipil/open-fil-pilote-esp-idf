@@ -67,6 +67,21 @@ typedef bool (*ofp_hw_func)(struct ofp_hw *hw);
 
 struct ofp_hw_hooks
 {
+    /*
+     * Before this hook is called, each hardware parameter
+     * has already been updated from NVS storage, so values
+     * in memory are clearly defined.
+     *
+     * Then, this function is responsible for :
+     * - calling ofp_zone_set_allocate to allocate the desired number of zones
+     * - and setting the id and description for each zone
+     * - do the "pure electronics hardware" initialization, if any
+     *
+     * This function MUST NOT do the following tasks :
+     * - updating zone mode
+     * - updating zone current state
+     * As these will be done by the caller after initialization is successful
+     */
     ofp_hw_func init;
     ofp_hw_func apply;
 };

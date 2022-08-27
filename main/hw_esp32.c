@@ -1,11 +1,16 @@
 #include <stddef.h>
+#include <stdio.h>
 #include <esp_log.h>
 #include "str.h"
 #include "hw_esp32.h"
 
 static const char TAG[] = "esp32";
 
+/* defines */
+#define HW_ESP32_ZONE_ID_FORMAT "%s%02i"
+
 /* consts */
+static const char *str_zone_prefix = "zone_prefix";
 static const char *str_zone_count = "zone_count";
 
 /* forward definitions */
@@ -47,13 +52,17 @@ struct ofp_hw *hw_esp32_get_definition(void)
     return &hw_esp32;
 }
 
-/* init dynamic data and setup hardware */
+/* init dynamic data and setup hardware (PLEASE READ ofp_hw_hooks in ofp.h) */
 static bool hw_esp32_zone_set_init(struct ofp_hw *hw)
 {
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
     ESP_LOGD(TAG, "hw_esp32_zone_set_init %p", hw);
     assert(hw != NULL);
+
+    // read the zone prefix name
+    struct ofp_hw_param *param_zone_prefix = ofp_hw_param_find_by_id(hw, str_zone_prefix);
+    assert(param_zone_prefix != NULL);
 
     // allocate memory for the total number of zones available
     struct ofp_hw_param *param_zone_count = ofp_hw_param_find_by_id(hw, str_zone_count);
@@ -64,13 +73,36 @@ static bool hw_esp32_zone_set_init(struct ofp_hw *hw)
         ESP_LOGW(TAG, "Could not allocate %i zones", zone_count);
         return false;
     }
-    // TODO: setup zone names & descriptions
+
+    // setup zone names & descriptions
+    char buf[OFP_MAX_LEN_VALUE];
+    for (int i = 0; i < hw->zone_set.count; i++)
+    {
+        char *prefix = param_zone_prefix->value.string_;
+        int res = snprintf(buf, sizeof(buf), HW_ESP32_ZONE_ID_FORMAT, prefix, i);
+        if (res < 0 || res > sizeof(buf))
+        {
+            ESP_LOGW(TAG, "Zone id too long (prefix %s and number %i)", prefix, i);
+            return false;
+        }
+        struct ofp_zone *zone = &hw->zone_set.zones[i];
+        if (!ofp_zone_set_id(zone, buf))
+        {
+            ESP_LOGW(TAG, "Could not set zone id %s", buf);
+            return false;
+        }
+        if (!ofp_zone_set_description(zone, buf))
+        {
+            ESP_LOGW(TAG, "Could not set zone description %s", buf);
+            return false;
+        }
+    }
 
     /*
-        INFO: implémenter ici l'initialisation de vos cartes
-        et hardware spécifique au démarrage du matériel
+        INFO: implement hardware initialization here
+        Return true if hardware is ready for work
     */
-    return false;
+    return true;
 }
 
 /* apply dynamic state to hardware */
@@ -79,9 +111,8 @@ static bool hw_esp32_zone_set_apply(struct ofp_hw *hw)
     ESP_LOGD(TAG, "hw_esp32_zone_set_apply %p", hw);
     assert(hw != NULL);
     /*
-        INFO: implémenter ici le fonctionnement de vos cartes
-        et hardware spécifique, quand l'état des zones doit
-        être appliqué sur les radiateurs des zones
+        INFO: apply zone current state to hardware
+        Return true if hardware was successfully updated
     */
     return false;
 }

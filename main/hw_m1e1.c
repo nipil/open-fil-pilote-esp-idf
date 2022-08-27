@@ -1,10 +1,14 @@
 #include <stddef.h>
+#include <stdio.h>
 #include <esp_log.h>
 
 #include "str.h"
 #include "hw_m1e1.h"
 
 static const char TAG[] = "m1e1";
+
+/* defines */
+#define HW_M1E1_ZONE_ID_FORMAT "E%02iZ%02i"
 
 /* consts */
 static const char *str_e1_count = "e1_count";
@@ -40,7 +44,7 @@ struct ofp_hw *hw_m1e1_get_definition(void)
     return &hw_m1e1;
 }
 
-/* init dynamic data and setup hardware */
+/* init dynamic data and setup hardware (PLEASE READ ofp_hw_hooks in ofp.h) */
 static bool hw_m1e1_zone_set_init(struct ofp_hw *hw)
 {
     esp_log_level_set(TAG, ESP_LOG_VERBOSE);
@@ -57,7 +61,32 @@ static bool hw_m1e1_zone_set_init(struct ofp_hw *hw)
         ESP_LOGW(TAG, "Could not allocate %i zones", zone_count);
         return false;
     }
-    // TODO: setup zone names & descriptions
+
+    // setup zone names & descriptions
+    char buf[OFP_MAX_LEN_VALUE];
+    for (int i = 0; i < hw->zone_set.count; i++)
+    {
+        int e_num, z_num;
+        e_num = i / zones_per_extension_board + 1;
+        z_num = i % zones_per_extension_board + 1;
+        int res = snprintf(buf, sizeof(buf), HW_M1E1_ZONE_ID_FORMAT, e_num, z_num);
+        if (res < 0 || res > sizeof(buf))
+        {
+            ESP_LOGW(TAG, "Zone id too long (for %i)", i);
+            return false;
+        }
+        struct ofp_zone *zone = &hw->zone_set.zones[i];
+        if (!ofp_zone_set_id(zone, buf))
+        {
+            ESP_LOGW(TAG, "Could not set zone id %s", buf);
+            return false;
+        }
+        if (!ofp_zone_set_description(zone, buf))
+        {
+            ESP_LOGW(TAG, "Could not set zone description %s", buf);
+            return false;
+        }
+    }
 
     // TODO: hardware initialization
     return false;
