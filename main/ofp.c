@@ -149,6 +149,30 @@ void ofp_hw_initialize(void)
         return;
     }
 
+    // override default parameter values with values from storage if available
+    for (int i = 0; i < current_hw->param_count; i++)
+    {
+        char *buf;
+        struct ofp_hw_param *param = &current_hw->params[i];
+        switch (param->type)
+        {
+        case HW_OFP_PARAM_INTEGER:
+            kvh_get(param->value.int_, i32, current_hw->id, param->id, param->value.int_);
+            ESP_LOGV(TAG, "hardware %s param %s integer %i", current_hw->id, param->id, param->value.int_);
+            break;
+        case HW_OFP_PARAM_STRING:
+            kvh_get(buf, str, current_hw->id, param->id);
+            if (buf != NULL)
+            {
+                if (!ofp_hw_param_set_value_string(param, buf))
+                    ESP_LOGW(TAG, "Hardware %s parameter %s stored value %s is too long, using default value", current_hw->id, param->id, buf);
+                free(buf);
+            }
+            ESP_LOGV(TAG, "hardware %s param %s string %s", current_hw->id, param->id, param->value.string_);
+            break;
+        }
+    }
+
     // initialize
     if (!current_hw->hw_func.init(current_hw))
     {
