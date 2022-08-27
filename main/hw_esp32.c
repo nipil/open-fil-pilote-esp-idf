@@ -15,7 +15,12 @@ static struct ofp_hw hw_esp32 = {
         {.id = "another_param",
          .description = "this is a parameter of type integer",
          .type = HW_OFP_PARAM_INTEGER,
-         .value = {.int_ = 42}}}}; // Mark end of Flexible array
+         .value = {.int_ = 0}}},
+    .zone_set = {
+        .count = 0,
+        .zones = NULL,
+    },
+};
 
 struct ofp_hw *hw_esp32_get_definition(void)
 {

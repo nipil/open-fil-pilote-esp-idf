@@ -29,6 +29,36 @@ struct ofp_order_info
     char class[OFP_MAX_LEN_ID];
 };
 
+/* zones */
+
+enum ofp_zone_mode
+{
+    HW_OFP_ZONE_MODE_FIXED = 0,
+    HW_OFP_ZONE_MODE_PLANNING = 1,
+    HW_OFP_ZONE_MODE_SIZE
+} ofp_zone_mode;
+
+union ofp_zone_mode_data
+{
+    int planning_id;
+    enum ofp_zone_mode fixed_id;
+};
+
+struct ofp_zone
+{
+    char id[OFP_MAX_LEN_ID];
+    char description[OFP_MAX_LEN_DESCRIPTION];
+    enum ofp_zone_mode mode;
+    union ofp_zone_mode_data mode_data;
+    enum ofp_order_id current;
+};
+
+struct ofp_zone_set
+{
+    int count;
+    struct ofp_zone *zones;
+};
+
 /* hardware */
 
 enum ofp_hw_param_type
@@ -55,6 +85,8 @@ struct ofp_hw
 {
     const char id[OFP_MAX_LEN_ID];
     char description[OFP_MAX_LEN_DESCRIPTION];
+    // dynamic zone data
+    struct ofp_zone_set zone_set;
     int param_count;
     struct ofp_hw_param params[];
 };

@@ -11,7 +11,12 @@ static struct ofp_hw hw_m1e1 = {
         {.id = "e1_count",
          .description = "Number of attached E1 boards",
          .type = HW_OFP_PARAM_INTEGER,
-         .value = {.int_ = 0}}}};
+         .value = {.int_ = 0}}},
+    .zone_set = {
+        .count = 0,
+        .zones = NULL,
+    },
+};
 
 struct ofp_hw *hw_m1e1_get_definition(void)
 {
