@@ -89,7 +89,8 @@ static bool hw_m1e1_zone_set_init(struct ofp_hw *hw)
     }
 
     // TODO: hardware initialization
-    return false;
+
+    return true; // DEBUG: return true until we implement the hardware stuff
 }
 
 /* apply dynamic state to hardware */
