@@ -106,12 +106,12 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
         cJSON_AddStringToObject(j, json_key_description, param->description);
         switch (param->type)
         {
-        case HW_OFP_PARAM_INTEGER:
+        case HW_OFP_PARAM_TYPE_INTEGER:
             num = kv_get_i32(h, param->id, param->value.int_);
             cJSON_AddStringToObject(j, json_key_type, json_type_number);
             cJSON_AddNumberToObject(j, json_key_value, num);
             break;
-        case HW_OFP_PARAM_STRING:
+        case HW_OFP_PARAM_TYPE_STRING:
             str = kv_get_str(h, param->id);
             if (str == NULL)
                 str = param->value.string_;
@@ -119,6 +119,7 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
             cJSON_AddStringToObject(j, json_key_value, str);
             break;
         default:
+            ESP_LOGW(TAG, "Invalid ofp_hw_param_type value detected: %i for parameter %s of hardware %s", param->type, param->id, hw->id);
             cJSON_Delete(root);
             return httpd_resp_send_500(req);
         }
@@ -192,7 +193,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
 
         // verify parameter type if needed
         int value;
-        if (hw->params[i].type == HW_OFP_PARAM_INTEGER)
+        if (hw->params[i].type == HW_OFP_PARAM_TYPE_INTEGER)
         {
             if (!parse_int(form_param_value, &value))
             {
@@ -221,12 +222,15 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
         int n;
         switch (hw_param->type)
         {
-        case HW_OFP_PARAM_INTEGER:
+        case HW_OFP_PARAM_TYPE_INTEGER:
             parse_int(form_param_value, &n);
             kv_set_i32(h, hw_param->id, n);
             break;
-        case HW_OFP_PARAM_STRING:
+        case HW_OFP_PARAM_TYPE_STRING:
             kv_set_str(h, hw_param->id, form_param_value);
+            break;
+        default:
+            ESP_LOGW(TAG, "Invalid ofp_hw_param_type value detected: %i. Skip storing parameter %s for hardware %s", hw_param->type, hw_param->id, form_hw_current);
             break;
         }
     }

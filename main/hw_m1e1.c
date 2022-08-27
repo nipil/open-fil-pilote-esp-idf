@@ -26,7 +26,7 @@ static struct ofp_hw hw_m1e1 = {
     .params = {
         {.id = "e1_count",
          .description = "Number of attached E1 boards",
-         .type = HW_OFP_PARAM_INTEGER,
+         .type = HW_OFP_PARAM_TYPE_INTEGER,
          .value = {.int_ = 0}}},
     .zone_set = {
         .count = 0,

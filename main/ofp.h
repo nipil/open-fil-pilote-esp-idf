@@ -38,7 +38,7 @@ enum ofp_zone_mode // do NOT EVER change the numerical IDs
 {
     HW_OFP_ZONE_MODE_FIXED = 0,
     HW_OFP_ZONE_MODE_PLANNING = 1,
-    HW_OFP_ZONE_MODE_SIZE
+    HW_OFP_ZONE_MODE_ENUM_SIZE
 } ofp_zone_mode;
 
 union ofp_zone_mode_data
@@ -92,8 +92,9 @@ struct ofp_hw_hooks
 
 enum ofp_hw_param_type // do NOT EVER change the numerical IDs
 {
-    HW_OFP_PARAM_INTEGER = 0,
-    HW_OFP_PARAM_STRING = 1,
+    HW_OFP_PARAM_TYPE_INTEGER = 0,
+    HW_OFP_PARAM_TYPE_STRING = 1,
+    HW_OFP_PARAM_TYPE_ENUM_SIZE
 };
 
 union ofp_hw_param_value

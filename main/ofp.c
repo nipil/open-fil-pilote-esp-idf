@@ -190,11 +190,11 @@ void ofp_hw_initialize(void)
         struct ofp_hw_param *param = &current_hw->params[i];
         switch (param->type)
         {
-        case HW_OFP_PARAM_INTEGER:
+        case HW_OFP_PARAM_TYPE_INTEGER:
             kvh_get(param->value.int_, i32, current_hw->id, param->id, param->value.int_);
             ESP_LOGV(TAG, "hardware %s param %s integer %i", current_hw->id, param->id, param->value.int_);
             break;
-        case HW_OFP_PARAM_STRING:
+        case HW_OFP_PARAM_TYPE_STRING:
             kvh_get(buf, str, current_hw->id, param->id);
             if (buf != NULL)
             {
@@ -203,6 +203,9 @@ void ofp_hw_initialize(void)
                 free(buf);
             }
             ESP_LOGV(TAG, "hardware %s param %s string %s", current_hw->id, param->id, param->value.string_);
+            break;
+        default:
+            ESP_LOGW(TAG, "Invalid ofp_hw_param_type value detected: %i. Skip restoring parameter %s for hardware %s", param->type, param->id, current_hw->id);
             break;
         }
     }

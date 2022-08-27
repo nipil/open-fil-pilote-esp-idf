@@ -26,13 +26,13 @@ static struct ofp_hw hw_esp32 = {
         {
             .id = "zone_count",
             .description = "Nombre de zones",
-            .type = HW_OFP_PARAM_INTEGER,
+            .type = HW_OFP_PARAM_TYPE_INTEGER,
             .value = {.int_ = 0},
         },
         {
             .id = "zone_prefix",
             .description = "this is a parameter of type string",
-            .type = HW_OFP_PARAM_STRING,
+            .type = HW_OFP_PARAM_TYPE_STRING,
             .value = {.string_ = "z"},
         },
     },
