@@ -16,6 +16,7 @@
 #include "webserver.h"
 #include "m_dns.h"
 #include "storage.h"
+#include "console.h"
 
 // hardware
 #include "hw_esp32.h"
@@ -87,6 +88,9 @@ void app_main()
 
 	// initialize global hardware reference if successful
 	ofp_hw_initialize();
+
+	// initialize terminal
+	console_init();
 
 #ifndef OFP_DISABLE_NETWORKING
 	/* start the wifi manager */
