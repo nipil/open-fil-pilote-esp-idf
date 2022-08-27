@@ -80,6 +80,9 @@ void app_main()
 	// register every hardware available at compilation time
 	register_hardware();
 
+	// initialize hardware and zones according to stored type and parameters
+	ofp_hw_initialize();
+
 #ifndef OFP_DISABLE_NETWORKING
 	/* start the wifi manager */
 	wifi_manager_start();
