@@ -33,6 +33,7 @@ static struct ofp_hw hw_esp32 = {
     },
 };
 
+/* used for registering available hardware */
 struct ofp_hw *hw_esp32_get_definition(void)
 {
     return &hw_esp32;

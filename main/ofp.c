@@ -11,8 +11,10 @@ static const char TAG[] = "ofp";
 /* global hardware instance, get it using ofp_hw_get() */
 static struct ofp_hw *hw_global = NULL;
 
+/* where the registered hardware are stored */
 static struct ofp_hw_list hw_list = {.hw_count = 0, .hw = {NULL}};
 
+/* const definition */
 static const struct ofp_order_info order_info[] = {
     {.id = "offload",
      .name = "Arr&ecirc;t / D&eacute;lestage",

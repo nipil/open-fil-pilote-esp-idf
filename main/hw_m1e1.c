@@ -30,6 +30,7 @@ static struct ofp_hw hw_m1e1 = {
     },
 };
 
+/* used for registering available hardware */
 struct ofp_hw *hw_m1e1_get_definition(void)
 {
     return &hw_m1e1;
