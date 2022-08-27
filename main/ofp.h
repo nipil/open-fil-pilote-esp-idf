@@ -2,6 +2,7 @@
 #define OFP_H
 
 /* limits */
+#define OFP_MAX_ZONE_COUNT 64
 #define OFP_MAX_SIMULTANEOUS_HARDWARE 4
 #define OFP_MAX_LEN_ID 16
 #define OFP_MAX_LEN_VALUE 32
