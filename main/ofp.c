@@ -111,6 +111,54 @@ bool ofp_hw_param_set_value_string(struct ofp_hw_param *param, const char *str)
     return true;
 }
 
+static bool ofp_hw_param_load_value_integer(const char *hw_id, struct ofp_hw_param *param)
+{
+    kvh_get(param->value.int_, i32, hw_id, param->id, param->value.int_);
+    return true;
+}
+
+static bool ofp_hw_param_load_value_string(const char *hw_id, struct ofp_hw_param *param)
+{
+    char *buf;
+    kvh_get(buf, str, hw_id, param->id);
+
+    // keeping defaults is not an error
+    if (buf == NULL)
+        return true;
+
+    // restoring
+    if (ofp_hw_param_set_value_string(param, buf))
+    {
+        free(buf);
+        return true;
+    }
+
+    return false;
+}
+
+static bool ofp_hw_param_load_value(const char *hw_id, struct ofp_hw_param *param)
+{
+    bool result;
+    ESP_LOGV(TAG, "hardware param %s", param->id);
+
+    switch (param->type)
+    {
+    case HW_OFP_PARAM_TYPE_INTEGER:
+        result = ofp_hw_param_load_value_integer(hw_id, param);
+        ESP_LOGV(TAG, "value integer %i", param->value.int_);
+        return result;
+
+    case HW_OFP_PARAM_TYPE_STRING:
+        result = ofp_hw_param_load_value_string(hw_id, param);
+        ESP_LOGV(TAG, "value string %s", param->value.string_);
+        return result;
+
+    default:
+        ESP_LOGW(TAG, "Invalid parameter type detected: %i", param->type);
+        return false;
+    }
+}
+
 bool ofp_zone_set_id(struct ofp_zone *zone, const char *id)
 {
     assert(zone != NULL);
@@ -193,30 +241,15 @@ void ofp_hw_initialize(void)
 
     ESP_LOGI(TAG, "Initializing hardware %s", current_hw->id);
 
-    // override default parameter values with values from storage if available
+    // load valid saved hardware parameters from storage
     for (int i = 0; i < current_hw->param_count; i++)
     {
-        char *buf;
+        ESP_LOGV(TAG, "parameter %i", i);
         struct ofp_hw_param *param = &current_hw->params[i];
-        switch (param->type)
+        if (!ofp_hw_param_load_value(current_hw->id, param))
         {
-        case HW_OFP_PARAM_TYPE_INTEGER:
-            kvh_get(param->value.int_, i32, current_hw->id, param->id, param->value.int_);
-            ESP_LOGV(TAG, "hardware %s param %s integer %i", current_hw->id, param->id, param->value.int_);
-            break;
-        case HW_OFP_PARAM_TYPE_STRING:
-            kvh_get(buf, str, current_hw->id, param->id);
-            if (buf != NULL)
-            {
-                if (!ofp_hw_param_set_value_string(param, buf))
-                    ESP_LOGW(TAG, "Hardware %s parameter %s stored value %s is too long, using default value", current_hw->id, param->id, buf);
-                free(buf);
-            }
-            ESP_LOGV(TAG, "hardware %s param %s string %s", current_hw->id, param->id, param->value.string_);
-            break;
-        default:
-            ESP_LOGW(TAG, "Invalid ofp_hw_param_type value detected: %i. Skip restoring parameter %s for hardware %s", param->type, param->id, current_hw->id);
-            break;
+            ESP_LOGW(TAG, "Could not load value for hardware parameter %s, reverting to default", param->id);
+            continue;
         }
     }
 
