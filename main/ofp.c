@@ -4,6 +4,7 @@
 
 #include "str.h"
 #include "ofp.h"
+#include "storage.h"
 #include "api_hw.h"
 
 static const char TAG[] = "ofp";
