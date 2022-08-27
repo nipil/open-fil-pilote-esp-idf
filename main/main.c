@@ -71,8 +71,10 @@ static void register_hardware(void)
 
 void app_main()
 {
-	// initialize storage
+	// List NVS content
+	wait_sec(1);
 	kv_init(NULL);
+	kv_list_ns(NULL, NULL);
 
 	// compensate uptime according to clock leap from SNTP
 	uptime_sync_start();
@@ -93,10 +95,6 @@ void app_main()
 	wifi_manager_set_callback(WM_EVENT_STA_DISCONNECTED, &wifi_manager_disconnected_callback);
 #endif /* OFP_NO_NETWORKING */
 
-	// Wait for log burst
-	wait_sec(10);
 
-	// List NVS content
-	kv_list_ns(NULL, NULL);
 	ESP_LOGD(TAG, "app_main finished");
 }
