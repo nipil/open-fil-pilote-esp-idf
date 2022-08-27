@@ -118,3 +118,9 @@ void ofp_hw_initialize(void)
     // persist reference
     hw_global = current_hw;
 }
+
+/* access the global hardware instance */
+struct ofp_hw *ofp_hw_get_current(void)
+{
+    return hw_global;
+}
