@@ -44,7 +44,7 @@ enum ofp_zone_mode // do NOT EVER change the numerical IDs
 union ofp_zone_mode_data
 {
     int planning_id;
-    enum ofp_zone_mode fixed_id;
+    enum ofp_order_id fixed_id;
 };
 
 struct ofp_zone
