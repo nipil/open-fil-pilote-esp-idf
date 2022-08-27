@@ -130,7 +130,7 @@ struct ofp_hw_list
     struct ofp_hw *hw[OFP_MAX_SIMULTANEOUS_HARDWARE];
 };
 
-/* accessors */
+/* order accessors */
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id);
 const struct ofp_order_info *ofp_order_info_by_str_id(char *order_id);
 bool ofp_order_id_is_valid(enum ofp_order_id order_id);

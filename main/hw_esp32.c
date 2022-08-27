@@ -98,6 +98,8 @@ static bool hw_esp32_zone_set_init(struct ofp_hw *hw)
         }
     }
 
+    // TODO: check after setting hardware type to ESP32
+
     /*
         INFO: implement hardware initialization here
         Return true if hardware is ready for work

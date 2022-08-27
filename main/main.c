@@ -85,7 +85,7 @@ void app_main()
 	// register every hardware available at compilation time
 	register_hardware();
 
-	// initialize hardware and zones according to stored type and parameters
+	// initialize global hardware reference if successful
 	ofp_hw_initialize();
 
 #ifndef OFP_DISABLE_NETWORKING
