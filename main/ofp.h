@@ -131,7 +131,7 @@ struct ofp_hw_param *ofp_hw_param_find_by_id(struct ofp_hw *hw, const char *para
 bool ofp_hw_param_set_value_string(struct ofp_hw_param *param, const char *str);
 
 /* allocate new space for zones set */
-void ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count);
+bool ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count);
 
 /* returns the global instance for the initialized hardware */
 struct ofp_hw *ofp_hw_get_current(void);

@@ -59,7 +59,11 @@ static bool hw_esp32_zone_set_init(struct ofp_hw *hw)
     struct ofp_hw_param *param_zone_count = ofp_hw_param_find_by_id(hw, str_zone_count);
     assert(param_zone_count != NULL);
     int zone_count = param_zone_count->value.int_;
-    ofp_zone_set_allocate(&hw->zone_set, zone_count);
+    if (!ofp_zone_set_allocate(&hw->zone_set, zone_count))
+    {
+        ESP_LOGW(TAG, "Could not allocate %i zones", zone_count);
+        return false;
+    }
     // TODO: setup zone names & descriptions
 
     /*

@@ -52,7 +52,11 @@ static bool hw_m1e1_zone_set_init(struct ofp_hw *hw)
     struct ofp_hw_param *param_e1_count = ofp_hw_param_find_by_id(hw, str_e1_count);
     assert(param_e1_count != NULL);
     int zone_count = param_e1_count->value.int_ * zones_per_extension_board;
-    ofp_zone_set_allocate(&hw->zone_set, zone_count);
+    if (!ofp_zone_set_allocate(&hw->zone_set, zone_count))
+    {
+        ESP_LOGW(TAG, "Could not allocate %i zones", zone_count);
+        return false;
+    }
     // TODO: setup zone names & descriptions
 
     // TODO: hardware initialization
