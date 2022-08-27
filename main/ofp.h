@@ -59,6 +59,17 @@ struct ofp_zone_set
     struct ofp_zone *zones;
 };
 
+/* polymorphism */
+
+struct ofp_hw; // forward declaration
+typedef bool (*ofp_hw_func)(struct ofp_hw *hw);
+
+struct ofp_hw_func
+{
+    ofp_hw_func init;
+    ofp_hw_func apply;
+};
+
 /* hardware */
 
 enum ofp_hw_param_type
@@ -87,6 +98,9 @@ struct ofp_hw
     char description[OFP_MAX_LEN_DESCRIPTION];
     // dynamic zone data
     struct ofp_zone_set zone_set;
+    // hooks
+    struct ofp_hw_func hw_func;
+    // configurable params
     int param_count;
     struct ofp_hw_param params[];
 };
