@@ -127,6 +127,9 @@ struct ofp_hw *ofp_hw_list_get_hw_by_index(int n);
 /* get hardware definition by id */
 struct ofp_hw *ofp_hw_list_find_hw_by_id(char *hw_id);
 
+/* allocate new space for zones set */
+void ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count);
+
 /* returns the global instance for the initialized hardware */
 struct ofp_hw *ofp_hw_get_current(void);
 

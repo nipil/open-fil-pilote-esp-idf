@@ -94,6 +94,19 @@ const struct ofp_order_info *ofp_order_info_by_str_id(char *order_id)
     return NULL;
 }
 
+/* allocate new space for zones set */
+void ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count)
+{
+    ESP_LOGD(TAG, "ofp_zone_set_allocate %p %i", zone_set, zone_count);
+    assert(zone_set != NULL);
+
+    struct ofp_zone *buf = malloc(zone_count * sizeof(struct ofp_zone));
+    assert(buf != NULL);
+
+    zone_set->count = zone_count;
+    zone_set->zones = buf;
+}
+
 /* initialize the hardware based on stored hardware id */
 void ofp_hw_initialize(void)
 {
