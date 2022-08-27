@@ -183,6 +183,8 @@ void ofp_hw_initialize(void)
         return;
     }
 
+    ESP_LOGI(TAG, "Initializing hardware %s", current_hw->id);
+
     // override default parameter values with values from storage if available
     for (int i = 0; i < current_hw->param_count; i++)
     {
@@ -216,6 +218,8 @@ void ofp_hw_initialize(void)
         ESP_LOGE(TAG, "Unable to initialize hardware %s, disabling hardware processing", current_hw->id);
         return;
     }
+
+    ESP_LOGI(TAG, "Loading zones configuration... %s", current_hw->id);
 
     // persist reference
     hw_global = current_hw;
