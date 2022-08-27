@@ -23,6 +23,9 @@
 
 static const char TAG[] = "main";
 
+/* defines */
+#define MAIN_LOOP_WAIT_MILLISECONDS (10000)
+
 /***************************************************************************/
 
 static void display_ip(ip_event_got_ip_t *param, char *msg)
@@ -95,6 +98,14 @@ void app_main()
 	wifi_manager_set_callback(WM_EVENT_STA_DISCONNECTED, &wifi_manager_disconnected_callback);
 #endif /* OFP_NO_NETWORKING */
 
+	// use global hardware reference
+	struct ofp_hw *current_hw = ofp_hw_get_current();
 
+	/* main loop */
+	while (current_hw != NULL)
+	{
+		ofp_hw_update(current_hw);
+		vTaskDelay(pdMS_TO_TICKS(MAIN_LOOP_WAIT_MILLISECONDS));
+	}
 	ESP_LOGD(TAG, "app_main finished");
 }

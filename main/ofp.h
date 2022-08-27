@@ -164,6 +164,9 @@ struct ofp_hw *ofp_hw_get_current(void);
 /* initialize the hardware based on stored hardware id */
 void ofp_hw_initialize(void);
 
+/* update current orders for the zones and apply them to the hardware */
+void ofp_hw_update(struct ofp_hw *hw);
+
 /* planning accessors */
 bool ofp_planning_id_is_valid(int planning_id);
 

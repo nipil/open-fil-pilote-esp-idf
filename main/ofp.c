@@ -362,6 +362,44 @@ void ofp_hw_initialize(void)
     hw_global = current_hw;
 }
 
+static bool ofp_zone_update_current(struct ofp_zone *zone)
+{
+    ESP_LOGD(TAG, "ofp_zone_update_current");
+
+    return false;
+}
+
+void ofp_hw_update(struct ofp_hw *hw)
+{
+    ESP_LOGD(TAG, "ofp_hw_update_zones");
+
+    // current time
+    time_t now;
+    struct tm ti;
+    time(&now);
+    time_to_localtime(&now, &ti);
+
+    char buf[64];
+    localtime_to_string(&ti, buf, 64);
+    ESP_LOGV(TAG, "current time: %s", buf);
+
+    // compute current zone orders
+    for (int i = 0; i < hw->zone_set.count; i++)
+    {
+        struct ofp_zone *zone = &hw->zone_set.zones[i];
+        // TODO: get plannings, find timeslot, get final order, update current
+        if (!ofp_zone_update_current(zone))
+        {
+            ESP_LOGW(TAG, "Could not update zone %s current order", zone->id);
+            continue;
+        }
+        ESP_LOGV(TAG, "zone %s current %i", zone->id, zone->current);
+    }
+
+    // apply resulting zone orders to the hardware
+    hw->hw_hooks.apply(hw);
+}
+
 /* access the global hardware instance */
 struct ofp_hw *ofp_hw_get_current(void)
 {
