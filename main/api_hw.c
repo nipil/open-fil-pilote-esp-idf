@@ -207,6 +207,8 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     // if we reached here, everything is correct, store the updated parameters without checking for errors
     ESP_LOGV(TAG, "Request is valid, storing data");
 
+    // TODO: clear namespace before saving everything
+
     // store new hardware type
     nvs_handle_t h = kv_open_ns(stor_ns_ofp);
     kv_set_str(h, stor_key_hardware_type, form_hw_current);
