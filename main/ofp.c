@@ -235,3 +235,9 @@ struct ofp_hw *ofp_hw_get_current(void)
 {
     return hw_global;
 }
+
+bool ofp_planning_id_is_valid(int planning_id)
+{
+    // TODO: implement
+    return false;
+}

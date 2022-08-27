@@ -162,4 +162,7 @@ struct ofp_hw *ofp_hw_get_current(void);
 /* initialize the hardware based on stored hardware id */
 void ofp_hw_initialize(void);
 
+/* planning accessors */
+bool ofp_planning_id_is_valid(int planning_id);
+
 #endif /* OFP_H */
