@@ -6,6 +6,10 @@
 
 static const char TAG[] = "m1e1";
 
+/* consts */
+static const char *str_e1_count = "e1_count";
+static const int zones_per_extension_board = 4;
+
 /* forward definitions */
 static bool hw_m1e1_zone_set_init(struct ofp_hw *hw);
 static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw);
@@ -44,6 +48,14 @@ static bool hw_m1e1_zone_set_init(struct ofp_hw *hw)
     ESP_LOGD(TAG, "hw_m1e1_zone_set_init %p", hw);
     assert(hw != NULL);
 
+    // allocate memory for the total number of zones available
+    struct ofp_hw_param *param_e1_count = ofp_hw_param_find_by_id(hw, str_e1_count);
+    assert(param_e1_count != NULL);
+    int zone_count = param_e1_count->value.int_ * zones_per_extension_board;
+    ofp_zone_set_allocate(&hw->zone_set, zone_count);
+    // TODO: setup zone names & descriptions
+
+    // TODO: hardware initialization
     return false;
 }
 

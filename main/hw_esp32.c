@@ -5,6 +5,9 @@
 
 static const char TAG[] = "esp32";
 
+/* consts */
+static const char *str_zone_count = "zone_count";
+
 /* forward definitions */
 static bool hw_esp32_zone_set_init(struct ofp_hw *hw);
 static bool hw_esp32_zone_set_apply(struct ofp_hw *hw);
@@ -51,6 +54,13 @@ static bool hw_esp32_zone_set_init(struct ofp_hw *hw)
 
     ESP_LOGD(TAG, "hw_esp32_zone_set_init %p", hw);
     assert(hw != NULL);
+
+    // allocate memory for the total number of zones available
+    struct ofp_hw_param *param_zone_count = ofp_hw_param_find_by_id(hw, str_zone_count);
+    assert(param_zone_count != NULL);
+    int zone_count = param_zone_count->value.int_;
+    ofp_zone_set_allocate(&hw->zone_set, zone_count);
+    // TODO: setup zone names & descriptions
 
     /*
         INFO: implémenter ici l'initialisation de vos cartes
