@@ -13,6 +13,24 @@ static const char TAG[] = "api_hw";
 
 /***************************************************************************/
 
+struct ofp_hw *ofp_get_hardware_from_stored_id(void)
+{
+    char *current_hw_id;
+    kvh_get(current_hw_id, str, stor_ns_ofp, stor_key_hardware_type); // must be free'd after use
+    if (current_hw_id == NULL)
+    {
+        free(current_hw_id);
+        return NULL;
+    }
+
+    struct ofp_hw *hw = ofp_hw_list_find_hw_by_id(current_hw_id);
+    free(current_hw_id);
+
+    return hw;
+}
+
+/***************************************************************************/
+
 esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);

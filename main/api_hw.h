@@ -11,4 +11,6 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
 
 esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures);
 
+struct ofp_hw *ofp_get_hardware_from_stored_id(void);
+
 #endif /* API_HW_H */
