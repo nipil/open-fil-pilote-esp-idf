@@ -94,6 +94,19 @@ struct ofp_hw_param *ofp_hw_param_find_by_id(struct ofp_hw *hw, const char *para
     return NULL;
 }
 
+bool ofp_hw_param_set_value_string(struct ofp_hw_param *param, const char *str)
+{
+    assert(param != NULL);
+    assert(str != NULL);
+
+    int len = strlen(str);
+    if (len + 1 > OFP_MAX_LEN_VALUE)
+        return false;
+
+    strcpy(param->value.string_, str);
+    return true;
+}
+
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id)
 {
     assert(order_id < HW_OFP_ORDER_ID_ENUM_SIZE);

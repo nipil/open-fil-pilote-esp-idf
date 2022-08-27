@@ -127,6 +127,7 @@ struct ofp_hw *ofp_hw_list_find_hw_by_id(char *hw_id);
 
 /* hardware params accessors */
 struct ofp_hw_param *ofp_hw_param_find_by_id(struct ofp_hw *hw, const char *param_id);
+bool ofp_hw_param_set_value_string(struct ofp_hw_param *param, const char *str);
 
 /* allocate new space for zones set */
 void ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count);
