@@ -24,7 +24,7 @@ static struct ofp_hw hw_m1e1 = {
         .count = 0,
         .zones = NULL,
     },
-    .hw_func = {
+    .hw_hooks = {
         .init = hw_m1e1_zone_set_init,
         .apply = hw_m1e1_zone_set_apply,
     },

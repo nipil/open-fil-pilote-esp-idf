@@ -64,7 +64,7 @@ struct ofp_zone_set
 struct ofp_hw; // forward declaration
 typedef bool (*ofp_hw_func)(struct ofp_hw *hw);
 
-struct ofp_hw_methods
+struct ofp_hw_hooks
 {
     ofp_hw_func init;
     ofp_hw_func apply;
@@ -99,7 +99,7 @@ struct ofp_hw
     // dynamic zone data
     struct ofp_zone_set zone_set;
     // hooks
-    struct ofp_hw_methods hw_func;
+    struct ofp_hw_hooks hw_hooks;
     // configurable params
     int param_count;
     struct ofp_hw_param params[];
