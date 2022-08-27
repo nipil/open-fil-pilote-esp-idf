@@ -10,7 +10,9 @@
 
 /* orders, DO NOT EVER MODIFY THE IDs */
 
-enum ofp_order_id
+/* orders */
+
+enum ofp_order_id // do NOT EVER change the numerical IDs
 {
     // every heater understands these four
     HW_OFP_ORDER_ID_STANDARD_OFFLOAD = 0,
@@ -32,7 +34,7 @@ struct ofp_order_info
 
 /* zones */
 
-enum ofp_zone_mode
+enum ofp_zone_mode // do NOT EVER change the numerical IDs
 {
     HW_OFP_ZONE_MODE_FIXED = 0,
     HW_OFP_ZONE_MODE_PLANNING = 1,
@@ -88,7 +90,7 @@ struct ofp_hw_hooks
 
 /* hardware */
 
-enum ofp_hw_param_type
+enum ofp_hw_param_type // do NOT EVER change the numerical IDs
 {
     HW_OFP_PARAM_INTEGER = 0,
     HW_OFP_PARAM_STRING = 1,
