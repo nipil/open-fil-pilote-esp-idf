@@ -6,6 +6,8 @@
 #include <esp_system.h>
 #include <esp_heap_caps.h>
 #include <argtable3/argtable3.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 #include "sdkconfig.h"
 
@@ -133,42 +135,6 @@ static void register_heap(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&heap_cmd));
 }
 
-// 'tasks' command prints the list of tasks and related information
-#if WITH_TASKS_INFO
-
-static int tasks_info(int argc, char **argv)
-{
-    const size_t bytes_per_task = 40; // see vTaskList description
-    char *task_list_buffer = malloc(uxTaskGetNumberOfTasks() * bytes_per_task);
-    if (task_list_buffer == NULL)
-    {
-        ESP_LOGE(TAG, "failed to allocate buffer for vTaskList output");
-        return 1;
-    }
-    fputs("Task Name\tStatus\tPrio\tHWM\tTask#", stdout);
-#ifdef CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID
-    fputs("\tAffinity", stdout);
-#endif
-    fputs("\n", stdout);
-    vTaskList(task_list_buffer);
-    fputs(task_list_buffer, stdout);
-    free(task_list_buffer);
-    return 0;
-}
-
-static void register_tasks(void)
-{
-    const esp_console_cmd_t cmd = {
-        .command = "tasks",
-        .help = "Get information about running tasks",
-        .hint = NULL,
-        .func = &tasks_info,
-    };
-    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
-}
-
-#endif // WITH_TASKS_INFO
-
 // log_level command changes log level via esp_log_level_set
 
 static struct
@@ -238,6 +204,73 @@ static void register_log_level(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
+#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
+static int task_stats(int argc, char **argv)
+{
+    fputs("\r\n", stdout);
+    const size_t bytes_per_task = 40; // see vTaskList description
+    char *task_list_buffer = malloc(uxTaskGetNumberOfTasks() * bytes_per_task);
+    if (task_list_buffer == NULL)
+    {
+        ESP_LOGE(TAG, "failed to allocate buffer for vTaskList output");
+        return 1;
+    }
+    fputs("\r\nTask Name\tStatus\tPrio\tHWM\tTask#", stdout);
+#ifdef CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID
+    fputs("\tAffinity", stdout);
+#endif
+    fputs("\n", stdout);
+    vTaskList(task_list_buffer);
+    fputs(task_list_buffer, stdout);
+    free(task_list_buffer);
+
+    volatile UBaseType_t n_tasks = uxTaskGetNumberOfTasks();
+    TaskStatus_t *buf = pvPortMalloc(n_tasks * sizeof(TaskStatus_t));
+    if (buf == NULL)
+        return -1;
+
+    uint32_t total_runtime;
+    ESP_LOGD(TAG, "total runtime: %u", total_runtime);
+    n_tasks = uxTaskGetSystemState(buf, n_tasks, &total_runtime);
+    if (n_tasks == 0)
+    {
+        free(buf);
+        return -1;
+    }
+
+    if (total_runtime == 0)
+        total_runtime = 1;
+
+    printf("\r\n-------\r\n");
+    for (int i = 0; i < n_tasks; i++)
+    {
+        TaskStatus_t *t = &buf[i];
+        printf("handle %p name %s num %i state %i prio %i run %i%% mstk %i core %i\r\n",
+               t->xHandle,
+               t->pcTaskName,
+               t->xTaskNumber,
+               t->eCurrentState,
+               t->uxCurrentPriority,
+               t->ulRunTimeCounter,
+               t->usStackHighWaterMark,
+               t->xCoreID);
+    }
+
+    free(buf);
+    return 0;
+}
+
+static void register_task_stats(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "task_stats",
+        .help = "Show task stats",
+        .hint = NULL,
+        .func = &task_stats};
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+#endif /* CONFIG_FREERTOS_USE_TRACE_FACILITY */
+
 void console_init(void)
 {
     esp_console_repl_t *repl = NULL;
@@ -255,6 +288,9 @@ void console_init(void)
     register_version();
     register_restart();
     register_log_level();
+#ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
+    register_task_stats();
+#endif /* CONFIG_FREERTOS_USE_TRACE_FACILITY */
 
     esp_console_dev_uart_config_t hw_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&hw_config, &repl_config, &repl));
