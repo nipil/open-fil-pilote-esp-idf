@@ -81,6 +81,19 @@ struct ofp_hw *ofp_hw_list_find_hw_by_id(char *hw_id)
     return NULL;
 }
 
+struct ofp_hw_param *ofp_hw_param_find_by_id(struct ofp_hw *hw, const char *param_id)
+{
+    assert(hw != NULL);
+    assert(param_id != NULL);
+    for (int i = 0; i < hw->param_count; i++)
+    {
+        struct ofp_hw_param *cur = &hw->params[i];
+        if (strcmp(cur->id, param_id) == 0)
+            return cur;
+    }
+    return NULL;
+}
+
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id)
 {
     assert(order_id < HW_OFP_ORDER_ID_ENUM_SIZE);

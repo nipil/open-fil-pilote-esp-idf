@@ -121,11 +121,12 @@ void ofp_hw_register(struct ofp_hw *hw);
 /* gives the number of registered definitions */
 int ofp_hw_list_get_count(void);
 
-/* get hardware definition by index */
+/* hardware definition accessors */
 struct ofp_hw *ofp_hw_list_get_hw_by_index(int n);
-
-/* get hardware definition by id */
 struct ofp_hw *ofp_hw_list_find_hw_by_id(char *hw_id);
+
+/* hardware params accessors */
+struct ofp_hw_param *ofp_hw_param_find_by_id(struct ofp_hw *hw, const char *param_id);
 
 /* allocate new space for zones set */
 void ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count);
