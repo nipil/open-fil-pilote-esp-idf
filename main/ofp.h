@@ -152,6 +152,8 @@ bool ofp_hw_param_set_value_string(struct ofp_hw_param *param, const char *str);
 /* zone accessors */
 bool ofp_zone_set_id(struct ofp_zone *zone, const char *id);
 bool ofp_zone_set_description(struct ofp_zone *zone, const char *description);
+bool ofp_zone_set_mode_fixed(struct ofp_zone *zone, enum ofp_order_id order_id);
+bool ofp_zone_set_mode_planning(struct ofp_zone *zone, int planning_id);
 
 /* allocate new space for zones set */
 bool ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count);
