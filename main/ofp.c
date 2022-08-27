@@ -9,6 +9,12 @@
 
 static const char TAG[] = "ofp";
 
+/* defines */
+#define DEFAULT_FIXED_ORDER_FOR_ZONES HW_OFP_ORDER_ID_STANDARD_COZY
+
+/* constants */
+static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):d([[:digit:]]+)^";
+
 /* global hardware instance, get it using ofp_hw_get() */
 static struct ofp_hw *hw_global = NULL;
 
@@ -185,6 +191,85 @@ bool ofp_zone_set_description(struct ofp_zone *zone, const char *description)
     return true;
 }
 
+bool ofp_zone_set_mode_fixed(struct ofp_zone *zone, enum ofp_order_id order_id)
+{
+    if (!ofp_order_id_is_valid(order_id))
+    {
+        ESP_LOGW(TAG, "Invalid ofp_order_id value (%i)", order_id);
+        return false;
+    }
+    zone->mode = HW_OFP_ZONE_MODE_FIXED;
+    zone->mode_data.order_id = order_id;
+    ESP_LOGV(TAG, "zone %s mode %i order_id %i", zone->id, zone->mode, zone->mode_data.order_id);
+    return true;
+}
+
+bool ofp_zone_set_mode_planning(struct ofp_zone *zone, int planning_id)
+{
+    if (!ofp_planning_id_is_valid(planning_id))
+    {
+        ESP_LOGW(TAG, "Invalid planning_id value (%i)", planning_id);
+        return false;
+    }
+    zone->mode = HW_OFP_ZONE_MODE_PLANNING;
+    zone->mode_data.planning_id = planning_id;
+    ESP_LOGV(TAG, "zone %s mode %i order_id %i", zone->id, zone->mode, zone->mode_data.planning_id);
+    return true;
+}
+
+/* generic function to set the zone mode */
+static bool ofp_zone_set_mode(struct ofp_zone *zone, enum ofp_zone_mode mode, int value)
+{
+    switch (mode)
+    {
+    case HW_OFP_ZONE_MODE_FIXED:
+        return ofp_zone_set_mode_fixed(zone, value);
+        break;
+    case HW_OFP_ZONE_MODE_PLANNING:
+        return ofp_zone_set_mode_planning(zone, value);
+    default:
+        ESP_LOGW(TAG, "Invalid ofp_zone_mode value (%i)", mode);
+        return false;
+    }
+}
+
+/* load zone configuration from NVS */
+static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
+{
+    // TODO: test after zone config write from API is implemented
+    ESP_LOGV(TAG, "zone id %s desc %s", zone->id, zone->description);
+
+    // defaults
+    zone->mode = HW_OFP_ZONE_MODE_FIXED;
+    zone->mode_data.order_id = DEFAULT_FIXED_ORDER_FOR_ZONES;
+
+    // fetch
+    char *buf;
+    kvh_get(buf, str, hw_id, zone->id);
+    if (buf == NULL)
+    {
+        ESP_LOGV(TAG, "Could not get stored mode-string");
+        return false;
+    }
+
+    // parse
+    int result = true;
+    ESP_LOGV(TAG, "Zone config string: %s", buf);
+    struct re_result *res = re_match(str_re_zone_config_mode_value, buf);
+    if (res == NULL || res->count != 3 || !ofp_zone_set_mode(zone, atoi(res->strings[1]), atoi(res->strings[2])))
+    {
+        ESP_LOGW(TAG, "Invalid mode-string %s for zone %s", buf, zone->id);
+        result = false;
+    }
+
+    // cleanup
+    if (res != NULL)
+        re_free(res);
+    free(buf);
+
+    return result;
+}
+
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id)
 {
     assert(order_id < HW_OFP_ORDER_ID_ENUM_SIZE);
@@ -260,7 +345,18 @@ void ofp_hw_initialize(void)
         return;
     }
 
-    ESP_LOGI(TAG, "Loading zones configuration... %s", current_hw->id);
+    // load valid saved state from storage
+    ESP_LOGI(TAG, "Loading zones configuration for hardware %s", current_hw->id);
+    for (int i = 0; i < current_hw->zone_set.count; i++)
+    {
+        ESP_LOGV(TAG, "zone %i", i);
+        struct ofp_zone *zone = &current_hw->zone_set.zones[i];
+        if (!ofp_zone_load_mode(current_hw->id, zone))
+        {
+            ESP_LOGW(TAG, "Could not load configuration for zone %s, reverting to default", zone->id);
+            continue;
+        }
+    }
 
     // persist reference
     hw_global = current_hw;
