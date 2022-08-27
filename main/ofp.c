@@ -102,7 +102,10 @@ bool ofp_hw_param_set_value_string(struct ofp_hw_param *param, const char *str)
 
     int len = strlen(str);
     if (len + 1 > OFP_MAX_LEN_VALUE)
+    {
+        ESP_LOGW(TAG, "String too large for hardware parameter %s", param->id);
         return false;
+    }
 
     strcpy(param->value.string_, str);
     return true;
@@ -179,12 +182,12 @@ void ofp_hw_initialize(void)
 {
     ESP_LOGD(TAG, "ofp_hw_initialize");
 
-    // stored hardware id
+    // get selected hardware id from storage
     struct ofp_hw *current_hw = ofp_get_hardware_from_stored_id();
     ESP_LOGD(TAG, "stored hardware %p", current_hw);
     if (current_hw == NULL)
     {
-        ESP_LOGW(TAG, "No hardware currently selected, disabling hardware processing");
+        ESP_LOGW(TAG, "No hardware selected, disabling hardware");
         return;
     }
 
@@ -220,7 +223,7 @@ void ofp_hw_initialize(void)
     // initialize
     if (!current_hw->hw_hooks.init(current_hw))
     {
-        ESP_LOGE(TAG, "Unable to initialize hardware %s, disabling hardware processing", current_hw->id);
+        ESP_LOGE(TAG, "Could not initialize hardware %s, disabling hardware", current_hw->id);
         return;
     }
 
