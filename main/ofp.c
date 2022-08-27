@@ -149,6 +149,11 @@ const struct ofp_order_info *ofp_order_info_by_str_id(char *order_id)
     return NULL;
 }
 
+bool ofp_order_id_is_valid(enum ofp_order_id order_id)
+{
+    return (order_id >= HW_OFP_ORDER_ID_STANDARD_OFFLOAD && order_id < HW_OFP_ORDER_ID_ENUM_SIZE);
+}
+
 /* allocate new space for zones set */
 bool ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count)
 {

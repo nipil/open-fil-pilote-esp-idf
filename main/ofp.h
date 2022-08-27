@@ -133,6 +133,7 @@ struct ofp_hw_list
 /* accessors */
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id);
 const struct ofp_order_info *ofp_order_info_by_str_id(char *order_id);
+bool ofp_order_id_is_valid(enum ofp_order_id order_id);
 
 /* enable an hardware implementation to be used */
 void ofp_hw_register(struct ofp_hw *hw);
