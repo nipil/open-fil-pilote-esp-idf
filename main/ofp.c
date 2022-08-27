@@ -178,7 +178,7 @@ void ofp_hw_initialize(void)
     if (!current_hw->hw_hooks.init(current_hw))
     {
         ESP_LOGE(TAG, "Unable to initialize hardware %s, disabling hardware processing", current_hw->id);
-        // return;
+        return;
     }
 
     // persist reference
