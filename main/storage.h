@@ -3,8 +3,19 @@
 
 #include <nvs.h>
 
-/* macros for single value access */
-
+/*
+ * Macros for single nvs access
+ *
+ * Examples:
+ *     int n;
+ *     kvh_get(n, i32, "ns", "key_n", 42);
+ *
+ *     char *s = "foo";
+ *     kvh_set(str, "ns"", "key_str", s);
+ *
+ *     uint8_t b[] = { 0, 1, 2, 3 };
+ *     kvh_set(blob, "ns", "key_blob", b, sizeof(b));
+ */
 #define kvh_set(type_name, ns, key, val, ...)                           \
     do                                                                  \
     {                                                                   \
@@ -16,8 +27,19 @@
     } while (0)
 
 /*
- * Target must be a modifiable lvalue (scalars or pointers, i.e. not an array)
- */ 
+ * Macros for single nvs access
+ *
+ * Examples:
+ *     int n;
+ *     kvh_get(n, i32, "ns", "keyin", 42);
+ *
+ *     char *p_str;
+ *     kvh_get(p_str, str, "ns", "key_str"); // if p_str not NULL, MUST BE FREED by caller
+ *
+ *     size_t len;
+ *     void *p_blob;
+ *     kvh_get(p_blob, blob, "ns", "key_blob", &len); // if p_blob not NULL, MUST BE FREED by caller, and len holds the blob length
+ */
 #define kvh_get(target, type_name, ns, key, ...)                            \
     do                                                                      \
     {                                                                       \
