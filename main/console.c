@@ -207,30 +207,13 @@ static void register_log_level(void)
 #ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
 static int task_stats(int argc, char **argv)
 {
-    fputs("\r\n", stdout);
-    const size_t bytes_per_task = 40; // see vTaskList description
-    char *task_list_buffer = malloc(uxTaskGetNumberOfTasks() * bytes_per_task);
-    if (task_list_buffer == NULL)
-    {
-        ESP_LOGE(TAG, "failed to allocate buffer for vTaskList output");
-        return 1;
-    }
-    fputs("\r\nTask Name\tStatus\tPrio\tHWM\tTask#", stdout);
-#ifdef CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID
-    fputs("\tAffinity", stdout);
-#endif
-    fputs("\n", stdout);
-    vTaskList(task_list_buffer);
-    fputs(task_list_buffer, stdout);
-    free(task_list_buffer);
-
+    printf("\r\n");
     volatile UBaseType_t n_tasks = uxTaskGetNumberOfTasks();
     TaskStatus_t *buf = pvPortMalloc(n_tasks * sizeof(TaskStatus_t));
     if (buf == NULL)
         return -1;
 
     uint32_t total_runtime;
-    ESP_LOGD(TAG, "total runtime: %u", total_runtime);
     n_tasks = uxTaskGetSystemState(buf, n_tasks, &total_runtime);
     if (n_tasks == 0)
     {
@@ -238,22 +221,20 @@ static int task_stats(int argc, char **argv)
         return -1;
     }
 
-    if (total_runtime == 0)
-        total_runtime = 1;
-
-    printf("\r\n-------\r\n");
+    total_runtime /= 100; // percentage
+    printf("Num\tState\tPrio\tRun%%\tHWM\tCore\tName\r\n");
+    char status[] = {'X', 'R', 'B', 'S', 'D', 'I'};
     for (int i = 0; i < n_tasks; i++)
     {
         TaskStatus_t *t = &buf[i];
-        printf("handle %p name %s num %i state %i prio %i run %i%% mstk %i core %i\r\n",
-               t->xHandle,
-               t->pcTaskName,
+        printf("%i\t%c\t%i\t%i\t%i\t%i\t%s\r\n",
                t->xTaskNumber,
-               t->eCurrentState,
+               status[t->eCurrentState],
                t->uxCurrentPriority,
-               t->ulRunTimeCounter,
+               total_runtime == 0 ? -1 : t->ulRunTimeCounter / total_runtime,
                t->usStackHighWaterMark,
-               t->xCoreID);
+               t->xCoreID == tskNO_AFFINITY ? -1 : t->xCoreID,
+               t->pcTaskName);
     }
 
     free(buf);
@@ -263,7 +244,7 @@ static int task_stats(int argc, char **argv)
 static void register_task_stats(void)
 {
     const esp_console_cmd_t cmd = {
-        .command = "task_stats",
+        .command = "tasks",
         .help = "Show task stats",
         .hint = NULL,
         .func = &task_stats};
