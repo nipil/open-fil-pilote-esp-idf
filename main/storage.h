@@ -15,6 +15,9 @@
         kv_close(nvs_h);                                                \
     } while (0)
 
+/*
+ * Target must be a modifiable lvalue (scalars or pointers, i.e. not an array)
+ */ 
 #define kvh_get(target, type_name, ns, key, ...)                            \
     do                                                                      \
     {                                                                       \
