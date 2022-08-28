@@ -12,6 +12,7 @@
 #include "sdkconfig.h"
 
 #include "ofp.h"
+#include "storage.h"
 
 #define CONSOLE_MAX_COMMAND_LINE_LENGTH 512
 
@@ -254,6 +255,25 @@ static void register_task_stats(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 #endif /* CONFIG_FREERTOS_USE_TRACE_FACILITY */
+
+// 'partitions' command prints partition layout
+static int show_partitions(int argc, char **argv)
+{
+    printf("\r\n");
+    part_list();
+    return 0;
+}
+
+static void register_partitions(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "partitions",
+        .help = "Show partitions",
+        .hint = NULL,
+        .func = &show_partitions,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
 
 // 'hardware' command prints in-memory hardware definition
 static int show_hardware(int argc, char **argv)
