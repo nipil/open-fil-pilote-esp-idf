@@ -42,6 +42,27 @@ const char *kv_type_str_from_nvs_type(nvs_type_t type)
     return NULL;
 }
 
+/* namespaces */
+
+static const char ns_ofp[] = "ofp";
+static char ns_ofp_hw[NVS_PART_NAME_MAX_SIZE] = {0};
+
+bool kv_set_ns_hardware(const char *hw_id)
+{
+    int n = snprintf(ns_ofp_hw, NVS_PART_NAME_MAX_SIZE, "ofp_hw_%s", hw_id);
+    return (n >= 0 && n < NVS_PART_NAME_MAX_SIZE);
+}
+
+const char *kv_get_ns_hardware(void)
+{
+    return ns_ofp_hw;
+}
+
+const char *kv_get_ns_ofp(void)
+{
+    return ns_ofp;
+}
+
 /* NVS backend management */
 
 void kv_erase(const char *part_name)

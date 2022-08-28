@@ -27,6 +27,10 @@
 /* text functions */
 const char *kv_type_str_from_nvs_type(nvs_type_t type);
 
+bool kv_set_ns_hardware(const char *hw_id);
+const char *kv_get_ns_hardware(void);
+const char *kv_get_ns_ofp(void);
+
 /* partition functions */
 void kv_erase(const char *part_name);
 void kv_init(const char *part_name);
