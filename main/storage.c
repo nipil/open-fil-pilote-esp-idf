@@ -16,11 +16,16 @@ static const char TAG[] = "storage";
 void part_list(void)
 {
     esp_partition_iterator_t it_p = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
-    ESP_LOGV(TAG, "Partition found, listing them...");
     while (it_p != NULL)
     {
         const esp_partition_t *part = esp_partition_get(it_p);
-        ESP_LOGI(TAG, "Partition: %s (type=%d, subtype=%d)", part->label, part->type, part->subtype);
+        printf("Partition %s\r\n\tType: 0x%02X\r\n\tSubType: 0x%02X\r\n\tAddress: 0x%08X\r\n\tSize: %i\r\n\tEncrypted: %s\r\n",
+               part->label,
+               part->type,
+               part->subtype,
+               part->address,
+               part->size,
+               part->encrypted ? "yes" : "no");
         it_p = esp_partition_next(it_p);
     }
 }
