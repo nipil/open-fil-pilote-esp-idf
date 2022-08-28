@@ -31,6 +31,9 @@ bool kv_build_ns_hardware(const char *hw_id, char *buf);
 bool kv_set_ns_current_hardware(const char *hw_id);
 const char *kv_get_ns_hardware(void);
 const char *kv_get_ns_ofp(void);
+bool kv_build_ns_zone(const char *hw_id, char *buf);
+bool kv_set_ns_current_zone(const char *hw_id);
+const char *kv_get_ns_zone(void);
 
 /* partition functions */
 void kv_erase(const char *part_name);
