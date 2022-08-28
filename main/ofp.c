@@ -249,7 +249,7 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
 
     // fetch
     char *buf;
-    kvh_get(buf, str, kv_get_ns_hardware(), zone->id); // result MUST BE FREED by caller
+    kvh_get(buf, str, kv_get_ns_zone(), zone->id); // result MUST BE FREED by caller
     if (buf == NULL)
     {
         ESP_LOGV(TAG, "Could not get stored mode-string");
@@ -352,6 +352,12 @@ void ofp_hw_initialize(void)
     if (!current_hw->hw_hooks.init(current_hw))
     {
         ESP_LOGE(TAG, "Could not initialize hardware %s, disabling hardware", current_hw->id);
+        return;
+    }
+
+    if (!kv_set_ns_current_zone(current_hw->id))
+    {
+        ESP_LOGE(TAG, "Could not set zone namespace, disabling hardware");
         return;
     }
 
