@@ -119,14 +119,14 @@ bool ofp_hw_param_set_value_string(struct ofp_hw_param *param, const char *str)
 
 static bool ofp_hw_param_load_value_integer(const char *hw_id, struct ofp_hw_param *param)
 {
-    kvh_get(param->value.int_, i32, hw_id, param->id, param->value.int_);
+    kvh_get(param->value.int_, i32, kv_get_ns_hardware(), param->id, param->value.int_);
     return true;
 }
 
 static bool ofp_hw_param_load_value_string(const char *hw_id, struct ofp_hw_param *param)
 {
     char *buf;
-    kvh_get(buf, str, hw_id, param->id);
+    kvh_get(buf, str, kv_get_ns_hardware(), param->id); // result MUST BE FREED by caller
 
     // keeping defaults is not an error
     if (buf == NULL)
@@ -245,7 +245,7 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
 
     // fetch
     char *buf;
-    kvh_get(buf, str, hw_id, zone->id);
+    kvh_get(buf, str, kv_get_ns_hardware(), zone->id); // result MUST BE FREED by caller
     if (buf == NULL)
     {
         ESP_LOGV(TAG, "Could not get stored mode-string");
@@ -325,6 +325,12 @@ void ofp_hw_initialize(void)
     }
 
     ESP_LOGI(TAG, "Initializing hardware %s", current_hw->id);
+
+    if (!kv_set_ns_current_hardware(current_hw->id))
+    {
+        ESP_LOGE(TAG, "Could not set hardware namespace, disabling hardware");
+        return;
+    }
 
     // load valid saved hardware parameters from storage
     for (int i = 0; i < current_hw->param_count; i++)

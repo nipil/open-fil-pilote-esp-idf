@@ -15,8 +15,9 @@ static const char TAG[] = "api_hw";
 
 struct ofp_hw *ofp_get_hardware_from_stored_id(void)
 {
+    // get hardware from common namespace
     char *current_hw_id;
-    kvh_get(current_hw_id, str, stor_ns_ofp, stor_key_hardware_type); // must be free'd after use
+    kvh_get(current_hw_id, str, kv_get_ns_ofp(), stor_key_hardware_type); // must be free'd after use
     if (current_hw_id == NULL)
     {
         free(current_hw_id);
@@ -40,7 +41,7 @@ esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
 
     // fetch current hardware id from storage, returns NULL if not found
     char *current_hw_id;
-    kvh_get(current_hw_id, str, stor_ns_ofp, stor_key_hardware_type); // must be free'd after use
+    kvh_get(current_hw_id, str, kv_get_ns_ofp(), stor_key_hardware_type); // must be free'd after use
 
     // provide hardware list
     cJSON *root = cJSON_CreateObject();
@@ -91,10 +92,18 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
 
     assert(hw->params != NULL);
 
+    // build hardware target namespace
+    char tmp_hw_ns_name[NVS_PART_NAME_MAX_SIZE]; /* no define for namespace length yet */
+    if (!kv_build_ns_hardware(hw->id, tmp_hw_ns_name))
+    {
+        ESP_LOGE(TAG, "Could not build hardware namespace");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Hardware name too long");
+    }
+
     // provide list of parameters
     char *str;
     int num;
-    nvs_handle_t h = kv_open_ns(id);
+    nvs_handle_t h = kv_open_ns(tmp_hw_ns_name);
     cJSON *root = cJSON_CreateObject();
     cJSON *parameters = cJSON_AddArrayToObject(root, json_key_parameters);
     for (int i = 0; i < hw->param_count; i++)
@@ -209,14 +218,22 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
 
     // TODO: clear namespace before saving everything
 
-    // store new hardware type
-    nvs_handle_t h = kv_open_ns(stor_ns_ofp);
+    // store new hardware type in common namespace
+    nvs_handle_t h = kv_open_ns(kv_get_ns_ofp());
     kv_set_str(h, stor_key_hardware_type, form_hw_current);
     kv_commit(h);
     kv_close(h);
 
+    // build hardware target namespace
+    char tmp_hw_ns_name[NVS_PART_NAME_MAX_SIZE]; /* no define for namespace length yet */
+    if (!kv_build_ns_hardware(form_hw_current, tmp_hw_ns_name))
+    {
+        ESP_LOGE(TAG, "Could not build hardware namespace");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Hardware name too long");
+    }
+
     // store hardware parameters in dedicated hardware namespace
-    h = kv_open_ns(form_hw_current);
+    h = kv_open_ns(tmp_hw_ns_name);
     for (int i = 0; i < hw->param_count; i++)
     {
         struct ofp_hw_param *hw_param = &hw->params[i];

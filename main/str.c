@@ -9,7 +9,6 @@ const char *default_nvs_partition_name = NVS_DEFAULT_PART_NAME;
 
 const char *null_str = "NULL";
 
-const char *stor_ns_ofp = "ofp";
 const char *stor_key_hardware_type = "hardware_type";
 
 const char *json_key_current = "current";

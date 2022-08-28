@@ -7,8 +7,6 @@ const char *default_nvs_partition_name;
 
 const char *null_str;
 
-const char *stor_ns_ofp;
-
 const char *stor_key_hardware_type;
 
 const char *json_key_current;
