@@ -1,0 +1,13 @@
+Partition
+    - nvs: default
+
+Namespaces
+    - ofp : default app namespace
+        * "hardware_type" -> str : currently selected --> ofp_hw.id
+        * "override" -> int32 : global zone override --> "ofp_order_info.id || none
+
+    - ofp_hw_${hw_id} : parameters of specific hardware
+        * ${ofp_hw_param.id} -> ?
+
+    - ofp_zn_${hw_id}: zone configuration for specific hardware
+        * ${ofp_zone.id} -> str "mXvY", where X is ofp_zone_mode id, and Y is either ofp_order_id or planning_id
