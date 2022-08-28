@@ -75,10 +75,9 @@ static void register_hardware(void)
 
 void app_main()
 {
-	// List NVS content
-	wait_sec(1);
+
+	// use default partition for NVS content
 	kv_init(NULL);
-	kv_list_ns(NULL, NULL);
 
 	// compensate uptime according to clock leap from SNTP
 	uptime_sync_start();
