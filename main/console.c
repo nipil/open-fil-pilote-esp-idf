@@ -300,6 +300,54 @@ static void register_hardware(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
+// 'zones' command prints in-memory zone configuration
+static int show_zones(int argc, char **argv)
+{
+    printf("\r\n");
+    struct ofp_hw *hw = ofp_hw_get_current();
+    if (hw == NULL)
+    {
+        printf("No hardware available\r\n");
+        return -1;
+    }
+
+    printf("Zone count: %i\r\n", hw->zone_set.count);
+    for (int i = 0; i < hw->zone_set.count; i++)
+    {
+        const struct ofp_order_info *info;
+        struct ofp_zone *zone = &hw->zone_set.zones[i];
+        printf("\tZone %s", zone->id);
+        switch (zone->mode)
+        {
+        case HW_OFP_ZONE_MODE_FIXED:
+            info = ofp_order_info_by_num_id(zone->mode_data.order_id);
+            printf(" type Fixed value %s", info->id);
+            break;
+        case HW_OFP_ZONE_MODE_PLANNING:
+            printf(" type Planning value %i", zone->mode_data.planning_id);
+            break;
+        default:
+            printf(" type ?");
+            break;
+        }
+        info = ofp_order_info_by_num_id(zone->current);
+        printf(" current %s \r\n", info->id);
+    }
+
+    return 0;
+}
+
+static void register_zones(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "zones",
+        .help = "Show zone configuration",
+        .hint = NULL,
+        .func = &show_zones,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
 void console_init(void)
 {
     esp_console_repl_t *repl = NULL;
