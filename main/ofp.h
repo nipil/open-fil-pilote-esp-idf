@@ -8,8 +8,6 @@
 #define OFP_MAX_LEN_VALUE 32
 #define OFP_MAX_LEN_DESCRIPTION 128
 
-/* orders, DO NOT EVER MODIFY THE IDs */
-
 /* orders */
 
 enum ofp_order_id // do NOT EVER change the numerical IDs
