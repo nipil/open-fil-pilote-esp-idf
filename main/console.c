@@ -101,7 +101,7 @@ static void register_restart(void)
 
 static int free_mem(int argc, char **argv)
 {
-    printf("%d\n", esp_get_free_heap_size());
+    printf("\r\n%d bytes\n", esp_get_free_heap_size());
     return 0;
 }
 
@@ -120,7 +120,7 @@ static void register_free(void)
 static int heap_size(int argc, char **argv)
 {
     uint32_t heap_size = heap_caps_get_minimum_free_size(MALLOC_CAP_DEFAULT);
-    printf("min heap size: %u\n", heap_size);
+    printf("min heap size: %u bytes\n", heap_size);
     return 0;
 }
 
@@ -186,6 +186,7 @@ static int log_level(int argc, char **argv)
         return 1;
     }
     esp_log_level_set(tag, level);
+    printf("\r\nLog level '%s' set for tag '%s'\n", level_str, tag);
     return 0;
 }
 
