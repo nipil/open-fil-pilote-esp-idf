@@ -243,6 +243,10 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
     zone->mode = HW_OFP_ZONE_MODE_FIXED;
     zone->mode_data.order_id = DEFAULT_FIXED_ORDER_FOR_ZONES;
 
+    // initialize to safe value
+    // will be overwritten by ofp_zone_update_current
+    zone->current = DEFAULT_FIXED_ORDER_FOR_ZONES;
+
     // fetch
     char *buf;
     kvh_get(buf, str, kv_get_ns_hardware(), zone->id); // result MUST BE FREED by caller
