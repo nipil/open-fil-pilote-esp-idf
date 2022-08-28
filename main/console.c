@@ -288,6 +288,44 @@ static void register_partitions(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
+// 'nvs_clear' command
+static struct // argument order defined by struct ordering
+{
+    struct arg_str *target;
+    struct arg_end *end;
+} nvs_clear_args;
+
+static int nvs_clear_cmd(int argc, char **argv)
+{
+    printf("\r\n");
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+    int nerrors = arg_parse(argc, argv, (void **)&nvs_clear_args);
+    if (nerrors != 0)
+    {
+        arg_print_errors(stderr, nvs_clear_args.end, argv[0]);
+        return 1;
+    }
+
+    const char *target = nvs_clear_args.target->sval[0];
+    kv_clear_ns(target);
+    printf("Namespace %s cleared\r\n", target);
+    return 0;
+}
+
+static void register_nvs_clear(void)
+{
+    nvs_clear_args.target = arg_str1(NULL, NULL, "<ns>", "Namespace to clear");
+    nvs_clear_args.end = arg_end(2);
+
+    const esp_console_cmd_t cmd = {
+        .command = "nvs_clear",
+        .help = "Clear all entries from a speicifc NVS namespace",
+        .hint = NULL,
+        .func = &nvs_clear_cmd,
+        .argtable = &nvs_clear_args};
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
 // 'nvs' command prints nvs
 static int show_nvs(int argc, char **argv)
 {
@@ -455,6 +493,7 @@ void console_init(void)
     register_zones();
     register_partitions();
     register_nvs();
+    register_nvs_clear();
 
     esp_console_dev_uart_config_t hw_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&hw_config, &repl_config, &repl));
