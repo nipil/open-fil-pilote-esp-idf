@@ -11,6 +11,8 @@
 
 #include "sdkconfig.h"
 
+#include "ofp.h"
+
 #define CONSOLE_MAX_COMMAND_LINE_LENGTH 512
 
 static const char *TAG = "console";
@@ -252,6 +254,51 @@ static void register_task_stats(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 #endif /* CONFIG_FREERTOS_USE_TRACE_FACILITY */
+
+// 'hardware' command prints in-memory hardware definition
+static int show_hardware(int argc, char **argv)
+{
+    printf("\r\n");
+    struct ofp_hw *hw = ofp_hw_get_current();
+    if (hw == NULL)
+    {
+        printf("No hardware available\r\n");
+        return -1;
+    }
+
+    printf("Hardware %s\r\n\t%s\r\n\tParams: %i\r\n", hw->id, hw->description, hw->param_count);
+    for (int i = 0; i < hw->param_count; i++)
+    {
+        struct ofp_hw_param *param = &hw->params[i];
+        printf("\t\tParam %s", param->id);
+        switch (param->type)
+        {
+        case HW_OFP_PARAM_TYPE_INTEGER:
+            printf(" type Integer value %i", param->value.int_);
+            break;
+        case HW_OFP_PARAM_TYPE_STRING:
+            printf(" type String value %s", param->value.string_);
+            break;
+        default:
+            printf(" type ?");
+            break;
+        }
+        printf("\r\n");
+    }
+
+    return 0;
+}
+
+static void register_hardware(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "hardware",
+        .help = "Show hardware configuration",
+        .hint = NULL,
+        .func = &show_hardware,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
 
 void console_init(void)
 {
