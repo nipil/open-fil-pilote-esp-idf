@@ -24,14 +24,13 @@
         kv_close(nvs_h);                                                    \
     } while (0)
 
+/* text functions */
+const char *kv_type_str_from_nvs_type(nvs_type_t type);
+
 /* partition functions */
 void kv_erase(const char *part_name);
-void kv_stats(const char *part_name);
-
 void kv_init(const char *part_name);
 void kv_deinit(const char *part_name);
-
-void kv_list_ns(const char *part_name, const char *ns); // use NULL, NULL to list everything from the default partition
 
 /* wrapper functions */
 void kv_clear_ns(const char *ns);

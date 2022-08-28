@@ -298,6 +298,7 @@ static int show_nvs(int argc, char **argv)
         const esp_partition_t *part = esp_partition_get(it_p);
         if (part->type == ESP_PARTITION_TYPE_DATA && part->subtype == ESP_PARTITION_SUBTYPE_DATA_NVS)
         {
+            // list NVS partition stats
             nvs_stats_t nvs_stats;
             esp_err_t err = nvs_get_stats(part->label, &nvs_stats);
             ESP_LOGV(TAG, "nvs_get_stats: %s", esp_err_to_name(err));
@@ -308,6 +309,18 @@ static int show_nvs(int argc, char **argv)
             }
             printf("Partition '%s' NVS stats: Used %d, Free = (%d), All = (%d)\r\n",
                    part->label, nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
+
+            // list NVS partition content
+            nvs_iterator_t it = nvs_entry_find(part->label, NULL, NVS_TYPE_ANY);
+            for (; it != NULL; it = nvs_entry_next(it))
+            {
+                nvs_entry_info_t info;
+                nvs_entry_info(it, &info);
+                printf("\tnamespace '%s', key '%s' type", info.namespace_name, info.key);
+                const char *str = kv_type_str_from_nvs_type(info.type);
+                printf(" '%s'\r\n", str ? str : "?");
+            }
+            nvs_release_iterator(it);
         };
     }
     printf("\r\n");
@@ -438,6 +451,10 @@ void console_init(void)
 #ifdef CONFIG_FREERTOS_USE_TRACE_FACILITY
     register_task_stats();
 #endif /* CONFIG_FREERTOS_USE_TRACE_FACILITY */
+    register_hardware();
+    register_zones();
+    register_partitions();
+    register_nvs();
 
     esp_console_dev_uart_config_t hw_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&hw_config, &repl_config, &repl));

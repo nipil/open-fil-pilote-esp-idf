@@ -10,6 +10,38 @@
 
 static const char TAG[] = "storage";
 
+/* types */
+struct kv_type_str_pair
+{
+    nvs_type_t type;
+    const char *str;
+};
+
+/* constants */
+
+static const struct kv_type_str_pair kv_type_str[] = {
+    {NVS_TYPE_I8, "i8"},
+    {NVS_TYPE_U8, "u8"},
+    {NVS_TYPE_U16, "u16"},
+    {NVS_TYPE_I16, "i16"},
+    {NVS_TYPE_U32, "u32"},
+    {NVS_TYPE_I32, "i32"},
+    {NVS_TYPE_U64, "u64"},
+    {NVS_TYPE_I64, "i64"},
+    {NVS_TYPE_STR, "str"},
+    {NVS_TYPE_BLOB, "blob"},
+    {NVS_TYPE_ANY, "any"},
+};
+
+const char *kv_type_str_from_nvs_type(nvs_type_t type)
+{
+    static const size_t KV_TYPE_STR_PAIR_SIZE = sizeof(kv_type_str) / sizeof(kv_type_str[0]);
+    for (int i = 0; i < KV_TYPE_STR_PAIR_SIZE; i++)
+        if (kv_type_str[i].type == type)
+            return kv_type_str[i].str;
+    return NULL;
+}
+
 /* NVS backend management */
 
 void kv_erase(const char *part_name)
@@ -69,29 +101,6 @@ void kv_delete_key_ns(const char *ns, const char *key)
     kv_delete_key(handle, key);
     kv_commit(handle);
     kv_close(handle);
-}
-
-/*
- * Lists key-value in partition name and namespace
- * if part_name is NULL, then use default_nvs_partition_name
- * if ns is NULL, list key-values in all namespaces
- */
-void kv_list_ns(const char *part_name, const char *ns)
-{
-    ESP_LOGI(TAG, "NVS content:");
-    if (part_name == NULL)
-    {
-        part_name = default_nvs_partition_name;
-    }
-    nvs_iterator_t it = nvs_entry_find(part_name, ns, NVS_TYPE_ANY);
-    while (it != NULL)
-    {
-        nvs_entry_info_t info;
-        nvs_entry_info(it, &info);
-        ESP_LOGI(TAG, "Namespace '%s', key '%s', type '%d'", info.namespace_name, info.key, info.type);
-        it = nvs_entry_next(it);
-    }
-    nvs_release_iterator(it);
 }
 
 nvs_handle_t kv_open_ns(const char *ns)
