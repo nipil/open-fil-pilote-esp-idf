@@ -216,8 +216,6 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     // if we reached here, everything is correct, store the updated parameters without checking for errors
     ESP_LOGV(TAG, "Request is valid, storing data");
 
-    // TODO: clear namespace before saving everything
-
     // store new hardware type in common namespace
     nvs_handle_t h = kv_open_ns(kv_get_ns_ofp());
     kv_set_str(h, stor_key_hardware_type, form_hw_current);
@@ -232,8 +230,10 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Hardware name too long");
     }
 
-    // store hardware parameters in dedicated hardware namespace
     h = kv_open_ns(tmp_hw_ns_name);
+    // clear namespace before saving
+    kv_clear(h);
+    // store hardware parameters in dedicated hardware namespace
     for (int i = 0; i < hw->param_count; i++)
     {
         struct ofp_hw_param *hw_param = &hw->params[i];
