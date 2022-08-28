@@ -306,11 +306,20 @@ bool ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count)
         return false;
     }
 
+    // empty
+    if (zone_count == 0)
+    {
+        zone_set->count = 0;
+        zone_set->zones = NULL;
+        return true;
+    }
+
+    // non empty
     struct ofp_zone *buf = malloc(zone_count * sizeof(struct ofp_zone));
     assert(buf != NULL);
-
     zone_set->count = zone_count;
     zone_set->zones = buf;
+
     return true;
 }
 
