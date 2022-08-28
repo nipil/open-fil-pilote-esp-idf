@@ -2,7 +2,6 @@
 #include <string.h>
 #include <esp_log.h>
 #include <esp_check.h>
-#include <esp_partition.h>
 #include <nvs_flash.h>
 #include <nvs.h>
 
@@ -10,25 +9,6 @@
 #include "storage.h"
 
 static const char TAG[] = "storage";
-
-/* partition functions */
-
-void part_list(void)
-{
-    esp_partition_iterator_t it_p = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
-    while (it_p != NULL)
-    {
-        const esp_partition_t *part = esp_partition_get(it_p);
-        printf("Partition %s\r\n\tType: 0x%02X\r\n\tSubType: 0x%02X\r\n\tAddress: 0x%08X\r\n\tSize: %i\r\n\tEncrypted: %s\r\n",
-               part->label,
-               part->type,
-               part->subtype,
-               part->address,
-               part->size,
-               part->encrypted ? "yes" : "no");
-        it_p = esp_partition_next(it_p);
-    }
-}
 
 /* NVS backend management */
 

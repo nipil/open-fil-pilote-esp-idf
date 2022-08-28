@@ -5,6 +5,7 @@
 #include <esp_flash.h>
 #include <esp_system.h>
 #include <esp_heap_caps.h>
+#include <esp_partition.h>
 #include <argtable3/argtable3.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -260,7 +261,19 @@ static void register_task_stats(void)
 static int show_partitions(int argc, char **argv)
 {
     printf("\r\n");
-    part_list();
+    esp_partition_iterator_t it_p = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
+    while (it_p != NULL)
+    {
+        const esp_partition_t *part = esp_partition_get(it_p);
+        printf("Partition %s\r\n\tType: 0x%02X\r\n\tSubType: 0x%02X\r\n\tAddress: 0x%08X\r\n\tSize: %i\r\n\tEncrypted: %s\r\n",
+               part->label,
+               part->type,
+               part->subtype,
+               part->address,
+               part->size,
+               part->encrypted ? "yes" : "no");
+        it_p = esp_partition_next(it_p);
+    }
     return 0;
 }
 

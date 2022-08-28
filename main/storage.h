@@ -25,7 +25,6 @@
     } while (0)
 
 /* partition functions */
-void part_list(void);
 void kv_erase(const char *part_name);
 void kv_stats(const char *part_name);
 
