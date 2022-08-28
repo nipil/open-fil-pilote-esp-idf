@@ -288,6 +288,43 @@ static void register_partitions(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
+// 'nvs' command prints nvs
+static int show_nvs(int argc, char **argv)
+{
+    printf("\r\n");
+    esp_partition_iterator_t it_p = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
+    for (; it_p != NULL; it_p = esp_partition_next(it_p))
+    {
+        const esp_partition_t *part = esp_partition_get(it_p);
+        if (part->type == ESP_PARTITION_TYPE_DATA && part->subtype == ESP_PARTITION_SUBTYPE_DATA_NVS)
+        {
+            nvs_stats_t nvs_stats;
+            esp_err_t err = nvs_get_stats(part->label, &nvs_stats);
+            ESP_LOGV(TAG, "nvs_get_stats: %s", esp_err_to_name(err));
+            if (err != ESP_OK)
+            {
+                ESP_LOGE(TAG, "Storage stats failed: %s", esp_err_to_name(err));
+                continue;
+            }
+            printf("Partition '%s' NVS stats: Used %d, Free = (%d), All = (%d)\r\n",
+                   part->label, nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
+        };
+    }
+    printf("\r\n");
+    return 0;
+}
+
+static void register_nvs(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "nvs",
+        .help = "Show NVS",
+        .hint = NULL,
+        .func = &show_nvs,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
 // 'hardware' command prints in-memory hardware definition
 static int show_hardware(int argc, char **argv)
 {

@@ -22,22 +22,6 @@ void kv_erase(const char *part_name)
     ESP_ERROR_CHECK(err);
 }
 
-void kv_stats(const char *part_name)
-{
-    if (part_name == NULL)
-        part_name = default_nvs_partition_name;
-    nvs_stats_t nvs_stats;
-    esp_err_t err = nvs_get_stats(part_name, &nvs_stats);
-    ESP_LOGV(TAG, "nvs_get_stats: %s", esp_err_to_name(err));
-    if (err != ESP_OK)
-    {
-        ESP_LOGE(TAG, "Storage stats failed: %s", esp_err_to_name(err));
-        return;
-    }
-    ESP_LOGI(TAG, "NVS stats: Used %d, Free = (%d), All = (%d)",
-             nvs_stats.used_entries, nvs_stats.free_entries, nvs_stats.total_entries);
-}
-
 void kv_init(const char *part_name)
 {
     if (part_name == NULL)
@@ -467,7 +451,6 @@ void test_storage(void)
     size_t len;
 
     ESP_LOGE(TAG, "==== general RAW =========================");
-    part_list();
     kv_init(NULL);  // default partition
     kv_stats(NULL); // default partition
 
