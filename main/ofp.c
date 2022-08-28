@@ -326,6 +326,7 @@ bool ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count)
 /* initialize the hardware based on stored hardware id */
 void ofp_hw_initialize(void)
 {
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     ESP_LOGD(TAG, "ofp_hw_initialize");
 
     // get selected hardware id from storage

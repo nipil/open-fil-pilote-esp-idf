@@ -47,7 +47,7 @@ struct ofp_hw *hw_m1e1_get_definition(void)
 /* init dynamic data and setup hardware (PLEASE READ ofp_hw_hooks in ofp.h) */
 static bool hw_m1e1_zone_set_init(struct ofp_hw *hw)
 {
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
 
     ESP_LOGD(TAG, "hw_m1e1_zone_set_init %p", hw);
     assert(hw != NULL);
