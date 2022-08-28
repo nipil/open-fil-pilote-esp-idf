@@ -13,7 +13,7 @@ static const char TAG[] = "ofp";
 #define DEFAULT_FIXED_ORDER_FOR_ZONES HW_OFP_ORDER_ID_STANDARD_COZY
 
 /* constants */
-static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):d([[:digit:]]+)^";
+static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):v([[:digit:]]+)^";
 
 /* global hardware instance, get it using ofp_hw_get() */
 static struct ofp_hw *hw_global = NULL;
