@@ -192,7 +192,7 @@ void ofp_hw_initialize(void);
 void ofp_hw_update(struct ofp_hw *hw);
 
 /* planning accessors */
-bool ofp_planning_id_is_valid(int planning_id);
+struct ofp_planning *ofp_planning_find_by_id(int planning_id);
 struct ofp_planning_list *ofp_planning_list_get(void);
 void ofp_planning_list_init(void);
 

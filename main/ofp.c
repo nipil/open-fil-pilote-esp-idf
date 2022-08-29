@@ -208,7 +208,7 @@ bool ofp_zone_set_mode_fixed(struct ofp_zone *zone, enum ofp_order_id order_id)
 
 bool ofp_zone_set_mode_planning(struct ofp_zone *zone, int planning_id)
 {
-    if (!ofp_planning_id_is_valid(planning_id))
+    if (ofp_planning_find_by_id(planning_id) != NULL)
     {
         ESP_LOGW(TAG, "Invalid planning_id value (%i)", planning_id);
         return false;
@@ -435,12 +435,6 @@ struct ofp_hw *ofp_hw_get_current(void)
 
 /* planning functions */
 
-bool ofp_planning_id_is_valid(int planning_id)
-{
-    // TODO: implement
-    return false;
-}
-
 struct ofp_planning_list *ofp_planning_list_get(void)
 {
     return plan_list_global;
@@ -466,4 +460,17 @@ void ofp_planning_list_init(void)
     {
         plan_list_global->plannings[i] = NULL;
     }
+}
+
+struct ofp_planning *ofp_planning_find_by_id(int planning_id)
+{
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    {
+        struct ofp_planning *plan = plan_list_global->plannings[i];
+        if (plan == NULL)
+            continue;
+        if (plan->id == planning_id)
+            return plan;
+    }
+    return NULL;
 }
