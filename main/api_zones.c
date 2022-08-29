@@ -65,8 +65,7 @@ esp_err_t serve_api_get_override(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_404(req);
 
     // get zone override from common namespace
-    char *override;
-    kvh_get(override, str, kv_get_ns_ofp(), stor_key_zone_override); // must be free'd after use
+    char *override = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_zone_override); // must be free'd after use
 
     cJSON *root = cJSON_CreateObject();
     cJSON_AddStringToObject(root, stor_key_zone_override, override ? override : stor_val_none);
@@ -129,7 +128,7 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
     if (strcmp(override->valuestring, stor_val_none) == 0)
     {
         // set zone override in common namespace
-        kvh_set(str, kv_get_ns_ofp(), stor_key_zone_override, override->valuestring);
+        kv_ns_set_str_atomic(kv_get_ns_ofp(), stor_key_zone_override, override->valuestring);
         return httpd_resp_sendstr(req, "");
     }
 
@@ -143,7 +142,7 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
 
     ESP_LOGD(TAG, "matched order %s", info->name);
     // set zone override in common namespace
-    kvh_set(str, kv_get_ns_ofp(), stor_key_zone_override, override->valuestring);
+    kv_ns_set_str_atomic(kv_get_ns_ofp(), stor_key_zone_override, override->valuestring);
 
     // return success
     return httpd_resp_sendstr(req, "");

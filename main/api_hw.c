@@ -16,8 +16,7 @@ static const char TAG[] = "api_hw";
 struct ofp_hw *ofp_get_hardware_from_stored_id(void)
 {
     // get hardware from common namespace
-    char *current_hw_id;
-    kvh_get(current_hw_id, str, kv_get_ns_ofp(), stor_key_hardware_type); // must be free'd after use
+    char *current_hw_id = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_hardware_type); // must be free'd after use
     if (current_hw_id == NULL)
     {
         free(current_hw_id);
@@ -40,8 +39,7 @@ esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_404(req);
 
     // fetch current hardware id from storage, returns NULL if not found
-    char *current_hw_id;
-    kvh_get(current_hw_id, str, kv_get_ns_ofp(), stor_key_hardware_type); // must be free'd after use
+    char *current_hw_id = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_hardware_type); // must be free'd after use
 
     // provide hardware list
     cJSON *root = cJSON_CreateObject();
