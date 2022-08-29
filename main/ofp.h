@@ -3,10 +3,14 @@
 
 /* limits */
 #define OFP_MAX_ZONE_COUNT 64
+#define OFP_MAX_PLANNING_COUNT 32
+#define OFP_MAX_PLANNING_SLOT_COUNT 64
 #define OFP_MAX_HARDWARE_COUNT 4
+
 #define OFP_MAX_LEN_ID 16
 #define OFP_MAX_LEN_VALUE 32
 #define OFP_MAX_LEN_DESCRIPTION 128
+#define OFP_MAX_LEN_PLANNING_START 6
 
 /* orders */
 
@@ -128,6 +132,28 @@ struct ofp_hw_list
     struct ofp_hw *hw[OFP_MAX_HARDWARE_COUNT];
 };
 
+/* plannings */
+
+struct ofp_planning_slot
+{
+    char id_start[OFP_MAX_LEN_PLANNING_START];
+    enum ofp_order_id order_id;
+};
+
+struct ofp_planning
+{
+    const int id;
+    char *description;
+    int slot_count;
+    struct ofp_planning_slot **slots;
+};
+
+struct ofp_planning_list
+{
+    int count;
+    struct ofp_planning **plannings;
+};
+
 /* order accessors */
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id);
 const struct ofp_order_info *ofp_order_info_by_str_id(char *order_id);
@@ -167,5 +193,6 @@ void ofp_hw_update(struct ofp_hw *hw);
 
 /* planning accessors */
 bool ofp_planning_id_is_valid(int planning_id);
+struct ofp_planning_list *ofp_planning_get_list(void);
 
 #endif /* OFP_H */
