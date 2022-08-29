@@ -150,6 +150,7 @@ struct ofp_planning
 
 struct ofp_planning_list
 {
+    int max_id;
     int count;
     struct ofp_planning **plannings;
 };

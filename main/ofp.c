@@ -460,6 +460,11 @@ void ofp_planning_list_init(void)
     {
         plan_list_global->plannings[i] = NULL;
     }
+
+    // initialize maximum planning id (generator)
+    plan_list_global->max_id = 0;
+
+    // TODO: load plannings
 }
 
 struct ofp_planning *ofp_planning_find_by_id(int planning_id)
@@ -473,4 +478,10 @@ struct ofp_planning *ofp_planning_find_by_id(int planning_id)
             return plan;
     }
     return NULL;
+}
+
+static int ofp_planning_list_get_new_planning_id(void)
+{
+    assert(plan_list_global != NULL);
+    return plan_list_global->max_id + 1;
 }
