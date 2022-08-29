@@ -45,13 +45,13 @@ const char *kv_type_str_from_nvs_type(nvs_type_t type)
 /* namespaces */
 
 static const char ns_ofp[] = "ofp";
-static char ns_ofp_hw[NVS_PART_NAME_MAX_SIZE] = {0};
-static char ns_ofp_zn[NVS_PART_NAME_MAX_SIZE] = {0};
+static char ns_ofp_hw[NVS_NS_NAME_MAX_SIZE] = {0};
+static char ns_ofp_zn[NVS_NS_NAME_MAX_SIZE] = {0};
 
 bool kv_build_ns_hardware(const char *hw_id, char *buf)
 {
-    int n = snprintf(buf, NVS_PART_NAME_MAX_SIZE, "ofp_hw_%s", hw_id);
-    return (n >= 0 && n < NVS_PART_NAME_MAX_SIZE);
+    int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_hw_%s", hw_id);
+    return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
 }
 
 bool kv_set_ns_current_hardware(const char *hw_id)
@@ -66,8 +66,8 @@ const char *kv_get_ns_hardware(void)
 
 bool kv_build_ns_zone(const char *hw_id, char *buf)
 {
-    int n = snprintf(buf, NVS_PART_NAME_MAX_SIZE, "ofp_zn_%s", hw_id);
-    return (n >= 0 && n < NVS_PART_NAME_MAX_SIZE);
+    int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_zn_%s", hw_id);
+    return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
 }
 
 bool kv_set_ns_current_zone(const char *hw_id)

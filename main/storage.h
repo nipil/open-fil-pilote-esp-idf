@@ -3,6 +3,14 @@
 
 #include <nvs.h>
 
+/*
+ * namespace max length is not currently defined in nvs.h
+ * except for a hardcoded value of 16 in nvs_entry_info_t
+ */
+#ifndef NVS_NS_NAME_MAX_SIZE
+#define NVS_NS_NAME_MAX_SIZE 16
+#endif
+
 /* text functions */
 const char *kv_type_str_from_nvs_type(nvs_type_t type);
 

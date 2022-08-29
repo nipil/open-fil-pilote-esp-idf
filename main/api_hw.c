@@ -91,7 +91,7 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
     assert(hw->params != NULL);
 
     // build hardware target namespace
-    char tmp_hw_ns_name[NVS_PART_NAME_MAX_SIZE]; /* no define for namespace length yet */
+    char tmp_hw_ns_name[NVS_NS_NAME_MAX_SIZE];
     if (!kv_build_ns_hardware(hw->id, tmp_hw_ns_name))
     {
         ESP_LOGE(TAG, "Could not build hardware namespace");
@@ -221,7 +221,7 @@ esp_err_t serve_api_post_hardware(httpd_req_t *req, struct re_result *captures)
     kv_close(h);
 
     // build hardware target namespace
-    char tmp_hw_ns_name[NVS_PART_NAME_MAX_SIZE]; /* no define for namespace length yet */
+    char tmp_hw_ns_name[NVS_NS_NAME_MAX_SIZE];
     if (!kv_build_ns_hardware(form_hw_current, tmp_hw_ns_name))
     {
         ESP_LOGE(TAG, "Could not build hardware namespace");
