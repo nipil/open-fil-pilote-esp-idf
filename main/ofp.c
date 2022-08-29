@@ -544,3 +544,23 @@ bool ofp_planning_list_add_planning(struct ofp_planning *planning)
     }
     return false;
 }
+
+struct ofp_planning_slot *ofp_planning_slot_find_by_id(int planning_id, const char *id_start)
+{
+    assert(id_start != NULL);
+    ESP_LOGD(TAG, "ofp_planning_slot_find_by_id %i %s", planning_id, id_start);
+
+    struct ofp_planning *plan = ofp_planning_find_by_id(planning_id);
+    assert(plan != NULL);
+
+    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
+    {
+        struct ofp_planning_slot *slot = plan->slots[i];
+        ESP_LOGV(TAG, "index %i %p", i, slot);
+        if (slot == NULL)
+            continue;
+        if (strcmp(slot->id_start, id_start) == 0)
+            return slot;
+    }
+    return NULL;
+}
