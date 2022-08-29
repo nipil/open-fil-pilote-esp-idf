@@ -14,6 +14,7 @@ static const char TAG[] = "ofp";
 
 /* constants */
 static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):v([[:digit:]]+)^";
+static const char str_planning_slot_id_start_printf[] = "%02ih%02i";
 
 /* global hardware instance, get it using ofp_hw_get() */
 static struct ofp_hw *hw_global = NULL;
@@ -525,7 +526,7 @@ struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum of
     assert(slot != NULL);
 
     // init
-    snprintf(slot->id_start, OFP_MAX_LEN_PLANNING_START, "%ih%i", hour, minute);
+    snprintf(slot->id_start, OFP_MAX_LEN_PLANNING_START, str_planning_slot_id_start_printf, hour, minute);
     slot->order_id = order_id;
 
     return slot;
