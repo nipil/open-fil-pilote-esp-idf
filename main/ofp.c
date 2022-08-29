@@ -501,6 +501,10 @@ struct ofp_planning *ofp_planning_create(char *description)
     plan->slots = malloc(OFP_MAX_PLANNING_SLOT_COUNT * sizeof(struct ofp_planning *));
     assert(plan->slots != NULL);
 
+    // init sub
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+        plan->slots[i] = NULL;
+
     // TODO: add default slot
 
     return plan;
