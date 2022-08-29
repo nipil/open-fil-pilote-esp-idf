@@ -17,7 +17,7 @@
 
 #define CONSOLE_MAX_COMMAND_LINE_LENGTH 512
 
-static const char *TAG = "console";
+static const char TAG[] = "console";
 
 // 'version' command
 static int get_version(int argc, char **argv)
