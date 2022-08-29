@@ -307,7 +307,7 @@ static int nvs_clear_cmd(int argc, char **argv)
     }
 
     const char *target = nvs_clear_args.target->sval[0];
-    kv_clear_ns(target);
+    kv_ns_clear_atomic(target);
     printf("Namespace %s cleared\r\n", target);
     return 0;
 }

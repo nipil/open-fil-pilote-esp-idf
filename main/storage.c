@@ -149,7 +149,7 @@ void kv_deinit(const char *part_name)
 }
 
 /* all-in-one functions */
-void kv_clear_ns(const char *ns)
+void kv_ns_clear_atomic(const char *ns)
 {
     ESP_LOGD(TAG, "Clear namespace %s", (ns != NULL) ? ns : null_str);
     assert(ns != NULL);
@@ -161,7 +161,7 @@ void kv_clear_ns(const char *ns)
     kv_close(handle);
 }
 
-void kv_delete_key_ns(const char *ns, const char *key)
+void kv_ns_delete_atomic(const char *ns, const char *key)
 {
     ESP_LOGD(TAG, "Delete key '%s' from namespace %s", (key != NULL) ? key : null_str, (ns != NULL) ? ns : null_str);
     assert(ns != NULL);

@@ -34,8 +34,8 @@ void kv_init(const char *part_name);
 void kv_deinit(const char *part_name);
 
 /* wrapper functions */
-void kv_clear_ns(const char *ns);
-void kv_delete_key_ns(const char *ns, const char *key);
+void kv_ns_clear_atomic(const char *ns);
+void kv_ns_delete_atomic(const char *ns, const char *key);
 
 /* functions requiring an opened handle */
 nvs_handle_t kv_open_ns(const char *ns);
