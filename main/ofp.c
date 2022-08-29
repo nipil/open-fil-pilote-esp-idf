@@ -454,6 +454,9 @@ void ofp_planning_list_init(void)
     plan_list_global = calloc(1, sizeof(struct ofp_planning_list));
     assert(plan_list_global != NULL);
 
+    // no planning yet
+    plan_list_global->max_id = -1;
+
     // TODO: load plannings
 }
 
