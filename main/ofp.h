@@ -3,7 +3,7 @@
 
 /* limits */
 #define OFP_MAX_ZONE_COUNT 64
-#define OFP_MAX_SIMULTANEOUS_HARDWARE 4
+#define OFP_MAX_HARDWARE_COUNT 4
 #define OFP_MAX_LEN_ID 16
 #define OFP_MAX_LEN_VALUE 32
 #define OFP_MAX_LEN_DESCRIPTION 128
@@ -125,7 +125,7 @@ struct ofp_hw
 struct ofp_hw_list
 {
     int hw_count;
-    struct ofp_hw *hw[OFP_MAX_SIMULTANEOUS_HARDWARE];
+    struct ofp_hw *hw[OFP_MAX_HARDWARE_COUNT];
 };
 
 /* order accessors */
