@@ -1,3 +1,6 @@
+Specs
+    - ZONE_CONFIG_SPEC -> str "mXvY" : where X is ofp_zone_mode id, and Y is either ofp_order_id or planning_id
+
 Partition
     - nvs: default
 
@@ -10,4 +13,10 @@ Namespaces
         * ${ofp_hw_param.id} -> ?
 
     - ofp_zn_${hw_id}: zone configuration for specific hardware
-        * ${ofp_zone.id} -> str "mXvY", where X is ofp_zone_mode id, and Y is either ofp_order_id or planning_id
+        * ${ofp_zone.id} -> ZONE_CONFIG_SPEC
+
+    - ofp_pl: list of plannings
+        * ${planning_id} -> str ${description}
+
+    - ofp_pl_${planning_id} : slots
+        * ${ofp_planning_slot.id} -> ZONE_CONFIG_SPEC
