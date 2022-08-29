@@ -368,8 +368,25 @@ static void register_nvs_delete(void)
 }
 
 // 'nvs' command prints nvs
+
+static struct // argument order defined by struct ordering
+{
+    struct arg_str *ns;
+    struct arg_end *end;
+} nvs_show_args;
+
 static int show_nvs(int argc, char **argv)
 {
+    int nerrors = arg_parse(argc, argv, (void **)&nvs_show_args);
+    if (nerrors != 0)
+    {
+        arg_print_errors(stderr, nvs_show_args.end, argv[0]);
+        return 1;
+    }
+    const char *ns = nvs_show_args.ns->sval[0];
+    if (strcmp(ns, "*") == 0)
+        ns = NULL;
+
     printf("\r\n");
     esp_partition_iterator_t it_p = esp_partition_find(ESP_PARTITION_TYPE_ANY, ESP_PARTITION_SUBTYPE_ANY, NULL);
     for (; it_p != NULL; it_p = esp_partition_next(it_p))
@@ -395,6 +412,8 @@ static int show_nvs(int argc, char **argv)
             {
                 nvs_entry_info_t info;
                 nvs_entry_info(it, &info);
+                if (ns && strcmp(info.namespace_name, ns) != 0)
+                    continue;
                 printf("\tnamespace '%s', key '%s' type", info.namespace_name, info.key);
                 const char *str = kv_type_str_from_nvs_type(info.type);
                 printf(" '%s'\r\n", str ? str : "?");
@@ -408,11 +427,15 @@ static int show_nvs(int argc, char **argv)
 
 static void register_nvs(void)
 {
+    nvs_show_args.ns = arg_str1(NULL, NULL, "<*|ns>", "Namespace to list");
+    nvs_show_args.end = arg_end(1);
+
     const esp_console_cmd_t cmd = {
         .command = "nvs",
         .help = "Show NVS",
         .hint = NULL,
         .func = &show_nvs,
+        .argtable = &nvs_show_args,
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
@@ -512,6 +535,7 @@ static void register_zones(void)
 
 void console_init(void)
 {
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     esp_console_repl_t *repl = NULL;
     esp_console_repl_config_t repl_config = ESP_CONSOLE_REPL_CONFIG_DEFAULT();
 
