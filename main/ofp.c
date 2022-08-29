@@ -478,14 +478,6 @@ struct ofp_planning *ofp_planning_find_by_id(int planning_id)
     return NULL;
 }
 
-static int ofp_planning_list_get_new_planning_id(void)
-{
-    assert(plan_list_global != NULL);
-    int new_id = plan_list_global->max_id + 1;
-    ESP_LOGD(TAG, "ofp_planning_list_get_new_planning_id %i", new_id);
-    return new_id;
-}
-
 struct ofp_planning *ofp_planning_create(char *description)
 {
     assert(description != NULL);

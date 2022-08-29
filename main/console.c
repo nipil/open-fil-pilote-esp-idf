@@ -549,14 +549,14 @@ static int show_plannings(int argc, char **argv)
         struct ofp_planning *plan = plan_list->plannings[i];
         if (plan == NULL)
             continue;
-        printf("Planning index %i holds a planning:\r\n\tID: %i\r\n\tDescription: %s\r\n\t",
+        printf("Planning index %i holds a planning:\r\n\tID: %i\r\n\tDescription: %s\r\n",
                i,
                plan->id,
                plan->description);
 
         for (int j = 0; j < OFP_MAX_PLANNING_SLOT_COUNT; j++)
         {
-            struct ofp_planning_slot *slot = plan->slots[i];
+            struct ofp_planning_slot *slot = plan->slots[j];
             if (slot == NULL)
                 continue;
 
