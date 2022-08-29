@@ -522,3 +522,19 @@ struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum of
 
     return slot;
 }
+
+bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_slot *slot)
+{
+    assert(planning != NULL);
+    assert(slot != NULL);
+
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    {
+        if (planning->slots[i] == NULL)
+        {
+            planning->slots[i] = slot;
+            return true;
+        }
+    }
+    return false;
+}

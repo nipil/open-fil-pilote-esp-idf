@@ -198,5 +198,6 @@ struct ofp_planning_list *ofp_planning_list_get(void);
 void ofp_planning_list_init(void);
 
 struct ofp_planning *ofp_planning_create(char *description);
+bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_slot *slot);
 struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id);
 #endif /* OFP_H */
