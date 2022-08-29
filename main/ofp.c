@@ -526,7 +526,7 @@ bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_sl
     assert(planning != NULL);
     assert(slot != NULL);
 
-    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
     {
         if (planning->slots[i] == NULL)
         {
