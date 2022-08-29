@@ -443,6 +443,8 @@ struct ofp_planning_list *ofp_planning_list_get(void)
 
 void ofp_planning_list_init(void)
 {
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+
     ESP_LOGD(TAG, "ofp_planning_list_init");
 
     // init only if not yet initialized
