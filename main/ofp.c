@@ -451,7 +451,6 @@ void ofp_planning_list_init(void)
 
     // alloc planning pointers
     assert(OFP_MAX_PLANNING_COUNT > 0);
-    plan_list_global->count = 0;
     plan_list_global->plannings = malloc(OFP_MAX_PLANNING_COUNT * sizeof(struct ofp_planning *));
     assert(plan_list_global->plannings != NULL);
 
@@ -497,7 +496,6 @@ struct ofp_planning *ofp_planning_create(char *description)
     // init main
     plan->id = ofp_planning_list_get_new_planning_id();
     plan->description = description;
-    plan->slot_count = 0;
 
     // alloc sub
     plan->slots = malloc(OFP_MAX_PLANNING_SLOT_COUNT * sizeof(struct ofp_planning *));
