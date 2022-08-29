@@ -507,3 +507,20 @@ struct ofp_planning *ofp_planning_create(const char *description)
 
     return plan;
 }
+
+struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id)
+{
+    assert(hour >= 0 && hour < 24);
+    assert(minute >= 0 && minute < 60);
+    assert(ofp_order_id_is_valid(order_id));
+
+    // alloc
+    struct ofp_planning_slot *slot = malloc(sizeof(struct ofp_planning_slot));
+    assert(slot != NULL);
+
+    // init
+    snprintf(slot->id_start, OFP_MAX_LEN_PLANNING_START, "%ih%i", hour, minute);
+    slot->order_id = order_id;
+
+    return slot;
+}
