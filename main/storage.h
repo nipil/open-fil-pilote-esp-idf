@@ -3,52 +3,6 @@
 
 #include <nvs.h>
 
-/*
- * Macros for single nvs access
- *
- * Examples:
- *     int n;
- *     kvh_get(n, i32, "ns", "key_n", 42);
- *
- *     char *s = "foo";
- *     kvh_set(str, "ns"", "key_str", s);
- *
- *     uint8_t b[] = { 0, 1, 2, 3 };
- *     kvh_set(blob, "ns", "key_blob", b, sizeof(b));
- */
-#define kvh_set(type_name, ns, key, val, ...)                           \
-    do                                                                  \
-    {                                                                   \
-        nvs_handle_t nvs_h;                                             \
-        nvs_h = kv_open_ns(ns);                                         \
-        kv_set_##type_name(nvs_h, key, val __VA_OPT__(, ) __VA_ARGS__); \
-        kv_commit(nvs_h);                                               \
-        kv_close(nvs_h);                                                \
-    } while (0)
-
-/*
- * Macros for single nvs access
- *
- * Examples:
- *     int n;
- *     kvh_get(n, i32, "ns", "keyin", 42);
- *
- *     char *p_str;
- *     kvh_get(p_str, str, "ns", "key_str"); // if p_str not NULL, MUST BE FREED by caller
- *
- *     size_t len;
- *     void *p_blob;
- *     kvh_get(p_blob, blob, "ns", "key_blob", &len); // if p_blob not NULL, MUST BE FREED by caller, and len holds the blob length
- */
-#define kvh_get(target, type_name, ns, key, ...)                            \
-    do                                                                      \
-    {                                                                       \
-        nvs_handle_t nvs_h;                                                 \
-        nvs_h = kv_open_ns(ns);                                             \
-        target = kv_get_##type_name(nvs_h, key __VA_OPT__(, ) __VA_ARGS__); \
-        kv_close(nvs_h);                                                    \
-    } while (0)
-
 /* text functions */
 const char *kv_type_str_from_nvs_type(nvs_type_t type);
 
@@ -98,7 +52,32 @@ uint32_t kv_get_u32(nvs_handle_t handle, const char *key, uint32_t def_value);
 int64_t kv_get_i64(nvs_handle_t handle, const char *key, int64_t def_value);
 uint64_t kv_get_u64(nvs_handle_t handle, const char *key, uint64_t def_value);
 
-char *kv_get_str(nvs_handle_t handle, const char *key);                  /* Returned memory MUST BE FREED (or owned) BY THE CALLER */
-void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length); /* Returned memory MUST BE FREED (or owned) BY THE CALLER */
+char *kv_get_str(nvs_handle_t handle, const char *key);                  /* Returned memory MUST BE FREED (if not NULL) BY THE CALLER  */
+void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length); /* Returned memory MUST BE FREED (if not NULL) BY THE CALLER  */
+
+/* single "atomic" functions (open/action/commit/close) for single access */
+void kv_ns_set_i8_atomic(char *namespace, const char *key, int8_t value);
+void kv_ns_set_u8_atomic(char *namespace, const char *key, uint8_t value);
+void kv_ns_set_i16_atomic(char *namespace, const char *key, int16_t value);
+void kv_ns_set_u16_atomic(char *namespace, const char *key, uint16_t value);
+void kv_ns_set_i32_atomic(char *namespace, const char *key, int32_t value);
+void kv_ns_set_u32_atomic(char *namespace, const char *key, uint32_t value);
+void kv_ns_set_i64_atomic(char *namespace, const char *key, int64_t value);
+void kv_ns_set_u64_atomic(char *namespace, const char *key, uint64_t value);
+
+void kv_ns_set_str_atomic(char *namespace, const char *key, const char *value);
+void kv_ns_set_blob_atomic(char *namespace, const char *key, const void *value, size_t length);
+
+int8_t kv_ns_get_i8_atomic(char *namespace, const char *key, int8_t def_value);
+uint8_t kv_ns_get_u8_atomic(char *namespace, const char *key, uint8_t def_value);
+int16_t kv_ns_get_i16_atomic(char *namespace, const char *key, int16_t def_value);
+uint16_t kv_ns_get_u16_atomic(char *namespace, const char *key, uint16_t def_value);
+int32_t kv_ns_get_i32_atomic(char *namespace, const char *key, int32_t def_value);
+uint32_t kv_ns_get_u32_atomic(char *namespace, const char *key, uint32_t def_value);
+int64_t kv_ns_get_i64_atomic(char *namespace, const char *key, int64_t def_value);
+uint64_t kv_ns_get_u64_atomic(char *namespace, const char *key, uint64_t def_value);
+
+char *kv_ns_get_str_atomic(char *namespace, const char *key);                  /* Returned memory MUST BE FREED (if not NULL) BY THE CALLER  */
+void *kv_ns_get_blob_atomic(char *namespace, const char *key, size_t *length); /* Returned memory MUST BE FREED (if not NULL) BY THE CALLER  */
 
 #endif /* STORAGE_H */

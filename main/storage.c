@@ -500,3 +500,185 @@ void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length)
     ESP_LOGV(TAG, "kv_get_str len=%u ret=%p", buf_len, buf);
     return buf; // caller MUST FREE returned value if not NULL
 }
+
+void kv_ns_set_i8_atomic(char *namespace, const char *key, int8_t value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_i8(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_u8_atomic(char *namespace, const char *key, uint8_t value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_u8(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_i16_atomic(char *namespace, const char *key, int16_t value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_i16(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_u16_atomic(char *namespace, const char *key, uint16_t value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_u16(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_i32_atomic(char *namespace, const char *key, int32_t value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_i32(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_u32_atomic(char *namespace, const char *key, uint32_t value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_u32(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_i64_atomic(char *namespace, const char *key, int64_t value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_i64(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_u64_atomic(char *namespace, const char *key, uint64_t value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_u64(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_str_atomic(char *namespace, const char *key, const char *value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_str(nvs_h, key, value);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+void kv_ns_set_blob_atomic(char *namespace, const char *key, const void *value, size_t length)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    kv_set_blob(nvs_h, key, value, length);
+    kv_commit(nvs_h);
+    kv_close(nvs_h);
+}
+
+int8_t kv_ns_get_i8_atomic(char *namespace, const char *key, int8_t def_value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    int8_t value = kv_get_i8(nvs_h, key, def_value);
+    kv_close(nvs_h);
+    return value;
+}
+
+uint8_t kv_ns_get_u8_atomic(char *namespace, const char *key, uint8_t def_value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    uint8_t value = kv_get_u8(nvs_h, key, def_value);
+    kv_close(nvs_h);
+    return value;
+}
+
+int16_t kv_ns_get_i16_atomic(char *namespace, const char *key, int16_t def_value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    int16_t value = kv_get_i16(nvs_h, key, def_value);
+    kv_close(nvs_h);
+    return value;
+}
+
+uint16_t kv_ns_get_u16_atomic(char *namespace, const char *key, uint16_t def_value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    uint16_t value = kv_get_u16(nvs_h, key, def_value);
+    kv_close(nvs_h);
+    return value;
+}
+
+int32_t kv_ns_get_i32_atomic(char *namespace, const char *key, int32_t def_value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    int32_t value = kv_get_i32(nvs_h, key, def_value);
+    kv_close(nvs_h);
+    return value;
+}
+
+uint32_t kv_ns_get_u32_atomic(char *namespace, const char *key, uint32_t def_value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    uint32_t value = kv_get_u32(nvs_h, key, def_value);
+    kv_close(nvs_h);
+    return value;
+}
+
+int64_t kv_ns_get_i64_atomic(char *namespace, const char *key, int64_t def_value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    int64_t value = kv_get_i64(nvs_h, key, def_value);
+    kv_close(nvs_h);
+    return value;
+}
+
+uint64_t kv_ns_get_u64_atomic(char *namespace, const char *key, uint64_t def_value)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    uint64_t value = kv_get_u64(nvs_h, key, def_value);
+    kv_close(nvs_h);
+    return value;
+}
+
+/* Returned memory MUST BE FREED (if not NULL) BY THE CALLER  */
+char *kv_ns_get_str_atomic(char *namespace, const char *key)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    char *value = kv_get_str(nvs_h, key);
+    kv_close(nvs_h);
+    return value;
+}
+
+/* Returned memory MUST BE FREED (if not NULL) BY THE CALLER  */
+void *kv_ns_get_blob_atomic(char *namespace, const char *key, size_t *length)
+{
+    nvs_handle_t nvs_h;
+    nvs_h = kv_open_ns(namespace);
+    void *value = kv_get_blob(nvs_h, key, length);
+    kv_close(nvs_h);
+    return value;
+}
