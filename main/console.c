@@ -326,6 +326,47 @@ static void register_nvs_clear(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
+// 'nvs_delete' command
+static struct // argument order defined by struct ordering
+{
+    struct arg_str *ns;
+    struct arg_str *key;
+    struct arg_end *end;
+} nvs_delete_args;
+
+static int nvs_delete_cmd(int argc, char **argv)
+{
+    printf("\r\n");
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+    int nerrors = arg_parse(argc, argv, (void **)&nvs_delete_args);
+    if (nerrors != 0)
+    {
+        arg_print_errors(stderr, nvs_delete_args.end, argv[0]);
+        return 1;
+    }
+
+    const char *ns = nvs_delete_args.ns->sval[0];
+    const char *key = nvs_delete_args.key->sval[0];
+    kv_ns_delete_atomic(ns, key);
+    printf("Key %s deleted from namespace %s deleted\r\n", key, ns);
+    return 0;
+}
+
+static void register_nvs_delete(void)
+{
+    nvs_delete_args.ns = arg_str1(NULL, NULL, "<ns>", "Namespace where the key is");
+    nvs_delete_args.key = arg_str1(NULL, NULL, "<key>", "Key to delete");
+    nvs_delete_args.end = arg_end(2);
+
+    const esp_console_cmd_t cmd = {
+        .command = "nvs_delete",
+        .help = "delete a specific entry from a specific NVS namespace",
+        .hint = NULL,
+        .func = &nvs_delete_cmd,
+        .argtable = &nvs_delete_args};
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
 // 'nvs' command prints nvs
 static int show_nvs(int argc, char **argv)
 {
@@ -494,6 +535,7 @@ void console_init(void)
     register_partitions();
     register_nvs();
     register_nvs_clear();
+    register_nvs_delete();
 
     esp_console_dev_uart_config_t hw_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&hw_config, &repl_config, &repl));
