@@ -488,7 +488,7 @@ struct ofp_planning *ofp_planning_create(char *description)
     assert(plan != NULL);
 
     // init main
-    plan->id = ofp_planning_list_get_new_planning_id();
+    plan->id = -1;
     plan->description = description;
 
     // add default slot
@@ -542,31 +542,51 @@ bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_sl
     return false;
 }
 
+/*
+ * IMPORTANT:
+ *
+ * As stored plannings come with their already set IDs,
+ * you MUST load stored plannings BEFORE creating new plannings,
+ *
+ * If you do not respect this, you could have duplicate planning IDs
+ */
 bool ofp_planning_list_add_planning(struct ofp_planning *planning)
 {
     assert(planning != NULL);
     assert(plan_list_global != NULL);
 
-    ESP_LOGD(TAG, "ofp_planning_list_add_planning planning %i", planning->id);
+    ESP_LOGD(TAG, "ofp_planning_list_add_planning planning %p %i", planning, planning->id);
 
+    // set ID for new plannings (those not loaded from storage)
+    bool new_plan = (planning->id == -1);
+    if (new_plan)
+    {
+        planning->id = plan_list_global->max_id + 1;
+        ESP_LOGV(TAG, "new planning id %i", planning->id);
+    }
+
+    // keep max_id in sync
+    if (planning->id > plan_list_global->max_id) // works for both 'new' and 'stored' plannings
+    {
+        plan_list_global->max_id = planning->id;
+        ESP_LOGV(TAG, "max_id updated to %i", plan_list_global->max_id);
+    }
+
+    // add to the list
     for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
     {
         struct ofp_planning **candidate = &plan_list_global->plannings[i];
         ESP_LOGV(TAG, "index %i %p", i, *candidate);
 
-        if (*candidate == NULL)
-        {
-            *candidate = planning;
-            ESP_LOGV(TAG, "stored %p cur_max_id %i", *candidate, plan_list_global->max_id);
-            if (planning->id > plan_list_global->max_id)
-            {
-                plan_list_global->max_id = planning->id;
-                ESP_LOGV(TAG, "new_max_id %i", plan_list_global->max_id);
-            }
+        if (*candidate != NULL)
+            continue;
 
-            return true;
-        }
+        *candidate = planning;
+        ESP_LOGV(TAG, "stored %p", *candidate);
+
+        return true;
     }
+
     return false;
 }
 
