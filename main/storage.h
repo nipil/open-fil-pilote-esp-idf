@@ -17,10 +17,16 @@ const char *kv_type_str_from_nvs_type(nvs_type_t type);
 bool kv_build_ns_hardware(const char *hw_id, char *buf);
 bool kv_set_ns_current_hardware(const char *hw_id);
 const char *kv_get_ns_hardware(void);
+
 const char *kv_get_ns_ofp(void);
+
 bool kv_build_ns_zone(const char *hw_id, char *buf);
 bool kv_set_ns_current_zone(const char *hw_id);
 const char *kv_get_ns_zone(void);
+
+bool kv_is_part_len_valid(const char *part_name);
+bool kv_is_ns_len_valid(const char *ns_name);
+bool kv_is_key_len_valid(const char *key_name);
 
 /* partition functions */
 void kv_erase(const char *part_name);

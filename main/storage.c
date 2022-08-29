@@ -33,6 +33,25 @@ static const struct kv_type_str_pair kv_type_str[] = {
     {NVS_TYPE_ANY, "any"},
 };
 
+/* validation functions */
+
+bool kv_is_part_len_valid(const char *part_name)
+{
+    return strlen(part_name) + 1 <= NVS_PART_NAME_MAX_SIZE;
+}
+
+bool kv_is_ns_len_valid(const char *ns_name)
+{
+    return strlen(ns_name) + 1 <= NVS_NS_NAME_MAX_SIZE;
+}
+
+bool kv_is_key_len_valid(const char *key_name)
+{
+    return strlen(key_name) + 1 <= NVS_KEY_NAME_MAX_SIZE;
+}
+
+/* helper functions */
+
 const char *kv_type_str_from_nvs_type(nvs_type_t type)
 {
     static const size_t KV_TYPE_STR_PAIR_SIZE = sizeof(kv_type_str) / sizeof(kv_type_str[0]);
@@ -91,6 +110,8 @@ void kv_erase(const char *part_name)
 {
     if (part_name == NULL)
         part_name = default_nvs_partition_name;
+
+    assert(kv_is_part_len_valid(part_name));
     ESP_LOGW(TAG, "Erasing flash... Every settings will be deleted.");
     esp_err_t err = nvs_flash_erase_partition(part_name);
     ESP_LOGV(TAG, "nvs_flash_erase: %s", esp_err_to_name(err));
@@ -102,6 +123,7 @@ void kv_init(const char *part_name)
     // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // debug
     if (part_name == NULL)
         part_name = default_nvs_partition_name;
+    assert(kv_is_part_len_valid(part_name));
     esp_err_t err = nvs_flash_init_partition(part_name);
     ESP_LOGV(TAG, "nvs_flash_init: %s", esp_err_to_name(err));
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND)
@@ -121,6 +143,7 @@ void kv_deinit(const char *part_name)
 {
     if (part_name == NULL)
         part_name = default_nvs_partition_name;
+    assert(kv_is_part_len_valid(part_name));
     esp_err_t err = nvs_flash_deinit_partition(part_name);
     ESP_ERROR_CHECK(err);
 }
@@ -130,6 +153,7 @@ void kv_clear_ns(const char *ns)
 {
     ESP_LOGD(TAG, "Clear namespace %s", (ns != NULL) ? ns : null_str);
     assert(ns != NULL);
+    assert(kv_is_ns_len_valid(ns));
     nvs_handle handle = kv_open_ns(ns);
     esp_err_t err = nvs_erase_all(handle);
     ESP_ERROR_CHECK(err);
@@ -141,6 +165,7 @@ void kv_delete_key_ns(const char *ns, const char *key)
 {
     ESP_LOGD(TAG, "Delete key '%s' from namespace %s", (key != NULL) ? key : null_str, (ns != NULL) ? ns : null_str);
     assert(ns != NULL);
+    assert(kv_is_ns_len_valid(ns));
     nvs_handle handle = kv_open_ns(ns);
     kv_delete_key(handle, key);
     kv_commit(handle);
@@ -151,6 +176,7 @@ nvs_handle_t kv_open_ns(const char *ns)
 {
     ESP_LOGD(TAG, "Open namespace %s", (ns != NULL) ? ns : null_str);
     assert(ns != NULL);
+    assert(kv_is_ns_len_valid(ns));
     nvs_handle_t handle;
     esp_err_t err = nvs_open(ns, NVS_READWRITE, &handle);
     ESP_LOGV(TAG, "nvs_open: %s handle %u", esp_err_to_name(err), handle);
@@ -177,7 +203,7 @@ void kv_delete_key(nvs_handle_t handle, const char *key)
     assert(key != NULL);
     assert(strlen(key) != 0);
     ESP_LOGD(TAG, "Deleting key %s", key);
-
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_erase_key(handle, key);
     ESP_LOGV(TAG, "nvs_erase_key %s", esp_err_to_name(err));
     if (err == ESP_ERR_NVS_NOT_FOUND)
@@ -200,6 +226,7 @@ void kv_clear(nvs_handle_t handle)
 void kv_set_i8(nvs_handle_t handle, const char *key, int8_t value)
 {
     ESP_LOGD(TAG, "kv_set_i8 key=%s value=%i", key, value);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_i8(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_i8 %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -208,6 +235,7 @@ void kv_set_i8(nvs_handle_t handle, const char *key, int8_t value)
 void kv_set_u8(nvs_handle_t handle, const char *key, uint8_t value)
 {
     ESP_LOGD(TAG, "kv_set_u8 key=%s value=%u", key, value);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_u8(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_u8 %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -216,6 +244,7 @@ void kv_set_u8(nvs_handle_t handle, const char *key, uint8_t value)
 void kv_set_i16(nvs_handle_t handle, const char *key, int16_t value)
 {
     ESP_LOGD(TAG, "kv_set_i16 key=%s value=%i", key, value);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_i16(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_i16 %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -224,6 +253,7 @@ void kv_set_i16(nvs_handle_t handle, const char *key, int16_t value)
 void kv_set_u16(nvs_handle_t handle, const char *key, uint16_t value)
 {
     ESP_LOGD(TAG, "kv_set_u16 key=%s value=%u", key, value);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_u16(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_u16 %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -232,6 +262,7 @@ void kv_set_u16(nvs_handle_t handle, const char *key, uint16_t value)
 void kv_set_i32(nvs_handle_t handle, const char *key, int32_t value)
 {
     ESP_LOGD(TAG, "kv_set_i32 key=%s value=%i", key, value);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_i32(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_i32 %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -240,6 +271,7 @@ void kv_set_i32(nvs_handle_t handle, const char *key, int32_t value)
 void kv_set_u32(nvs_handle_t handle, const char *key, uint32_t value)
 {
     ESP_LOGD(TAG, "kv_set_u32 key=%s value=%u", key, value);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_u32(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_u32 %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -248,6 +280,7 @@ void kv_set_u32(nvs_handle_t handle, const char *key, uint32_t value)
 void kv_set_i64(nvs_handle_t handle, const char *key, int64_t value)
 {
     ESP_LOGD(TAG, "kv_set_i64 key=%s value=%lli", key, value);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_i64(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_i64 %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -256,6 +289,7 @@ void kv_set_i64(nvs_handle_t handle, const char *key, int64_t value)
 void kv_set_u64(nvs_handle_t handle, const char *key, uint64_t value)
 {
     ESP_LOGD(TAG, "kv_set_u64 key=%s value=%llu", key, value);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_u64(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_u64 %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -265,6 +299,7 @@ void kv_set_str(nvs_handle_t handle, const char *key, const char *value)
 {
     ESP_LOGD(TAG, "kv_set_str key=%s value=%s", key, (value != NULL) ? value : null_str);
     assert(value != NULL);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_str(handle, key, value);
     ESP_LOGV(TAG, "nvs_set_str %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -274,8 +309,8 @@ void kv_set_blob(nvs_handle_t handle, const char *key, const void *value, size_t
 {
     assert(value != NULL);
     ESP_LOGD(TAG, "kv_set_blob key=%s value=%p length=%u", key, value, length);
-    ESP_LOG_BUFFER_HEX_LEVEL(TAG, value, length, ESP_LOG_DEBUG);
-
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, value, length, ESP_LOG_VERBOSE);
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_set_blob(handle, key, value, length);
     ESP_LOGV(TAG, "nvs_set_blob %s", esp_err_to_name(err));
     ESP_ERROR_CHECK(err);
@@ -287,6 +322,7 @@ int8_t kv_get_i8(nvs_handle_t handle, const char *key, int8_t def_value)
 {
     ESP_LOGD(TAG, "kv_get_i8 key=%s def=%i", key, def_value);
     int8_t value;
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_get_i8(handle, key, &value);
     ESP_LOGV(TAG, "nvs_get_i8 %s", esp_err_to_name(err));
     if (err != ESP_OK)
@@ -302,6 +338,7 @@ uint8_t kv_get_u8(nvs_handle_t handle, const char *key, uint8_t def_value)
 {
     ESP_LOGD(TAG, "kv_get_u8 key=%s def=%u", key, def_value);
     uint8_t value;
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_get_u8(handle, key, &value);
     ESP_LOGV(TAG, "nvs_get_u8 %s", esp_err_to_name(err));
     if (err != ESP_OK)
@@ -317,6 +354,7 @@ int16_t kv_get_i16(nvs_handle_t handle, const char *key, int16_t def_value)
 {
     ESP_LOGD(TAG, "kv_get_i16 key=%s def=%i", key, def_value);
     int16_t value;
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_get_i16(handle, key, &value);
     ESP_LOGV(TAG, "nvs_get_i16 %s", esp_err_to_name(err));
     if (err != ESP_OK)
@@ -332,6 +370,7 @@ uint16_t kv_get_u16(nvs_handle_t handle, const char *key, uint16_t def_value)
 {
     ESP_LOGD(TAG, "kv_get_u16 key=%s def=%u", key, def_value);
     uint16_t value;
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_get_u16(handle, key, &value);
     ESP_LOGV(TAG, "nvs_get_u16 %s", esp_err_to_name(err));
     if (err != ESP_OK)
@@ -347,6 +386,7 @@ int32_t kv_get_i32(nvs_handle_t handle, const char *key, int32_t def_value)
 {
     ESP_LOGD(TAG, "kv_get_i32 key=%s def=%i", key, def_value);
     int32_t value;
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_get_i32(handle, key, &value);
     ESP_LOGV(TAG, "nvs_get_i32 %s", esp_err_to_name(err));
     if (err != ESP_OK)
@@ -362,6 +402,7 @@ uint32_t kv_get_u32(nvs_handle_t handle, const char *key, uint32_t def_value)
 {
     ESP_LOGD(TAG, "kv_get_u32 key=%s def=%u", key, def_value);
     uint32_t value;
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_get_u32(handle, key, &value);
     ESP_LOGV(TAG, "nvs_get_u32 %s", esp_err_to_name(err));
     if (err != ESP_OK)
@@ -377,6 +418,7 @@ int64_t kv_get_i64(nvs_handle_t handle, const char *key, int64_t def_value)
 {
     ESP_LOGD(TAG, "kv_get_i64 key=%s def=%lli", key, def_value);
     int64_t value;
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_get_i64(handle, key, &value);
     ESP_LOGV(TAG, "nvs_get_i64 %s", esp_err_to_name(err));
     if (err != ESP_OK)
@@ -392,6 +434,7 @@ uint64_t kv_get_u64(nvs_handle_t handle, const char *key, uint64_t def_value)
 {
     ESP_LOGD(TAG, "kv_get_u64 key=%s def=%llu", key, def_value);
     uint64_t value;
+    assert(kv_is_key_len_valid(key));
     esp_err_t err = nvs_get_u64(handle, key, &value);
     ESP_LOGV(TAG, "nvs_get_u64 %s", esp_err_to_name(err));
     if (err != ESP_OK)
@@ -407,6 +450,7 @@ uint64_t kv_get_u64(nvs_handle_t handle, const char *key, uint64_t def_value)
 char *kv_get_str(nvs_handle_t handle, const char *key)
 {
     ESP_LOGD(TAG, "kv_get_str key=%s", key);
+    assert(kv_is_key_len_valid(key));
     char *buf;
     size_t len;
 
@@ -446,6 +490,8 @@ char *kv_get_str(nvs_handle_t handle, const char *key)
 /* Returned memory MUST BE FREED (or owned) BY THE CALLER */
 void *kv_get_blob(nvs_handle_t handle, const char *key, size_t *length)
 {
+    assert(kv_is_key_len_valid(key));
+
     assert(length != NULL);
     if (length == NULL) // if asserts are disabled
     {
