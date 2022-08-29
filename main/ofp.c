@@ -547,3 +547,22 @@ bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_sl
     }
     return false;
 }
+
+bool ofp_planning_list_add_planning(struct ofp_planning *planning)
+{
+    assert(planning != NULL);
+    assert(plan_list_global != NULL);
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    {
+        if (plan_list_global->plannings[i] == NULL)
+        {
+            plan_list_global->plannings[i] = planning;
+            if (planning->id > plan_list_global->max_id)
+                plan_list_global->max_id = planning->id;
+
+            // TODO: persist
+            return true;
+        }
+    }
+    return false;
+}
