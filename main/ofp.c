@@ -316,8 +316,8 @@ bool ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count)
         return true;
     }
 
-    // non empty
-    struct ofp_zone *buf = malloc(zone_count * sizeof(struct ofp_zone));
+    // alloc and zero members
+    struct ofp_zone *buf = calloc(zone_count, sizeof(struct ofp_zone));
     assert(buf != NULL);
     zone_set->count = zone_count;
     zone_set->zones = buf;
@@ -446,16 +446,9 @@ void ofp_planning_list_init(void)
     // init only if not yet initialized
     assert(plan_list_global == NULL);
 
-    // alloc list struct
-    plan_list_global = malloc(sizeof(struct ofp_planning_list));
+    // alloc and zero members
+    plan_list_global = calloc(1, sizeof(struct ofp_planning_list));
     assert(plan_list_global != NULL);
-
-    // initialize planning list to "unallocated"
-    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
-        plan_list_global->plannings[i] = NULL;
-
-    // initialize maximum planning id (generator)
-    plan_list_global->max_id = 0;
 
     // TODO: load plannings
 }
@@ -483,17 +476,13 @@ struct ofp_planning *ofp_planning_create(char *description)
 {
     assert(description != NULL);
 
-    // alloc main
-    struct ofp_planning *plan = malloc(sizeof(struct ofp_planning));
+    // alloc and zero members
+    struct ofp_planning *plan = calloc(1, sizeof(struct ofp_planning));
     assert(plan != NULL);
 
     // init main
     plan->id = ofp_planning_list_get_new_planning_id();
     plan->description = description;
-
-    // init sub
-    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
-        plan->slots[i] = NULL;
 
     // add default slot
     struct ofp_planning_slot *first_slot = ofp_planning_slot_create(0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES);
@@ -510,8 +499,8 @@ struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum of
     assert(minute >= 0 && minute < 60);
     assert(ofp_order_id_is_valid(order_id));
 
-    // alloc
-    struct ofp_planning_slot *slot = malloc(sizeof(struct ofp_planning_slot));
+    // alloc and zero members
+    struct ofp_planning_slot *slot = calloc(1, sizeof(struct ofp_planning_slot));
     assert(slot != NULL);
 
     // init

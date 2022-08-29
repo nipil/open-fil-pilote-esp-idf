@@ -148,8 +148,8 @@ struct re_result *re_match(const char *re_str, const char *str)
     nmatch++; // for the whole match
     ESP_LOGV(TAG, "nmatch=%d", nmatch);
 
-    // alloc
-    regmatch_t *pmatch = malloc(nmatch * sizeof(regmatch_t));
+    // alloc and zero members
+    regmatch_t *pmatch = calloc(nmatch, sizeof(regmatch_t));
     assert(pmatch != NULL);
 
     // match
@@ -167,8 +167,8 @@ struct re_result *re_match(const char *re_str, const char *str)
     // cleanup
     regfree(&re);
 
-    // alloc
-    char **smatch = malloc(nmatch * sizeof(char *));
+    // alloc and zero members
+    char **smatch = calloc(nmatch, sizeof(char *));
     assert(smatch != NULL);
 
     // extract
@@ -188,9 +188,11 @@ struct re_result *re_match(const char *re_str, const char *str)
     // cleanup
     free(pmatch);
 
-    // build result
-    struct re_result *out = malloc(sizeof(struct re_result));
+    // alloc and zero members
+    struct re_result *out = calloc(1, sizeof(struct re_result));
     assert(out != NULL);
+
+    // build result
     out->count = nmatch;
     out->strings = smatch; // MUST BE FREED BY CALLER
     return out;
@@ -252,7 +254,8 @@ struct split_result *split_string(const char *str, char sep)
     if (src_len == 0)
     {
         ESP_LOGV(TAG, "split empty src");
-        struct split_result *empty = malloc(sizeof(struct split_result *));
+        // alloc and zero members
+        struct split_result *empty = calloc(1, sizeof(struct split_result *));
         assert(empty != NULL);
         empty->count = 0;
         empty->strings = NULL;
@@ -271,11 +274,13 @@ struct split_result *split_string(const char *str, char sep)
     count++;
     ESP_LOGV(TAG, "split sep count %i", count);
 
-    // allocate
-    struct split_result *splits = malloc(sizeof(struct split_result *));
+    // alloc and zero members
+    struct split_result *splits = calloc(1, sizeof(struct split_result *));
     assert(splits != NULL);
     splits->count = count;
-    splits->strings = malloc(count * sizeof(char *));
+
+    // alloc and zero members
+    splits->strings = calloc(count, sizeof(char *));
     assert(splits->strings != NULL);
 
     // extract
@@ -350,7 +355,8 @@ struct ofp_form_data *form_data_parse(const char *data)
     if (params_raw->count == 0)
     {
         ESP_LOGV(TAG, "form data parse no params");
-        struct ofp_form_data *out = malloc(sizeof(struct ofp_form_data));
+        // alloc and zero members
+        struct ofp_form_data *out = calloc(1, sizeof(struct ofp_form_data));
         assert(out != NULL);
         out->count = 0;
         out->params = NULL;
@@ -358,11 +364,11 @@ struct ofp_form_data *form_data_parse(const char *data)
         return out;
     }
 
-    // allocate
-    struct ofp_form_data *out = malloc(sizeof(struct ofp_form_data));
+    // alloc and zero members
+    struct ofp_form_data *out = calloc(1, sizeof(struct ofp_form_data));
     assert(out != NULL);
     out->count = 0;
-    out->params = malloc(params_raw->count * sizeof(struct ofp_form_param));
+    out->params = calloc(params_raw->count, sizeof(struct ofp_form_param));
     assert(out->params != NULL);
 
     // split params into key/value pairs
