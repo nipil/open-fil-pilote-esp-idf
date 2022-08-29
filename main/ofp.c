@@ -18,7 +18,7 @@ static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):v([[:digit
 /* global hardware instance, get it using ofp_hw_get() */
 static struct ofp_hw *hw_global = NULL;
 
-/* global planning instance, get it using ofp_plan_list_get() */
+/* global planning instance, get it using ofp_planning_list_get() */
 struct ofp_planning_list *plan_list_global = NULL;
 
 /* where the registered hardware are stored */
@@ -441,7 +441,7 @@ bool ofp_planning_id_is_valid(int planning_id)
     return false;
 }
 
-struct ofp_planning_list *ofp_plan_list_get(void)
+struct ofp_planning_list *ofp_planning_list_get(void)
 {
     return plan_list_global;
 }
@@ -449,7 +449,7 @@ struct ofp_planning_list *ofp_plan_list_get(void)
 void ofp_planning_list_init(void)
 {
     // init only if not yet initialized
-    assert(ofp_plan_list_get() == NULL);
+    assert(ofp_planning_list_get() == NULL);
 
     // alloc list struct
     plan_list_global = malloc(sizeof(struct ofp_planning_list));
