@@ -333,7 +333,7 @@ void ofp_hw_initialize(void)
 
     // get selected hardware id from storage
     struct ofp_hw *current_hw = ofp_get_hardware_from_stored_id();
-    ESP_LOGD(TAG, "stored hardware %p", current_hw);
+    ESP_LOGV(TAG, "stored hardware %p", current_hw);
     if (current_hw == NULL)
     {
         ESP_LOGW(TAG, "No hardware selected, disabling hardware");
@@ -386,7 +386,7 @@ void ofp_hw_initialize(void)
         }
     }
 
-    // persist reference
+    // update global variable
     hw_global = current_hw;
 }
 
@@ -443,6 +443,8 @@ struct ofp_planning_list *ofp_planning_list_get(void)
 
 void ofp_planning_list_init(void)
 {
+    ESP_LOGD(TAG, "ofp_planning_list_init");
+
     // init only if not yet initialized
     assert(plan_list_global == NULL);
 
@@ -455,13 +457,18 @@ void ofp_planning_list_init(void)
 
 struct ofp_planning *ofp_planning_find_by_id(int planning_id)
 {
+    ESP_LOGD(TAG, "ofp_planning_find_by_id %i", planning_id);
+
     for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
     {
         struct ofp_planning *plan = plan_list_global->plannings[i];
         if (plan == NULL)
             continue;
         if (plan->id == planning_id)
+        {
+            ESP_LOGV(TAG, "found at %i", i);
             return plan;
+        }
     }
     return NULL;
 }
@@ -469,12 +476,15 @@ struct ofp_planning *ofp_planning_find_by_id(int planning_id)
 static int ofp_planning_list_get_new_planning_id(void)
 {
     assert(plan_list_global != NULL);
-    return plan_list_global->max_id + 1;
+    int new_id = plan_list_global->max_id + 1;
+    ESP_LOGD(TAG, "ofp_planning_list_get_new_planning_id %i", new_id);
+    return new_id;
 }
 
 struct ofp_planning *ofp_planning_create(char *description)
 {
     assert(description != NULL);
+    ESP_LOGD(TAG, "ofp_planning_create desc %s", description);
 
     // alloc and zero members
     struct ofp_planning *plan = calloc(1, sizeof(struct ofp_planning));
@@ -490,6 +500,7 @@ struct ofp_planning *ofp_planning_create(char *description)
     bool result = ofp_planning_add_slot(plan, first_slot);
     assert(result);
 
+    ESP_LOGV(TAG, "slot %s result %i", first_slot->id_start, result);
     return plan;
 }
 
@@ -499,6 +510,8 @@ struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum of
     assert(minute >= 0 && minute < 60);
     assert(ofp_order_id_is_valid(order_id));
 
+    ESP_LOGD(TAG, "ofp_planning_slot_create hour %i minute %i order_id %i", hour, minute, order_id);
+
     // alloc and zero members
     struct ofp_planning_slot *slot = calloc(1, sizeof(struct ofp_planning_slot));
     assert(slot != NULL);
@@ -507,6 +520,7 @@ struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum of
     snprintf(slot->id_start, OFP_MAX_LEN_PLANNING_START, str_planning_slot_id_start_printf, hour, minute);
     slot->order_id = order_id;
 
+    ESP_LOGV(TAG, "slot %s order_id %i", slot->id_start, slot->order_id);
     return slot;
 }
 
@@ -515,11 +529,16 @@ bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_sl
     assert(planning != NULL);
     assert(slot != NULL);
 
+    ESP_LOGD(TAG, "ofp_planning_add_slot planning %i slot %s", planning->id, slot->id_start);
+
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
     {
-        if (planning->slots[i] == NULL)
+        struct ofp_planning_slot **candidate = &planning->slots[i];
+        ESP_LOGV(TAG, "index %i %p", i, *candidate);
+        if (*candidate == NULL)
         {
-            planning->slots[i] = slot;
+            *candidate = slot;
+            ESP_LOGV(TAG, "stored %p", *candidate);
             return true;
         }
     }
@@ -530,15 +549,24 @@ bool ofp_planning_list_add_planning(struct ofp_planning *planning)
 {
     assert(planning != NULL);
     assert(plan_list_global != NULL);
+
+    ESP_LOGD(TAG, "ofp_planning_list_add_planning planning %i", planning->id);
+
     for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
     {
-        if (plan_list_global->plannings[i] == NULL)
-        {
-            plan_list_global->plannings[i] = planning;
-            if (planning->id > plan_list_global->max_id)
-                plan_list_global->max_id = planning->id;
+        struct ofp_planning **candidate = &plan_list_global->plannings[i];
+        ESP_LOGV(TAG, "index %i %p", i, *candidate);
 
-            // TODO: persist
+        if (*candidate == NULL)
+        {
+            *candidate = planning;
+            ESP_LOGV(TAG, "stored %p cur_max_id %i", *candidate, plan_list_global->max_id);
+            if (planning->id > plan_list_global->max_id)
+            {
+                plan_list_global->max_id = planning->id;
+                ESP_LOGV(TAG, "new_max_id %i", plan_list_global->max_id);
+            }
+
             return true;
         }
     }
