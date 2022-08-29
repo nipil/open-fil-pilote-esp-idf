@@ -533,6 +533,54 @@ static void register_zones(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
+// 'plannings' command prints in-memory zone configuration
+static int show_plannings(int argc, char **argv)
+{
+    printf("\r\n");
+    struct ofp_planning_list *plan_list = ofp_planning_list_get();
+    if (plan_list == NULL)
+    {
+        printf("No planning list available\r\n");
+        return -1;
+    }
+
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    {
+        struct ofp_planning *plan = plan_list->plannings[i];
+        if (plan == NULL)
+            continue;
+        printf("Planning index %i holds a planning:\r\n\tID: %i\r\n\tDescription: %s\r\n\t",
+               i,
+               plan->id,
+               plan->description);
+
+        for (int j = 0; j < OFP_MAX_PLANNING_SLOT_COUNT; j++)
+        {
+            struct ofp_planning_slot *slot = plan->slots[i];
+            if (slot == NULL)
+                continue;
+
+            printf("\t\tSlot index %i holds a slot: id_start %s order_id: %s\r\n",
+                   j,
+                   slot->id_start,
+                   ofp_order_info_by_num_id(slot->order_id)->id);
+        }
+    }
+
+    return 0;
+}
+
+static void register_plannings(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "plannings",
+        .help = "Show plannings configuration",
+        .hint = NULL,
+        .func = &show_plannings,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
 void console_init(void)
 {
     // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
@@ -560,6 +608,7 @@ void console_init(void)
     register_nvs();
     register_nvs_clear();
     register_nvs_delete();
+    register_plannings();
 
     esp_console_dev_uart_config_t hw_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&hw_config, &repl_config, &repl));
