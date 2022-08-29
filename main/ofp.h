@@ -197,6 +197,6 @@ struct ofp_planning *ofp_planning_find_by_id(int planning_id);
 struct ofp_planning_list *ofp_planning_list_get(void);
 void ofp_planning_list_init(void);
 
-struct ofp_planning *ofp_planning_create(const char *description);
+struct ofp_planning *ofp_planning_create(char *description);
 struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id);
 #endif /* OFP_H */

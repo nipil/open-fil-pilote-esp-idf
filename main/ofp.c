@@ -486,7 +486,7 @@ static int ofp_planning_list_get_new_planning_id(void)
     return plan_list_global->max_id + 1;
 }
 
-struct ofp_planning *ofp_planning_create(const char *description)
+struct ofp_planning *ofp_planning_create(char *description)
 {
     assert(description != NULL);
 
