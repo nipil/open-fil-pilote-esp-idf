@@ -485,3 +485,25 @@ static int ofp_planning_list_get_new_planning_id(void)
     assert(plan_list_global != NULL);
     return plan_list_global->max_id + 1;
 }
+
+struct ofp_planning *ofp_planning_create(const char *description)
+{
+    assert(description != NULL);
+
+    // alloc main
+    struct ofp_planning *plan = malloc(sizeof(struct ofp_planning));
+    assert(plan != NULL);
+
+    // init main
+    plan->id = ofp_planning_list_get_new_planning_id();
+    plan->description = description;
+    plan->slot_count = 0;
+
+    // alloc sub
+    plan->slots = malloc(OFP_MAX_PLANNING_SLOT_COUNT * sizeof(struct ofp_planning *));
+    assert(plan->slots != NULL);
+
+    // TODO: add default slot
+
+    return plan;
+}

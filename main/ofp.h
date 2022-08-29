@@ -142,7 +142,7 @@ struct ofp_planning_slot
 
 struct ofp_planning
 {
-    const int id;
+    int id;
     char *description;
     int slot_count;
     struct ofp_planning_slot **slots;
@@ -197,4 +197,5 @@ struct ofp_planning *ofp_planning_find_by_id(int planning_id);
 struct ofp_planning_list *ofp_planning_list_get(void);
 void ofp_planning_list_init(void);
 
+struct ofp_planning *ofp_planning_create(const char *description);
 #endif /* OFP_H */
