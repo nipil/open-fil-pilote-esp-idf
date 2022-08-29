@@ -445,3 +445,25 @@ struct ofp_planning_list *ofp_plan_list_get(void)
 {
     return plan_list_global;
 }
+
+void ofp_planning_list_init(void)
+{
+    // init only if not yet initialized
+    assert(ofp_plan_list_get() == NULL);
+
+    // alloc list struct
+    plan_list_global = malloc(sizeof(struct ofp_planning_list));
+    assert(plan_list_global != NULL);
+
+    // alloc planning pointers
+    assert(OFP_MAX_PLANNING_COUNT > 0);
+    plan_list_global->count = 0;
+    plan_list_global->plannings = malloc(OFP_MAX_PLANNING_COUNT * sizeof(struct ofp_planning *));
+    assert(plan_list_global->plannings != NULL);
+
+    // initialize planning list to "unallocated"
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    {
+        plan_list_global->plannings[i] = NULL;
+    }
+}
