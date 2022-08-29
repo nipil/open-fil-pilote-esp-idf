@@ -145,14 +145,14 @@ struct ofp_planning
     int id;
     char *description;
     // Fixed size, so no 'count' member
-    struct ofp_planning_slot **slots;
+    struct ofp_planning_slot *slots[OFP_MAX_PLANNING_SLOT_COUNT];
 };
 
 struct ofp_planning_list
 {
     int max_id;
     // Fixed size, so no 'count' member
-    struct ofp_planning **plannings;
+    struct ofp_planning *plannings[OFP_MAX_PLANNING_COUNT];
 };
 
 /* order accessors */
