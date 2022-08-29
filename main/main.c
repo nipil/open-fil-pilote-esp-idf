@@ -83,6 +83,9 @@ void app_main()
     // compensate uptime according to clock leap from SNTP
     uptime_sync_start();
 
+    // initialize plannings
+    ofp_planning_list_init();
+
     // register every hardware available at compilation time
     register_hardware();
 
