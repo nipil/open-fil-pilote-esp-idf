@@ -505,7 +505,11 @@ struct ofp_planning *ofp_planning_create(char *description)
     for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
         plan->slots[i] = NULL;
 
-    // TODO: add default slot
+    // add default slot
+    struct ofp_planning_slot *first_slot = ofp_planning_slot_create(0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES);
+    assert(first_slot != NULL);
+    bool result = ofp_planning_add_slot(plan, first_slot);
+    assert(result);
 
     return plan;
 }
