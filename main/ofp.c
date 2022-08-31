@@ -483,7 +483,7 @@ struct ofp_planning *ofp_planning_find_by_id(int planning_id)
     return NULL;
 }
 
-struct ofp_planning *ofp_planning_create(char *description)
+static struct ofp_planning *ofp_planning_create(int planning_id, char *description)
 {
     assert(description != NULL);
     ESP_LOGD(TAG, "ofp_planning_create desc %s", description);
@@ -506,7 +506,7 @@ struct ofp_planning *ofp_planning_create(char *description)
     return plan;
 }
 
-struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id)
+static struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id)
 {
     assert(hour >= 0 && hour < 24);
     assert(minute >= 0 && minute < 60);
@@ -526,7 +526,7 @@ struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum of
     return slot;
 }
 
-bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_slot *slot)
+static bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_slot *slot)
 {
     assert(planning != NULL);
     assert(slot != NULL);
@@ -555,7 +555,7 @@ bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_sl
  *
  * If you do not respect this, you could have duplicate planning IDs
  */
-bool ofp_planning_list_add_planning(struct ofp_planning *planning)
+static bool ofp_planning_list_add_planning(struct ofp_planning *planning)
 {
     assert(planning != NULL);
     assert(plan_list_global != NULL);
