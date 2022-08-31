@@ -509,8 +509,13 @@ static void ofp_planning_free(struct ofp_planning *plan)
     free(plan);
 }
 
-    ESP_LOGV(TAG, "slot %s result %i", first_slot->id_start, result);
-    return plan;
+static bool ofp_planning_store(struct ofp_planning *plan)
+{
+    assert(plan != NULL);
+    assert(plan->id >= 0);
+    ESP_LOGD(TAG, "ofp_planning_store planning_id %i", plan->id);
+
+    kv_ns_set_str_atomic(kv_get_ns_plan(), plan->id, plan->description);
 }
 
 static struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id)
