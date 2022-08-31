@@ -602,16 +602,8 @@ static bool ofp_planning_list_add_planning(struct ofp_planning *planning)
 
     ESP_LOGD(TAG, "ofp_planning_list_add_planning planning %p %i", planning, planning->id);
 
-    // set ID for new plannings (those not loaded from storage)
-    bool new_plan = (planning->id == -1);
-    if (new_plan)
-    {
-        planning->id = plan_list_global->max_id + 1;
-        ESP_LOGV(TAG, "new planning id %i", planning->id);
-    }
-
-    // keep max_id in sync
-    if (planning->id > plan_list_global->max_id) // works for both 'new' and 'stored' plannings
+    // keep max_id in sync if needed
+    if (planning->id > plan_list_global->max_id)
     {
         plan_list_global->max_id = planning->id;
         ESP_LOGV(TAG, "max_id updated to %i", plan_list_global->max_id);
