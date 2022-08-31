@@ -546,13 +546,13 @@ static bool ofp_planning_purge(struct ofp_planning *plan)
     kv_ns_delete_atomic(kv_get_ns_plan(), buf);
 }
 
-static struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id)
+static struct ofp_planning_slot *ofp_planning_slot_init(int hour, int minute, enum ofp_order_id order_id)
 {
     assert(hour >= 0 && hour < 24);
     assert(minute >= 0 && minute < 60);
     assert(ofp_order_id_is_valid(order_id));
 
-    ESP_LOGD(TAG, "ofp_planning_slot_create hour %i minute %i order_id %i", hour, minute, order_id);
+    ESP_LOGD(TAG, "ofp_planning_slot_init hour %i minute %i order_id %i", hour, minute, order_id);
 
     // alloc and zero members
     struct ofp_planning_slot *slot = calloc(1, sizeof(struct ofp_planning_slot));
