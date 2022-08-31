@@ -193,11 +193,7 @@ void ofp_hw_initialize(void);
 void ofp_hw_update(struct ofp_hw *hw);
 
 /* planning accessors */
-struct ofp_planning *ofp_planning_find_by_id(int planning_id);
-struct ofp_planning_list *ofp_planning_list_get(void);
 void ofp_planning_list_init(void);
 bool ofp_planning_list_add_new_planning(char *description);
-
-struct ofp_planning_slot *ofp_planning_slot_find_by_id(int planning_id, const char *id_start);
 
 #endif /* OFP_H */

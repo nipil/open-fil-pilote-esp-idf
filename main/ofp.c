@@ -436,7 +436,7 @@ struct ofp_hw *ofp_hw_get_current(void)
 
 /* planning functions */
 
-struct ofp_planning_list *ofp_planning_list_get(void)
+static struct ofp_planning_list *ofp_planning_list_get(void)
 {
     return plan_list_global;
 }
@@ -465,9 +465,9 @@ static int ofp_planning_list_get_next_planning_id(void)
     return ++plan_list_global->max_id;
 }
 
-struct ofp_planning *ofp_planning_find_by_id(int planning_id)
+static struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id)
 {
-    ESP_LOGD(TAG, "ofp_planning_find_by_id %i", planning_id);
+    ESP_LOGD(TAG, "ofp_planning_list_find_planning_by_id %i", planning_id);
 
     for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
     {
@@ -650,12 +650,12 @@ bool ofp_planning_list_add_new_planning(char *description)
     return true;
 }
 
-struct ofp_planning_slot *ofp_planning_slot_find_by_id(int planning_id, const char *id_start)
+static struct ofp_planning_slot *ofp_planning_slot_find_by_id(int planning_id, const char *id_start)
 {
     assert(id_start != NULL);
     ESP_LOGD(TAG, "ofp_planning_slot_find_by_id %i %s", planning_id, id_start);
 
-    struct ofp_planning *plan = ofp_planning_find_by_id(planning_id);
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
     assert(plan != NULL);
 
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
