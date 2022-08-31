@@ -460,6 +460,11 @@ void ofp_planning_list_init(void)
     // TODO: load plannings
 }
 
+static int ofp_planning_list_get_next_planning_id(void)
+{
+    return ++plan_list_global->max_id;
+}
+
 struct ofp_planning *ofp_planning_find_by_id(int planning_id)
 {
     ESP_LOGD(TAG, "ofp_planning_find_by_id %i", planning_id);
