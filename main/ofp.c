@@ -46,6 +46,9 @@ static const struct ofp_order_info order_info[] = {
      .name = "Confort-1&deg;",
      .class = "warning"}};
 
+/* private forward declarations */
+static struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id);
+
 /*
  * Make a hardware available to the system.
  *
