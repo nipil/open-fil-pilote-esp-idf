@@ -643,13 +643,24 @@ bool ofp_planning_list_add_new_planning(char *description)
         return false;
     }
 
-    // store
     ofp_planning_store(plan);
 
-    // add
     ofp_planning_list_add_planning(plan);
 
-    // TODO: add default slot
+    struct ofp_planning_slot *slot = ofp_planning_slot_init(0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES);
+    if (slot == NULL)
+    {
+        ESP_LOGW(TAG, "Could not initialize new slot for planning %i", plan->id);
+        return false;
+    }
+
+    // TODO: store slot in planning
+
+    if (!ofp_planning_add_slot(plan, slot))
+    {
+        ESP_LOGW(TAG, "Could not add default slot for planning %i", plan->id);
+        return false;
+    }
 
     return true;
 }
