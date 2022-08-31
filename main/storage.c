@@ -64,8 +64,11 @@ const char *kv_type_str_from_nvs_type(nvs_type_t type)
 /* namespaces */
 
 static const char ns_ofp[] = "ofp";
+static const char ns_ofp_pl[] = "ofp_pl";
+
 static char ns_ofp_hw[NVS_NS_NAME_MAX_SIZE] = {0};
 static char ns_ofp_zn[NVS_NS_NAME_MAX_SIZE] = {0};
+static char ns_ofp_pl_sl[NVS_NS_NAME_MAX_SIZE] = {0};
 
 bool kv_build_ns_hardware(const char *hw_id, char *buf)
 {
@@ -97,6 +100,27 @@ bool kv_set_ns_current_zone(const char *hw_id)
 const char *kv_get_ns_zone(void)
 {
     return ns_ofp_zn;
+}
+
+static bool kv_build_ns_plan_slot(int planning_id, char *buf)
+{
+    int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_pl_sl_%i", planning_id);
+    return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
+}
+
+bool kv_set_ns_current_plan_slot(int planning_id)
+{
+    return kv_build_ns_plan_slot(planning_id, ns_ofp_pl_sl);
+}
+
+const char *kv_get_ns_plan_slot(void)
+{
+    return ns_ofp_pl_sl;
+}
+
+const char *kv_get_ns_plan(void)
+{
+    return ns_ofp_pl;
 }
 
 const char *kv_get_ns_ofp(void)
