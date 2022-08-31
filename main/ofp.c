@@ -532,7 +532,7 @@ static void ofp_planning_store(struct ofp_planning *plan)
     kv_ns_set_str_atomic(kv_get_ns_plan(), buf, plan->description);
 }
 
-static bool ofp_planning_purge(struct ofp_planning *plan)
+static void ofp_planning_purge(struct ofp_planning *plan)
 {
     assert(plan != NULL);
     assert(plan->id >= 0);
