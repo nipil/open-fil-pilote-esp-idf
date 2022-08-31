@@ -20,7 +20,7 @@ static const char str_planning_slot_id_start_printf[] = "%02ih%02i";
 static struct ofp_hw *hw_global = NULL;
 
 /* global planning instance, get it using ofp_planning_list_get() */
-static struct ofp_planning_list *plan_list_global = NULL;
+struct ofp_planning_list *plan_list_global = NULL;
 
 /* where the registered hardware are stored */
 static struct ofp_hw_list hw_list = {.hw_count = 0, .hw = {NULL}};

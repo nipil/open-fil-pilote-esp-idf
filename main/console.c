@@ -537,8 +537,8 @@ static void register_zones(void)
 static int show_plannings(int argc, char **argv)
 {
     printf("\r\n");
-    struct ofp_planning_list *plan_list = ofp_planning_list_get();
-    if (plan_list == NULL)
+    extern struct ofp_planning_list *plan_list_global;
+    if (plan_list_global == NULL)
     {
         printf("No planning list available\r\n");
         return -1;
@@ -546,7 +546,7 @@ static int show_plannings(int argc, char **argv)
 
     for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
     {
-        struct ofp_planning *plan = plan_list->plannings[i];
+        struct ofp_planning *plan = plan_list_global->plannings[i];
         if (plan == NULL)
             continue;
         printf("Planning index %i holds a planning:\r\n\tID: %i\r\n\tDescription: %s\r\n",
