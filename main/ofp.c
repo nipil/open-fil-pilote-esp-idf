@@ -646,6 +646,8 @@ bool ofp_planning_list_add_new_planning(char *description)
     // add
     ofp_planning_list_add_planning(plan);
 
+    // TODO: add default slot
+
     return true;
 }
 
