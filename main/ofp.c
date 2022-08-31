@@ -551,16 +551,6 @@ static bool ofp_planning_purge(struct ofp_planning *plan)
     kv_ns_delete_atomic(kv_get_ns_plan(), buf);
 }
 
-static void ofp_planning_free(struct ofp_planning *plan)
-{
-    assert(plan != NULL);
-    ESP_LOGD(TAG, "ofp_planning_free planning_id %i", plan->id);
-
-    if (plan->description)
-        free(plan->description);
-    free(plan);
-}
-
 static struct ofp_planning_slot *ofp_planning_slot_init(int hour, int minute, enum ofp_order_id order_id)
 {
     assert(hour >= 0 && hour < 24);
