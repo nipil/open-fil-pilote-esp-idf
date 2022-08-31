@@ -83,7 +83,7 @@ const char *kv_get_ns_hardware(void)
     return ns_ofp_hw;
 }
 
-bool kv_build_ns_zone(const char *hw_id, char *buf)
+static bool kv_build_ns_zone(const char *hw_id, char *buf)
 {
     int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_zn_%s", hw_id);
     return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
