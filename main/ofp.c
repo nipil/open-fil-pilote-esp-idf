@@ -658,7 +658,7 @@ bool ofp_planning_list_add_new_planning(char *description)
         return false;
     }
 
-    // TODO: store slot in planning
+    ofp_planning_slot_store(plan->id, slot);
 
     if (!ofp_planning_add_slot(plan, slot))
     {
