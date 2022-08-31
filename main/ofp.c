@@ -210,8 +210,6 @@ bool ofp_zone_set_mode_fixed(struct ofp_zone *zone, enum ofp_order_id order_id)
     return true;
 }
 
-static struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id); // forward declaration
-
 bool ofp_zone_set_mode_planning(struct ofp_zone *zone, int planning_id)
 {
     if (ofp_planning_list_find_planning_by_id(planning_id) != NULL)
