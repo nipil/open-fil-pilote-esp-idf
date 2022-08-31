@@ -76,7 +76,7 @@ bool kv_build_ns_hardware(const char *hw_id, char *buf)
     return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
 }
 
-bool kv_set_ns_current_hardware(const char *hw_id)
+bool kv_set_ns_hardware(const char *hw_id)
 {
     return kv_build_ns_hardware(hw_id, ns_ofp_hw);
 }
@@ -86,15 +86,15 @@ const char *kv_get_ns_hardware(void)
     return ns_ofp_hw;
 }
 
-static bool kv_build_ns_zone(const char *hw_id, char *buf)
+static bool kv_build_ns_zone_for_hardware(const char *hw_id, char *buf)
 {
     int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_zn_%s", hw_id);
     return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
 }
 
-bool kv_set_ns_current_zone(const char *hw_id)
+bool kv_set_ns_zone_for_hardware(const char *hw_id)
 {
-    return kv_build_ns_zone(hw_id, ns_ofp_zn);
+    return kv_build_ns_zone_for_hardware(hw_id, ns_ofp_zn);
 }
 
 const char *kv_get_ns_zone(void)
@@ -102,18 +102,18 @@ const char *kv_get_ns_zone(void)
     return ns_ofp_zn;
 }
 
-static bool kv_build_ns_plan_slot(int planning_id, char *buf)
+static bool kv_build_ns_slots_for_planning(int planning_id, char *buf)
 {
     int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_pl_sl_%i", planning_id);
     return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
 }
 
-bool kv_set_ns_current_plan_slot(int planning_id)
+bool kv_set_ns_slots_for_planning(int planning_id)
 {
-    return kv_build_ns_plan_slot(planning_id, ns_ofp_pl_sl);
+    return kv_build_ns_slots_for_planning(planning_id, ns_ofp_pl_sl);
 }
 
-const char *kv_get_ns_plan_slot(void)
+const char *kv_get_ns_slots(void)
 {
     return ns_ofp_pl_sl;
 }

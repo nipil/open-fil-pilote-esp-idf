@@ -15,15 +15,17 @@
 const char *kv_type_str_from_nvs_type(nvs_type_t type);
 
 bool kv_build_ns_hardware(const char *hw_id, char *buf);
-bool kv_set_ns_current_hardware(const char *hw_id);
+bool kv_set_ns_hardware(const char *hw_id);
 const char *kv_get_ns_hardware(void);
 
 const char *kv_get_ns_ofp(void);
 
-bool kv_set_ns_current_zone(const char *hw_id);
+bool kv_set_ns_zone_for_hardware(const char *hw_id);
 const char *kv_get_ns_zone(void);
 
-bool kv_set_ns_current_plan(int planning_id);
+bool kv_set_ns_slots_for_planning(int planning_id);
+const char *kv_get_ns_slots(void);
+
 const char *kv_get_ns_plan(void);
 
 bool kv_is_part_len_valid(const char *part_name);

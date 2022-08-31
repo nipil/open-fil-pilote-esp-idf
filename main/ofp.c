@@ -342,7 +342,7 @@ void ofp_hw_initialize(void)
 
     ESP_LOGI(TAG, "Initializing hardware %s", current_hw->id);
 
-    if (!kv_set_ns_current_hardware(current_hw->id))
+    if (!kv_set_ns_hardware(current_hw->id))
     {
         ESP_LOGE(TAG, "Could not set hardware namespace, disabling hardware");
         return;
@@ -367,7 +367,7 @@ void ofp_hw_initialize(void)
         return;
     }
 
-    if (!kv_set_ns_current_zone(current_hw->id))
+    if (!kv_set_ns_zone_for_hardware(current_hw->id))
     {
         ESP_LOGE(TAG, "Could not set zone namespace, disabling hardware");
         return;
@@ -516,6 +516,20 @@ static bool ofp_planning_store(struct ofp_planning *plan)
     ESP_LOGD(TAG, "ofp_planning_store planning_id %i", plan->id);
 
     kv_ns_set_str_atomic(kv_get_ns_plan(), plan->id, plan->description);
+}
+
+static bool ofp_planning_purge(struct ofp_planning *plan)
+{
+    assert(plan != NULL);
+    assert(plan->id >= 0);
+    ESP_LOGD(TAG, "ofp_planning_purge planning_id %i", plan->id);
+
+    // clear every slots in planning ID namespace
+    kv_set_ns_slots_for_planning(plan->id);
+    kv_ns_clear_atomic(kv_get_ns_slots());
+
+    // delete planning in plannings namespace
+    kv_ns_delete_atomic(kv_get_ns_plan(), plan->id);
 }
 
 static struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id)
