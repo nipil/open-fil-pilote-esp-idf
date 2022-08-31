@@ -485,16 +485,19 @@ struct ofp_planning *ofp_planning_find_by_id(int planning_id)
 
 static struct ofp_planning *ofp_planning_create(int planning_id, char *description)
 {
+    assert(planning_id >= 0);
     assert(description != NULL);
-    ESP_LOGD(TAG, "ofp_planning_create desc %s", description);
+    ESP_LOGD(TAG, "ofp_planning_create id %i desc %s", planning_id, description);
 
     // alloc and zero members
     struct ofp_planning *plan = calloc(1, sizeof(struct ofp_planning));
     assert(plan != NULL);
 
     // init main
-    plan->id = -1;
-    plan->description = description;
+    plan->id = planning_id;
+    plan->description = strdup(description);
+    return plan;
+}
 
     // add default slot
     struct ofp_planning_slot *first_slot = ofp_planning_slot_create(0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES);
