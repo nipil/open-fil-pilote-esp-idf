@@ -195,5 +195,6 @@ void ofp_hw_update(struct ofp_hw *hw);
 /* planning accessors */
 void ofp_planning_list_init(void);
 bool ofp_planning_list_add_new_planning(char *description);
+bool ofp_planning_list_remove_planning(int planning_id);
 
 #endif /* OFP_H */

@@ -656,6 +656,44 @@ bool ofp_planning_list_add_new_planning(char *description)
     return true;
 }
 
+bool ofp_planning_list_remove_planning(int planning_id)
+{
+    ESP_LOGD(TAG, "ofp_planning_list_remove_planning planning_id %i", planning_id);
+
+    // search and prune
+    struct ofp_planning *plan = NULL;
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    {
+        struct ofp_planning **candidate = &plan_list_global->plannings[i];
+        ESP_LOGV(TAG, "index %i %p", i, *candidate);
+
+        if (*candidate == NULL)
+            continue;
+
+        if ((*candidate)->id != planning_id)
+            continue;
+
+        plan = *candidate;
+        *candidate = NULL;
+        ESP_LOGV(TAG, "found %p and removed from list", plan);
+        break;
+    }
+
+    if (plan == NULL)
+    {
+        ESP_LOGD(TAG, "planning %i not found", planning_id);
+        return false;
+    }
+
+    ofp_planning_purge(plan); // removes slots from storage
+
+    // todo remove slots from memory
+
+    ofp_planning_free(plan);
+
+    return plan;
+}
+
 static struct ofp_planning_slot *ofp_planning_slot_find_by_id(int planning_id, const char *id_start)
 {
     assert(id_start != NULL);
