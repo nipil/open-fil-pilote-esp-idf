@@ -569,6 +569,15 @@ static struct ofp_planning_slot *ofp_planning_slot_init(int hour, int minute, en
     return slot;
 }
 
+static void ofp_planning_slot_store(int planning_id, struct ofp_planning_slot *slot)
+{
+    assert(slot != NULL);
+    ESP_LOGD(TAG, "ofp_planning_slot_store planning_id %i slot %s", planning_id, slot->id_start);
+
+    kv_set_ns_slots_for_planning(planning_id);
+    kv_ns_set_i32_atomic(kv_get_ns_slots(), slot->id_start, slot->order_id);
+}
+
 static bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_slot *slot)
 {
     assert(planning != NULL);
