@@ -594,6 +594,29 @@ static bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_plan
     return false;
 }
 
+bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_order_id order_id)
+{
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGD(TAG, "Could not find planning %i", planning_id);
+        return false;
+    }
+
+    struct ofp_planning_slot *slot = ofp_planning_slot_init(hour, minute, order_id);
+    if (plan == NULL)
+    {
+        ESP_LOGW(TAG, "Could not create new planning slot");
+        return false;
+    }
+
+    ofp_planning_slot_store(planning_id, slot);
+
+    ofp_planning_add_slot(plan, slot);
+
+    return true;
+}
+
 /*
  * IMPORTANT:
  *
