@@ -8,7 +8,7 @@
  * except for a hardcoded value of 16 in nvs_entry_info_t
  */
 #ifndef NVS_NS_NAME_MAX_SIZE
-#define NVS_NS_NAME_MAX_SIZE 16
+#define NVS_NS_NAME_MAX_SIZE NVS_KEY_NAME_MAX_SIZE
 #endif
 
 /* text functions */
