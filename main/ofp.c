@@ -483,7 +483,7 @@ struct ofp_planning *ofp_planning_find_by_id(int planning_id)
     return NULL;
 }
 
-static struct ofp_planning *ofp_planning_create(int planning_id, char *description)
+static struct ofp_planning *ofp_planning_init(int planning_id, char *description)
 {
     assert(planning_id >= 0);
     assert(description != NULL);
@@ -491,11 +491,20 @@ static struct ofp_planning *ofp_planning_create(int planning_id, char *descripti
 
     // alloc and zero members
     struct ofp_planning *plan = calloc(1, sizeof(struct ofp_planning));
-    assert(plan != NULL);
+    if (plan == NULL)
+    {
+        ESP_LOGD(TAG, "calloc failed");
+        return NULL;
+    }
 
     // init main
     plan->id = planning_id;
     plan->description = strdup(description);
+    if (plan->description == NULL)
+    {
+        ESP_LOGD(TAG, "strdup failed");
+        return NULL;
+    }
     return plan;
 }
 
