@@ -518,13 +518,15 @@ static void ofp_planning_free(struct ofp_planning *plan)
     free(plan);
 }
 
-static bool ofp_planning_store(struct ofp_planning *plan)
+static void ofp_planning_store(struct ofp_planning *plan)
 {
     assert(plan != NULL);
     assert(plan->id >= 0);
     ESP_LOGD(TAG, "ofp_planning_store planning_id %i", plan->id);
 
-    kv_ns_set_str_atomic(kv_get_ns_plan(), plan->id, plan->description);
+    char buf[11];
+    snprintf(buf, sizeof(buf), "%i", plan->id);
+    kv_ns_set_str_atomic(kv_get_ns_plan(), buf, plan->description);
 }
 
 static bool ofp_planning_purge(struct ofp_planning *plan)
@@ -533,12 +535,15 @@ static bool ofp_planning_purge(struct ofp_planning *plan)
     assert(plan->id >= 0);
     ESP_LOGD(TAG, "ofp_planning_purge planning_id %i", plan->id);
 
+    char buf[11];
+    snprintf(buf, sizeof(buf), "%i", plan->id);
+
     // clear every slots in planning ID namespace
     kv_set_ns_slots_for_planning(plan->id);
     kv_ns_clear_atomic(kv_get_ns_slots());
 
     // delete planning in plannings namespace
-    kv_ns_delete_atomic(kv_get_ns_plan(), plan->id);
+    kv_ns_delete_atomic(kv_get_ns_plan(), buf);
 }
 
 static struct ofp_planning_slot *ofp_planning_slot_create(int hour, int minute, enum ofp_order_id order_id)
