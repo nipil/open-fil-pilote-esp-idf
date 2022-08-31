@@ -627,7 +627,27 @@ static bool ofp_planning_list_add_planning(struct ofp_planning *planning)
         return true;
     }
 
-    return false;
+
+bool ofp_planning_list_add_new_planning(char *description)
+{
+    assert(description != NULL);
+    ESP_LOGD(TAG, "ofp_planning_list_add_new_planning desc %s", description);
+
+    // initialize
+    struct ofp_planning *plan = ofp_planning_init(ofp_planning_list_get_next_planning_id(), description);
+    if (plan == NULL)
+    {
+        ESP_LOGW(TAG, "Could not initialize new planning");
+        return false;
+    }
+
+    // store
+    ofp_planning_store(plan);
+
+    // add
+    ofp_planning_list_add_planning(plan);
+
+    return true;
 }
 
 struct ofp_planning_slot *ofp_planning_slot_find_by_id(int planning_id, const char *id_start)
