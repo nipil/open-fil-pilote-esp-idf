@@ -499,11 +499,15 @@ static struct ofp_planning *ofp_planning_create(int planning_id, char *descripti
     return plan;
 }
 
-    // add default slot
-    struct ofp_planning_slot *first_slot = ofp_planning_slot_create(0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES);
-    assert(first_slot != NULL);
-    bool result = ofp_planning_add_slot(plan, first_slot);
-    assert(result);
+static void ofp_planning_free(struct ofp_planning *plan)
+{
+    assert(plan != NULL);
+    ESP_LOGD(TAG, "ofp_planning_free planning_id %i", plan->id);
+
+    if (plan->description)
+        free(plan->description);
+    free(plan);
+}
 
     ESP_LOGV(TAG, "slot %s result %i", first_slot->id_start, result);
     return plan;
