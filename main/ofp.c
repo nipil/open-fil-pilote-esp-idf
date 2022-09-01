@@ -477,7 +477,7 @@ static struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_i
             continue;
         if (plan->id == planning_id)
         {
-            ESP_LOGV(TAG, "found at %i", i);
+            ESP_LOGV(TAG, "found at %i plan %p", i, plan);
             return plan;
         }
     }
@@ -624,11 +624,13 @@ static struct ofp_planning_slot *ofp_planning_slot_find_by_id(struct ofp_plannin
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
     {
         struct ofp_planning_slot *slot = plan->slots[i];
-        ESP_LOGV(TAG, "index %i %p", i, slot);
         if (slot == NULL)
             continue;
         if (strcmp(slot->id_start, buf) == 0)
+        {
+            ESP_LOGV(TAG, "found at %i slot %p", i, slot);
             return slot;
+        }
     }
     return NULL;
 }
@@ -1054,6 +1056,7 @@ bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_
         return false;
     }
 
+    // check if current does exist
     struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, current_hour, current_minute);
     if (slot == NULL)
     {
