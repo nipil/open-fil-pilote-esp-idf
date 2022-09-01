@@ -870,3 +870,39 @@ bool ofp_planning_change_description(int planning_id, char *description)
 
     return true;
 }
+
+bool ofp_planning_slot_set_order(int planning_id, int hour, int minute, enum ofp_order_id order_id)
+{
+    ESP_LOGD(TAG, "ofp_planning_slot_set_order planning_id %i hour %i minute %i order_id %i", planning_id, hour, minute, order_id);
+
+    assert(hour >= 0 && hour < 24);
+    assert(minute >= 0 && minute < 60);
+    assert(ofp_order_id_is_valid(order_id));
+
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGW(TAG, "Could not find planning %i", planning_id);
+        return false;
+    }
+
+    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, hour, minute);
+    if (slot == NULL)
+    {
+        ESP_LOGW(TAG, "Could not find slot %02ih%02i in planning %i", hour, minute, plan->id);
+        return false;
+    }
+
+    if (slot->order_id == order_id)
+    {
+        ESP_LOGV(TAG, "order_id not changed");
+        return true;
+    }
+
+    ESP_LOGV(TAG, "Old slot order_id %i", slot->order_id);
+    slot->order_id = order_id;
+    ESP_LOGV(TAG, "New slot order_id %i", slot->order_id);
+    ofp_planning_slot_store(plan->id, slot);
+
+    return true;
+}
