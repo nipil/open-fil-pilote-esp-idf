@@ -1049,6 +1049,13 @@ bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_
         return false;
     }
 
+    // check if target does not exist
+    if (ofp_planning_slot_find_by_id(plan, new_hour, new_minute) != NULL)
+    {
+        ESP_LOGW(TAG, "Could not set slot start to %s as another one already exists in planning %i namespace", info.key, plan->id);
+        return false;
+    }
+
     // modify id_start in NVS and memory
     ESP_LOGV(TAG, "Old slot id_start %s", slot->id_start);
     ofp_planning_slot_purge(plan->id, slot);
