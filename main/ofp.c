@@ -426,6 +426,7 @@ static bool ofp_zone_update_current(struct ofp_zone *zone)
 {
     ESP_LOGD(TAG, "ofp_zone_update_current");
     // TODO: not yes implemented
+    // TODO: get plannings, find timeslot, get final order, update current
     return false;
 }
 
@@ -447,7 +448,6 @@ void ofp_hw_update(struct ofp_hw *hw)
     for (int i = 0; i < hw->zone_set.count; i++)
     {
         struct ofp_zone *zone = &hw->zone_set.zones[i];
-        // TODO: get plannings, find timeslot, get final order, update current
         if (!ofp_zone_update_current(zone))
         {
             ESP_LOGW(TAG, "Could not update zone %s current order", zone->id);
