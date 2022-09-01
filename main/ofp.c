@@ -906,7 +906,12 @@ bool ofp_planning_list_add_new_planning(char *description)
 
     ofp_planning_store(plan);
 
-    ofp_planning_list_add_planning(plan);
+    if (!ofp_planning_list_add_planning(plan))
+    {
+        ESP_LOGW(TAG, "Could not add planning %i, skipping planning", plan->id);
+        ofp_planning_free(plan);
+        return false;
+    }
 
     struct ofp_planning_slot *slot = ofp_planning_slot_init(0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES);
     if (slot == NULL)
