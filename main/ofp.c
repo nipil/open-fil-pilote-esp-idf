@@ -693,7 +693,7 @@ static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int mi
 
         slot = *candidate;
         *candidate = NULL; // remove from slot list
-        ESP_LOGV(TAG, "found and removed  %p", slot);
+        ESP_LOGV(TAG, "found and removed %p", slot);
         break;
     }
 
@@ -820,7 +820,7 @@ bool ofp_planning_list_remove_planning(int planning_id)
             continue;
 
         plan = *candidate;
-        *candidate = NULL;
+        *candidate = NULL; // remove from planning list
         ESP_LOGV(TAG, "found %p and removed from list", plan);
         break;
     }
@@ -831,9 +831,18 @@ bool ofp_planning_list_remove_planning(int planning_id)
         return false;
     }
 
-    ofp_planning_purge(plan); // removes slots from storage
+    // remove slots (including the default slot)
+    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
+    {
+        struct ofp_planning_slot **candidate = &plan->slots[i];
+        if (*candidate == NULL)
+            continue;
+        ofp_planning_slot_purge(plan->id, *candidate);
+        ofp_planning_slot_free(*candidate);
+        *candidate = NULL; // remove from slot list
+    }
 
-    // todo remove slots from memory
+    ofp_planning_purge(plan);
 
     ofp_planning_free(plan);
 
