@@ -32,6 +32,7 @@ struct ofp_order_info
     char id[OFP_MAX_LEN_ID];
     char name[OFP_MAX_LEN_VALUE];
     char class[OFP_MAX_LEN_ID];
+    enum ofp_order_id order_id;
 };
 
 /* zones */

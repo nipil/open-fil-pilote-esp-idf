@@ -29,24 +29,42 @@ static struct ofp_hw_list hw_list = {.hw_count = 0, .hw = {NULL}};
 
 /* const definition */
 static const struct ofp_order_info order_info[] = {
-    {.id = "offload",
-     .name = "Arr&ecirc;t / D&eacute;lestage",
-     .class = "secondary"},
-    {.id = "nofreeze",
-     .name = "Hors-gel",
-     .class = "info"},
-    {.id = "economy",
-     .name = "Economie",
-     .class = "success"},
-    {.id = "cozy",
-     .name = "Confort",
-     .class = "danger"},
-    {.id = "cozyminus2",
-     .name = "Confort-2&deg;",
-     .class = "warning"},
-    {.id = "cozyminus1",
-     .name = "Confort-1&deg;",
-     .class = "warning"}};
+    {
+        .id = "offload",
+        .name = "Arr&ecirc;t / D&eacute;lestage",
+        .class = "secondary",
+        .order_id = HW_OFP_ORDER_ID_STANDARD_OFFLOAD,
+    },
+    {
+        .id = "nofreeze",
+        .name = "Hors-gel",
+        .class = "info",
+        .order_id = HW_OFP_ORDER_ID_STANDARD_NOFREEZE,
+    },
+    {
+        .id = "economy",
+        .name = "Economie",
+        .class = "success",
+        .order_id = HW_OFP_ORDER_ID_STANDARD_ECONOMY,
+    },
+    {
+        .id = "cozy",
+        .name = "Confort",
+        .class = "danger",
+        .order_id = HW_OFP_ORDER_ID_STANDARD_COZY,
+    },
+    {
+        .id = "cozyminus2",
+        .name = "Confort-2&deg;",
+        .class = "warning",
+        .order_id = HW_OFP_ORDER_ID_EXTENDED_COZYMINUS2,
+    },
+    {
+        .id = "cozyminus1",
+        .name = "Confort-1&deg;",
+        .class = "warning",
+        .order_id = HW_OFP_ORDER_ID_EXTENDED_COZYMINUS1,
+    }};
 
 /* private forward declarations */
 static struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id);
