@@ -200,7 +200,7 @@ async function loadZoneOverrides() {
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
     let name = promptNonEmptyString(`Entrez le nouveu nom de la zone '${zoneId}'`);
-    await patchUrlJson(`/ofp-api/v1/zones/${zoneId}`, { desc: name }).catch(logError);
+    await patchUrlJson(`/ofp-api/v1/zones/${zoneId}`, { description: name }).catch(logError);
     await loadZoneConfiguration().catch(logError);
 }
 
@@ -232,7 +232,7 @@ async function loadZoneConfiguration() {
     let template = {
         '<>': 'div', 'class': 'row mb-3 d-flex align-items-center', 'html': [
             {
-                '<>': 'div', 'class': 'col mb-3', 'html': '<b>${desc}</b> (${id})'
+                '<>': 'div', 'class': 'col mb-3', 'html': '<b>${description}</b> (${id})'
             },
             {
                 '<>': 'div', 'class': function () {

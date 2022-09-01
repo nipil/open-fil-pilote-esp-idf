@@ -50,13 +50,13 @@ GET /ofp-api/v1/zones
         "zones": [
             {
                 "id": "e1z1",
-                "desc": "salon",
+                "description": "salon",
                 "mode": ":planning:${planningID}",
                 "current": "economy"
             },
             {
                 "id": "e1z2",
-                "desc": "chambre parents",
+                "description": "chambre parents",
                 "mode": ":fixed:nofreeze",
                 "current": "nofreeze"
             },
