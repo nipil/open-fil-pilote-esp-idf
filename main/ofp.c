@@ -238,7 +238,7 @@ bool ofp_zone_set_mode_fixed(struct ofp_zone *zone, enum ofp_order_id order_id)
 
 bool ofp_zone_set_mode_planning(struct ofp_zone *zone, int planning_id)
 {
-    if (ofp_planning_list_find_planning_by_id(planning_id) != NULL)
+    if (ofp_planning_list_find_planning_by_id(planning_id) == NULL)
     {
         ESP_LOGW(TAG, "Invalid planning_id value (%i)", planning_id);
         return false;
