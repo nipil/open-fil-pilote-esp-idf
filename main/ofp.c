@@ -458,6 +458,7 @@ void ofp_planning_list_init(void)
     plan_list_global->max_id = -1;
 
     // load plannings
+    ESP_LOGI(TAG, "Load planning definitions");
     ofp_planning_list_load_plannings();
 }
 
