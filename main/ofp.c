@@ -1062,9 +1062,10 @@ bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_
     }
 
     // check if target does not exist
-    if (ofp_planning_slot_find_by_id(plan, new_hour, new_minute) != NULL)
+    struct ofp_planning_slot *target = ofp_planning_slot_find_by_id(plan, new_hour, new_minute);
+    if (target != NULL)
     {
-        ESP_LOGW(TAG, "Could not set slot start to %s as another one already exists in planning %i namespace", info.key, plan->id);
+        ESP_LOGW(TAG, "Could not set slot start to %s, as another one already exists in planning %i namespace", target->id_start, plan->id);
         return false;
     }
 
