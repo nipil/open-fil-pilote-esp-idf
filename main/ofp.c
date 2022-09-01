@@ -456,7 +456,8 @@ void ofp_planning_list_init(void)
     // no planning yet
     plan_list_global->max_id = -1;
 
-    // TODO: load plannings
+    // load plannings
+    ofp_planning_list_load_plannings();
 }
 
 static int ofp_planning_list_get_next_planning_id(void)
@@ -765,6 +766,124 @@ static bool ofp_planning_list_add_planning(struct ofp_planning *planning)
     }
 
     return false; // No more space available
+}
+
+static void ofp_planning_load_slots(struct ofp_planning *plan)
+{
+    assert(plan != NULL);
+    ESP_LOGD(TAG, "ofp_planning_load_slots planning_id %i", plan->id);
+
+    // search slots
+    kv_set_ns_slots_for_planning(plan->id);
+    nvs_iterator_t it_slot = nvs_entry_find(default_nvs_partition_name, kv_get_ns_slots(), NVS_TYPE_I32);
+    for (; it_slot != NULL; it_slot = nvs_entry_next(it_slot))
+    {
+        nvs_entry_info_t info;
+        nvs_entry_info(it_slot, &info);
+
+        struct re_result *res = re_match(re_planning_slot_id_start_printf, info.key);
+        if (res == NULL || res->count != 3)
+        {
+            ESP_LOGW(TAG, "Ignoring slot with invalid key for planning %i: %s", plan->id, info.key);
+            return;
+        }
+
+        // parse
+        int hour = atoi(res->strings[1]);
+        int minute = atoi(res->strings[2]);
+
+        // cleanup
+        if (res != NULL)
+            re_free(res);
+
+        // check for duplicates
+        if (ofp_planning_slot_find_by_id(plan, hour, minute) != NULL)
+        {
+            ESP_LOGW(TAG, "Ignoring duplicate slot id found in planning %i namespace: %s", plan->id, info.key);
+            continue;
+        }
+
+        // ordering
+        enum ofp_order_id order_id = kv_ns_get_i32_atomic(kv_get_ns_slots(), info.key, DEFAULT_FIXED_ORDER_FOR_ZONES); // TODO: do not use default but fail instead ?
+        if (!ofp_order_id_is_valid(order_id))
+        {
+            ESP_LOGW(TAG, "Ignoring slot with invalid order id for planning %i: %i", plan->id, order_id);
+            return;
+        }
+
+        // create
+        struct ofp_planning_slot *slot = ofp_planning_slot_init(hour, minute, order_id);
+        if (slot == NULL)
+        {
+            ESP_LOGW(TAG, "Could not create slot %s for planning %i, skipping slot", info.key, plan->id);
+            continue;
+        }
+
+        // add
+        if (!ofp_planning_add_slot(plan, slot))
+        {
+            ESP_LOGW(TAG, "Could not add slot %s to planning %i, skipping slot", slot->id_start, plan->id);
+            ofp_planning_slot_free(slot);
+            continue;
+        }
+    }
+    nvs_release_iterator(it_slot);
+}
+
+static void ofp_planning_list_load_plannings(void)
+{
+    ESP_LOGD(TAG, "ofp_planning_list_load_plannings");
+
+    // search plannings
+    nvs_iterator_t it_plan = nvs_entry_find(default_nvs_partition_name, kv_get_ns_plan(), NVS_TYPE_STR);
+    for (; it_plan != NULL; it_plan = nvs_entry_next(it_plan))
+    {
+        nvs_entry_info_t info;
+        nvs_entry_info(it_plan, &info);
+
+        // check key (which is planning_id)
+        int planning_id;
+        if (!parse_int(info.key, &planning_id) || planning_id < 0)
+        {
+            ESP_LOGW(TAG, "Ignoring invalid key found in planning namespace: %s", info.key);
+            continue;
+        }
+
+        // check for duplicates
+        if (ofp_planning_list_find_planning_by_id(planning_id))
+        {
+            ESP_LOGW(TAG, "Ignoring duplicate planning id found in planning namespace: %s", info.key);
+            continue;
+        }
+
+        // create planning
+        ESP_LOGV(TAG, "Found planning_id: %i", planning_id);
+        char *description = kv_ns_get_str_atomic(kv_get_ns_plan(), info.key);
+        if (description == NULL)
+        {
+            ESP_LOGW(TAG, "Could not read description for planning %i, skipping planning", planning_id);
+            continue;
+        }
+
+        struct ofp_planning *plan = ofp_planning_init(planning_id, description);
+        if (plan == NULL)
+        {
+            ESP_LOGW(TAG, "Could not create planning %i, skipping planning", planning_id);
+            continue;
+        }
+
+        // add to list
+        if (!ofp_planning_list_add_planning(plan))
+        {
+            ESP_LOGW(TAG, "Could not add planning %i, skipping planning", plan->id);
+            ofp_planning_free(plan);
+            continue;
+        }
+
+        // load slots
+        ofp_planning_load_slots(plan);
+    }
+    nvs_release_iterator(it_plan);
 }
 
 bool ofp_planning_list_add_new_planning(char *description)
