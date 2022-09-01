@@ -14,7 +14,7 @@ static const char TAG[] = "ofp";
 #define OFP_MAX_LEN_INT32 11
 
 /* constants */
-static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):v([[:digit:]]+)^";
+static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):v([[:digit:]]+)$";
 static const char str_planning_slot_id_start_printf[] = "%02ih%02i";
 static const char re_planning_slot_id_start_printf[] = "^(2[0-3]|[0-1][[:digit:]])h([0-5][[:digit:]])$";
 
