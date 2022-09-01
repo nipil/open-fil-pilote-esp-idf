@@ -43,9 +43,51 @@ esp_err_t serve_api_get_zones(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    struct ofp_hw *hw = ofp_hw_get_current();
 
-    return httpd_resp_send_500(req);
+    if (hw == NULL)
+    {
+        ESP_LOGD(TAG, "no zones");
+        return httpd_resp_sendstr(req, "{ \"zones\": [] }");
+    }
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON *zones = cJSON_AddArrayToObject(root, "zones");
+    for (int i = 0; i < hw->zone_set.count; i++)
+    {
+        struct ofp_zone *z = &hw->zone_set.zones[i];
+        cJSON *zone = cJSON_CreateObject();
+        cJSON_AddItemToArray(zones, zone);
+
+        // id & desc
+        cJSON_AddStringToObject(zone, json_key_id, z->id);
+        cJSON_AddStringToObject(zone, json_key_description, z->description);
+
+        // current
+        const struct ofp_order_info *info = ofp_order_info_by_num_id(z->current);
+        cJSON_AddStringToObject(zone, json_key_current, info->id);
+
+        // mode
+        char buf[24]; // ":fixed:cozyminus1\0" length is 20 but upgrade to avoid warning about id being 16
+        switch (z->mode)
+        {
+        case HW_OFP_ZONE_MODE_FIXED:
+            info = ofp_order_info_by_num_id(z->mode_data.order_id);
+            snprintf(buf, sizeof(buf), ":fixed:%s", info->id);
+            break;
+        case HW_OFP_ZONE_MODE_PLANNING:
+            snprintf(buf, sizeof(buf), ":planning:%i", z->mode_data.planning_id);
+            break;
+        default:
+            break;
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Unknown zone mode");
+        }
+        cJSON_AddStringToObject(zone, json_key_mode, buf);
+    }
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
+    return result;
 }
 
 esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
