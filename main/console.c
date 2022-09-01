@@ -416,7 +416,74 @@ static int show_nvs(int argc, char **argv)
                     continue;
                 printf("\tnamespace '%s', key '%s' type", info.namespace_name, info.key);
                 const char *str = kv_type_str_from_nvs_type(info.type);
-                printf(" '%s'\r\n", str ? str : "?");
+                printf(" '%s'", str ? str : "?");
+
+                char *tmp;
+                char *blob;
+                size_t len;
+                printf(" value: ");
+                switch (info.type)
+                {
+                case NVS_TYPE_U8:
+                    printf("%i", kv_ns_get_u8_atomic(info.namespace_name, info.key, -1));
+                    break;
+                case NVS_TYPE_I8:
+                    printf("%i", kv_ns_get_i8_atomic(info.namespace_name, info.key, -1));
+                    break;
+                case NVS_TYPE_U16:
+                    printf("%i", kv_ns_get_u16_atomic(info.namespace_name, info.key, -1));
+                    break;
+                case NVS_TYPE_I16:
+                    printf("%i", kv_ns_get_i16_atomic(info.namespace_name, info.key, -1));
+                    break;
+                case NVS_TYPE_U32:
+                    printf("%i", kv_ns_get_u32_atomic(info.namespace_name, info.key, -1));
+                    break;
+                case NVS_TYPE_I32:
+                    printf("%i", kv_ns_get_i32_atomic(info.namespace_name, info.key, -1));
+                    break;
+                case NVS_TYPE_U64:
+                    printf("%llu", kv_ns_get_u64_atomic(info.namespace_name, info.key, -1));
+                    break;
+                case NVS_TYPE_I64:
+                    printf("%lli", kv_ns_get_i64_atomic(info.namespace_name, info.key, -1));
+                    break;
+                case NVS_TYPE_STR:
+                    tmp = kv_ns_get_str_atomic(info.namespace_name, info.key);
+                    if (tmp != NULL)
+                    {
+                        printf("%s", tmp);
+                        free(tmp);
+                    }
+                    else
+                    {
+                        printf("NULL");
+                    }
+
+                    break;
+                case NVS_TYPE_BLOB:
+                    blob = kv_ns_get_blob_atomic(info.namespace_name, info.key, &len);
+                    if (blob != NULL)
+                    {
+                        printf("len=%i", len);
+                        for (int i = 0; i < len; i++)
+                        {
+                            if (i % 16 == 0)
+                                printf("\r\n\t\t");
+                            printf("%02X ", blob[i]);
+                        }
+                        free(blob);
+                    }
+                    else
+                    {
+                        printf("NULL");
+                    }
+
+                    break;
+                default:
+                    break;
+                }
+                printf("\r\n");
             }
             nvs_release_iterator(it);
         };
