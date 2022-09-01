@@ -61,8 +61,6 @@ esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures)
     cJSON_AddNumberToObject(wifi, "cumulated_uptime", wi->cumulated_uptime + current_wifi_uptime);
     cJSON_AddNumberToObject(wifi, "current_uptime", current_wifi_uptime);
 
-    // TODO: manage cache ?
-
     esp_err_t result = serve_json(req, root);
     cJSON_Delete(root);
     return result;

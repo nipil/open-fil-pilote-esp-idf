@@ -31,6 +31,8 @@ esp_err_t serve_api_get_orders(httpd_req_t *req, struct re_result *captures)
         cJSON_AddItemToArray(orders, order);
     }
 
+    httpd_resp_set_hdr(req, str_cache_control, str_private_max_age_600);
+
     esp_err_t result = serve_json(req, root);
     cJSON_Delete(root);
     return result;
@@ -117,8 +119,6 @@ esp_err_t serve_api_get_override(httpd_req_t *req, struct re_result *captures)
     cJSON_AddStringToObject(root, stor_key_zone_override, override ? override : stor_val_none);
     if (override)
         free(override);
-
-    // TODO: manage cache ?
 
     esp_err_t result = serve_json(req, root);
     cJSON_Delete(root);

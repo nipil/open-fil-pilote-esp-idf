@@ -64,7 +64,7 @@ esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
         cJSON_AddStringToObject(j, json_key_description, hw->description);
     }
 
-    // TODO: manage cache ?
+    httpd_resp_set_hdr(req, str_cache_control, str_private_max_age_600);
 
     esp_err_t result = serve_json(req, root);
     cJSON_Delete(root);
@@ -133,7 +133,7 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
     }
     kv_close(h);
 
-    // TODO: manage cache ?
+    httpd_resp_set_hdr(req, str_cache_control, str_private_max_age_600);
 
     esp_err_t result = serve_json(req, root);
     cJSON_Delete(root);
