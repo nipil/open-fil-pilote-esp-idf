@@ -407,7 +407,7 @@ void ofp_hw_initialize(void)
 static bool ofp_zone_update_current(struct ofp_zone *zone)
 {
     ESP_LOGD(TAG, "ofp_zone_update_current");
-
+    // TODO: not yes implemented
     return false;
 }
 
