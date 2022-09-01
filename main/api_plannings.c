@@ -17,6 +17,8 @@ esp_err_t serve_api_get_plannings(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
+    // TODO: not yet implemented
+
     return httpd_resp_send_500(req);
 }
 
@@ -26,6 +28,8 @@ esp_err_t serve_api_post_plannings(httpd_req_t *req, struct re_result *captures)
     ESP_LOGD(TAG, "serve_api_post_plannings version=%i", version);
     if (version != 1)
         return httpd_resp_send_404(req);
+
+    // TODO: not yet implemented
 
     return httpd_resp_send_500(req);
 }
@@ -38,6 +42,8 @@ esp_err_t serve_api_get_plannings_id(httpd_req_t *req, struct re_result *capture
     if (version != 1)
         return httpd_resp_send_404(req);
 
+    // TODO: not yet implemented
+
     return httpd_resp_send_500(req);
 }
 
@@ -48,6 +54,8 @@ esp_err_t serve_api_patch_plannings_id(httpd_req_t *req, struct re_result *captu
     ESP_LOGD(TAG, "serve_api_patch_plannings_id version=%i id=%i", version, id);
     if (version != 1)
         return httpd_resp_send_404(req);
+
+    // TODO: not yet implemented
 
     return httpd_resp_send_500(req);
 }
@@ -60,6 +68,8 @@ esp_err_t serve_api_delete_plannings_id(httpd_req_t *req, struct re_result *capt
     if (version != 1)
         return httpd_resp_send_404(req);
 
+    // TODO: not yet implemented
+
     return httpd_resp_send_500(req);
 }
 
@@ -70,6 +80,8 @@ esp_err_t serve_api_post_plannings_id_slots(httpd_req_t *req, struct re_result *
     ESP_LOGD(TAG, "serve_api_post_plannings_id_slots version=%i id=%i", version, id);
     if (version != 1)
         return httpd_resp_send_404(req);
+
+    // TODO: not yet implemented
 
     return httpd_resp_send_500(req);
 }
@@ -83,6 +95,8 @@ esp_err_t serve_api_put_plannings_id_slots_id(httpd_req_t *req, struct re_result
     if (version != 1)
         return httpd_resp_send_404(req);
 
+    // TODO: not yet implemented
+
     return httpd_resp_send_500(req);
 }
 
@@ -94,6 +108,8 @@ esp_err_t serve_api_delete_plannings_id_slots_id(httpd_req_t *req, struct re_res
     ESP_LOGD(TAG, "serve_api_delete_plannings_id_slots_id version=%i id=%i slot_id=%s", version, id, slot_id);
     if (version != 1)
         return httpd_resp_send_404(req);
+
+    // TODO: not yet implemented
 
     return httpd_resp_send_500(req);
 }

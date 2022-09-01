@@ -43,6 +43,8 @@ esp_err_t serve_api_get_zones(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
+    // TODO: not yet implemented
+
     return httpd_resp_send_500(req);
 }
 
@@ -53,6 +55,8 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
     ESP_LOGD(TAG, "serve_api_patch_zones_id version=%i id=%s", version, id);
     if (version != 1)
         return httpd_resp_send_404(req);
+
+    // TODO: not yet implemented
 
     return httpd_resp_send_500(req);
 }

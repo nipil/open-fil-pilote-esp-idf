@@ -95,7 +95,7 @@ esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
 
     /*
     sample file upload from Chrome, same with Edge
-    
+
         Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryQ63nar1W96PdzXtt
         D (72538) api_hw: content length 2499
         D (72568) api_hw: 0x3ffd0bd0   2d 2d 2d 2d 2d 2d 57 65  62 4b 69 74 46 6f 72 6d  |------WebKitForm|
@@ -124,6 +124,8 @@ esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
         D (924918) api_hw: 0x3ffd0bd0   74 69 74 69 20 6c 65 20  70 69 61 66 20 65 73 74  |titi le piaf est|
         D (924928) api_hw: 0x3ffd0be0   20 6a 61 75 6e 65 65 74  20 62 c3 aa 74 65        | jauneet b..te|
     */
+
+    // TODO: not yet implemented
 
     return httpd_resp_send_500(req);
 }
