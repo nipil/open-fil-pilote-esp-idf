@@ -663,6 +663,70 @@ bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_o
     return true;
 }
 
+static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int minute)
+{
+    assert(hour >= 0 && hour < 24);
+    assert(minute >= 0 && minute < 60);
+    assert(plan != NULL);
+    ESP_LOGD(TAG, "ofp_planning_remove_slot planning %i hour %i minude %i", plan->id, hour, minute);
+
+    if (hour == 0 && minute == 0)
+    {
+        ESP_LOGW(TAG, "Could not remove midnight slot for planning %i", plan->id);
+        return false;
+    }
+
+    char buf[OFP_MAX_LEN_PLANNING_START];
+    snprintf(buf, sizeof(buf), str_planning_slot_id_start_printf, hour, minute);
+
+    // search and prune
+    struct ofp_planning_slot *slot = NULL;
+    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
+    {
+        struct ofp_planning_slot **candidate = &plan->slots[i];
+        ESP_LOGV(TAG, "index %i %p", i, *candidate);
+        if (*candidate == NULL)
+            continue;
+
+        if (strcmp((*candidate)->id_start, buf) != 0)
+            continue;
+
+        slot = *candidate;
+        *candidate = NULL; // remove from slot list
+        ESP_LOGV(TAG, "found and removed  %p", slot);
+        break;
+    }
+
+    if (slot == NULL)
+    {
+        ESP_LOGD(TAG, "slot %s not found", buf);
+        return false;
+    }
+
+    ofp_planning_slot_purge(plan->id, slot);
+
+    ofp_planning_slot_free(slot);
+
+    return true;
+}
+
+bool ofp_planning_remove_existing_slot(int planning_id, int hour, int minute)
+{
+    ESP_LOGD(TAG, "ofp_planning_remove_slot planning %i hour %i minude %i", planning_id, hour, minute);
+
+    assert(hour >= 0 && hour < 24);
+    assert(minute >= 0 && minute < 60);
+
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGD(TAG, "Could not find planning %i", planning_id);
+        return false;
+    }
+
+    return ofp_planning_remove_slot(plan, hour, minute);
+}
+
 /*
  * IMPORTANT:
  *
