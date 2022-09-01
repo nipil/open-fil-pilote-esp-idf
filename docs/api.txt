@@ -65,7 +65,7 @@ GET /ofp-api/v1/zones
     }
 
 PATCH /ofp-api/v1/zones/${zoneId}
-    { desc: "wxc" }
+    { description: "wxc" }
     { mode: ":fixed:offload" }
     { mode: ":planning:${planningId}" }
 
