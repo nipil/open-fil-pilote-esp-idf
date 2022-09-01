@@ -568,7 +568,7 @@ static int show_zones(int argc, char **argv)
     {
         const struct ofp_order_info *info;
         struct ofp_zone *zone = &hw->zone_set.zones[i];
-        printf("\tZone %s", zone->id);
+        printf("\tZone %s (desc: %s) ", zone->id, zone->description);
         switch (zone->mode)
         {
         case HW_OFP_ZONE_MODE_FIXED:
