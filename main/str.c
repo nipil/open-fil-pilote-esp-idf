@@ -36,6 +36,10 @@ const char *http_content_type_html = HTTPD_TYPE_TEXT;
 const char *http_content_type_js = "text/javascript";
 const char *http_content_type_json = HTTPD_TYPE_JSON;
 
+const char *str_cache_control = "Cache-Control";
+const char *str_private_max_age_600 = "private, max-age=600";
+const char *str_private_no_store = "private, no-store";
+
 const char *route_root = "/";
 const char *route_ofp_html = "/ofp.html";
 const char *route_ofp_js = "/ofp.js";

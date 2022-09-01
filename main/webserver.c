@@ -63,6 +63,8 @@ static esp_err_t serve_from_asm(httpd_req_t *req, const unsigned char *binary_st
     size_t binary_len = binary_end - binary_start - 1;
 
     ESP_LOGV(TAG, "Serve_from_asm start %p end %p size %i", binary_start, binary_end, binary_len);
+    httpd_resp_set_hdr(req, str_cache_control, str_private_max_age_600);
+    // httpd_resp_set_hdr(req, str_cache_control, str_private_no_store);
     httpd_resp_set_type(req, http_content_type);
     httpd_resp_send(req, (const char *)binary_start, binary_len);
     return ESP_OK;

@@ -34,6 +34,10 @@ const char *http_content_type_html;
 const char *http_content_type_js;
 const char *http_content_type_json;
 
+const char *str_cache_control;
+const char *str_private_max_age_600;
+const char *str_private_no_store;
+
 const char *route_root;
 const char *route_ofp_html;
 const char *route_ofp_js;
