@@ -659,7 +659,12 @@ bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_o
 
     ofp_planning_slot_store(planning_id, slot);
 
-    ofp_planning_add_slot(plan, slot);
+    if (!ofp_planning_add_slot(plan, slot))
+    {
+        ESP_LOGW(TAG, "Could not add slot %s to planning %i, skipping slot", slot->id_start, plan->id);
+        ofp_planning_slot_free(slot);
+        return false;
+    }
 
     return true;
 }
@@ -914,7 +919,8 @@ bool ofp_planning_list_add_new_planning(char *description)
 
     if (!ofp_planning_add_slot(plan, slot))
     {
-        ESP_LOGW(TAG, "Could not add default slot for planning %i", plan->id);
+        ESP_LOGW(TAG, "Could not add slot %s to planning %i, skipping slot", slot->id_start, plan->id);
+        ofp_planning_slot_free(slot);
         return false;
     }
 
