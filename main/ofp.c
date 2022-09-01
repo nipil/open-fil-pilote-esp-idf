@@ -196,6 +196,9 @@ bool ofp_zone_set_description(struct ofp_zone *zone, const char *description)
         return false;
 
     strcpy(zone->description, description);
+
+    // TODO: store in NVS
+
     return true;
 }
 
@@ -209,6 +212,9 @@ bool ofp_zone_set_mode_fixed(struct ofp_zone *zone, enum ofp_order_id order_id)
     zone->mode = HW_OFP_ZONE_MODE_FIXED;
     zone->mode_data.order_id = order_id;
     ESP_LOGV(TAG, "zone %s mode %i order_id %i", zone->id, zone->mode, zone->mode_data.order_id);
+
+    // TODO: store in NVS
+
     return true;
 }
 
@@ -222,6 +228,9 @@ bool ofp_zone_set_mode_planning(struct ofp_zone *zone, int planning_id)
     zone->mode = HW_OFP_ZONE_MODE_PLANNING;
     zone->mode_data.planning_id = planning_id;
     ESP_LOGV(TAG, "zone %s mode %i order_id %i", zone->id, zone->mode, zone->mode_data.planning_id);
+
+    // TODO: store in NVS
+
     return true;
 }
 
