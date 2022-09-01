@@ -19,6 +19,7 @@ const char *json_key_supported = "supported";
 const char *json_key_type = "type";
 const char *json_key_value = "value";
 const char *json_key_plannings = "plannings";
+const char *json_key_orders = "orders";
 
 const char *json_type_number = "number";
 const char *json_type_string = "string";

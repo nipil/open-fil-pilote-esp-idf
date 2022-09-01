@@ -17,6 +17,7 @@ const char *json_key_supported;
 const char *json_key_type;
 const char *json_key_value;
 const char *json_key_plannings;
+const char *json_key_orders;
 
 const char *json_type_number;
 const char *json_type_string;

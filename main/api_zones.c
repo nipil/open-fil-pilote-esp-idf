@@ -19,7 +19,7 @@ esp_err_t serve_api_get_orders(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_404(req);
 
     cJSON *root = cJSON_CreateObject();
-    cJSON *orders = cJSON_AddArrayToObject(root, "orders");
+    cJSON *orders = cJSON_AddArrayToObject(root, json_key_orders);
 
     for (int i = 0; i < HW_OFP_ORDER_ID_ENUM_SIZE; i++)
     {
