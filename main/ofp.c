@@ -848,3 +848,25 @@ bool ofp_planning_list_remove_planning(int planning_id)
 
     return plan;
 }
+
+bool ofp_planning_change_description(int planning_id, char *description)
+{
+    assert(description != NULL);
+    ESP_LOGD(TAG, "ofp_planning_change_description planning_id %i description %s", planning_id, description);
+
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGW(TAG, "Planning %i not found", planning_id);
+        return false;
+    }
+
+    if (plan->description != NULL)
+        free(plan->description);
+    plan->description = strdup(description);
+    ESP_LOGV(TAG, "Description changed in memory");
+
+    ofp_planning_store(plan);
+
+    return true;
+}

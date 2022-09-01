@@ -198,5 +198,6 @@ bool ofp_planning_list_add_new_planning(char *description);
 bool ofp_planning_list_remove_planning(int planning_id);
 bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_order_id order_id);
 bool ofp_planning_remove_existing_slot(int planning_id, int hour, int minute);
+bool ofp_planning_change_description(int planning_id, char *description);
 
 #endif /* OFP_H */
