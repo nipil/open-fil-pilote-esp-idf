@@ -906,3 +906,36 @@ bool ofp_planning_slot_set_order(int planning_id, int hour, int minute, enum ofp
 
     return true;
 }
+
+bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_minute, int new_hour, int new_minute)
+{
+    ESP_LOGD(TAG, "ofp_planning_slot_set_start planning_id %i cur_hour %i cur_minute %i new_hour %i new_minute %i", planning_id, current_hour, current_minute, new_hour, new_minute);
+
+    assert(current_hour >= 0 && current_hour < 24);
+    assert(current_minute >= 0 && current_minute < 60);
+    assert(new_hour >= 0 && new_hour < 24);
+    assert(new_minute >= 0 && new_minute < 60);
+
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGW(TAG, "Could not find planning %i", planning_id);
+        return false;
+    }
+
+    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, current_hour, current_minute);
+    if (slot == NULL)
+    {
+        ESP_LOGW(TAG, "Could not find slot %02ih%02i in planning %i", current_hour, current_minute, plan->id);
+        return false;
+    }
+
+    // modify id_start in NVS and memory
+    ESP_LOGV(TAG, "Old slot id_start %s", slot->id_start);
+    ofp_planning_slot_purge(plan->id, slot);
+    snprintf(slot->id_start, sizeof(slot->id_start), str_planning_slot_id_start_printf, new_hour, new_minute);
+    ofp_planning_slot_store(plan->id, slot);
+    ESP_LOGV(TAG, "New slot id_start %s", slot->id_start);
+
+    return true;
+}
