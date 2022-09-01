@@ -17,9 +17,31 @@ esp_err_t serve_api_get_plannings(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    // No list available, means provide
+    struct ofp_planning_list *plan_list = ofp_planning_list_get();
+    if (plan_list == NULL)
+    {
+        ESP_LOGW(TAG, "No planning list available");
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Planning list not initialized");
+    }
 
-    return httpd_resp_send_500(req);
+    cJSON *root = cJSON_CreateObject();
+    cJSON *plannings = cJSON_AddArrayToObject(root, json_key_plannings);
+
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    {
+        struct ofp_planning *plan = plan_list->plannings[i];
+        if (plan == NULL)
+            continue;
+        cJSON *planning = cJSON_CreateObject();
+        cJSON_AddItemToArray(plannings, planning);
+        cJSON_AddNumberToObject(planning, stor_key_id, plan->id);
+        cJSON_AddStringToObject(planning, stor_key_name, plan->description);
+    }
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
+    return result;
 }
 
 esp_err_t serve_api_post_plannings(httpd_req_t *req, struct re_result *captures)
