@@ -50,7 +50,7 @@ static const struct ofp_order_info order_info[] = {
 
 /* private forward declarations */
 static struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id);
-
+static void ofp_planning_list_load_plannings(void);
 /*
  * Make a hardware available to the system.
  *
