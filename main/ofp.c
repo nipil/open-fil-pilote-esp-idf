@@ -11,6 +11,7 @@ static const char TAG[] = "ofp";
 
 /* defines */
 #define DEFAULT_FIXED_ORDER_FOR_ZONES HW_OFP_ORDER_ID_STANDARD_COZY
+#define OFP_MAX_LEN_INT32 11
 
 /* constants */
 static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):v([[:digit:]]+)^";
@@ -410,8 +411,8 @@ void ofp_hw_update(struct ofp_hw *hw)
     time(&now);
     time_to_localtime(&now, &ti);
 
-    char buf[64];
-    localtime_to_string(&ti, buf, 64);
+    char buf[LOCALTIME_TO_STRING_BUFFER_LENGTH];
+    localtime_to_string(&ti, buf, sizeof(buf));
     ESP_LOGV(TAG, "current time: %s", buf);
 
     // compute current zone orders
@@ -522,7 +523,7 @@ static void ofp_planning_store(struct ofp_planning *plan)
     assert(plan->id >= 0);
     ESP_LOGD(TAG, "ofp_planning_store planning_id %i", plan->id);
 
-    char buf[11];
+    char buf[OFP_MAX_LEN_INT32];
     snprintf(buf, sizeof(buf), "%i", plan->id);
     kv_ns_set_str_atomic(kv_get_ns_plan(), buf, plan->description);
 }
@@ -533,7 +534,7 @@ static void ofp_planning_purge(struct ofp_planning *plan)
     assert(plan->id >= 0);
     ESP_LOGD(TAG, "ofp_planning_purge planning_id %i", plan->id);
 
-    char buf[11];
+    char buf[OFP_MAX_LEN_INT32];
     snprintf(buf, sizeof(buf), "%i", plan->id);
 
     // clear every slots in planning ID namespace

@@ -4,6 +4,8 @@
 #include <time.h>
 #include <regex.h>
 
+#define LOCALTIME_TO_STRING_BUFFER_LENGTH 64
+
 // Some useful macros (source: linux kernel)
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 
