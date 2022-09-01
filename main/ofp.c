@@ -547,11 +547,11 @@ static void ofp_planning_purge(struct ofp_planning *plan)
 
 static struct ofp_planning_slot *ofp_planning_slot_init(int hour, int minute, enum ofp_order_id order_id)
 {
+    ESP_LOGD(TAG, "ofp_planning_slot_init hour %i minute %i order_id %i", hour, minute, order_id);
+
     assert(hour >= 0 && hour < 24);
     assert(minute >= 0 && minute < 60);
     assert(ofp_order_id_is_valid(order_id));
-
-    ESP_LOGD(TAG, "ofp_planning_slot_init hour %i minute %i order_id %i", hour, minute, order_id);
 
     // alloc and zero members
     struct ofp_planning_slot *slot = calloc(1, sizeof(struct ofp_planning_slot));
@@ -638,7 +638,7 @@ bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_o
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
     if (plan == NULL)
     {
-        ESP_LOGD(TAG, "Could not find planning %i", planning_id);
+        ESP_LOGW(TAG, "Could not find planning %i", planning_id);
         return false;
     }
 
@@ -720,7 +720,7 @@ bool ofp_planning_remove_existing_slot(int planning_id, int hour, int minute)
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
     if (plan == NULL)
     {
-        ESP_LOGD(TAG, "Could not find planning %i", planning_id);
+        ESP_LOGW(TAG, "Could not find planning %i", planning_id);
         return false;
     }
 
