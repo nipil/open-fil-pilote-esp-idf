@@ -100,9 +100,142 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    // check zone
+    struct ofp_hw *hw = ofp_hw_get_current();
+    if (hw == NULL)
+    {
+        ESP_LOGD(TAG, "No hardware selected");
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "No hardware selected");
+    }
+    struct ofp_zone *zone = NULL, *candidate;
+    for (int i = 0; i < hw->zone_set.count; i++)
+    {
+        candidate = &hw->zone_set.zones[i];
+        if (strcmp(candidate->id, id) == 0)
+        {
+            ESP_LOGV(TAG, "zone found %i", i);
+            zone = candidate;
+            break;
+        }
+    }
+    if (zone == NULL)
+    {
+        ESP_LOGD(TAG, "zone not found");
+        return httpd_resp_send_404(req);
+    }
 
-    return httpd_resp_send_500(req);
+    // read
+    char *buf = webserver_get_request_data_atomic(req);
+    if (buf == NULL)
+    {
+        ESP_LOGW(TAG, "Failed getting request data");
+        return ESP_FAIL;
+    }
+
+    // parse
+    cJSON *root = cJSON_Parse(buf);
+
+    // cleanup
+    free(buf);
+
+    // parse error
+    if (root == NULL)
+    {
+        const char *error_ptr = cJSON_GetErrorPtr();
+        if (error_ptr != NULL)
+        {
+            ESP_LOGD(TAG, "JSON parse error, before: %s", error_ptr);
+        }
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
+    }
+
+    // description
+    cJSON *desc = cJSON_GetObjectItemCaseSensitive(root, json_key_description);
+    if (desc != NULL)
+    {
+        if (!cJSON_IsString(desc) || (desc->valuestring == NULL))
+        {
+            ESP_LOGD(TAG, "Invalid type or value for element %s", json_key_description);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+        }
+
+        ESP_LOGV(TAG, "description: %s", desc->valuestring);
+        if (!ofp_zone_set_description(zone, desc->valuestring))
+        {
+            ESP_LOGW(TAG, "Could not set zone description");
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set zone description");
+        }
+        ESP_LOGV(TAG, "Description updated.");
+    }
+
+    // mode
+    cJSON *mode = cJSON_GetObjectItemCaseSensitive(root, json_key_mode);
+    if (mode != NULL)
+    {
+        if (!cJSON_IsString(mode) || (mode->valuestring == NULL))
+        {
+            ESP_LOGD(TAG, "Invalid value for element %s", json_key_mode);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+        }
+
+        ESP_LOGV(TAG, "mode: %s", mode->valuestring);
+        struct re_result *res = re_match(parse_zone_mode_re_str, mode->valuestring);
+        if (res == NULL || res->count != 6)
+        {
+            ESP_LOGD(TAG, "No match for mode in value %s for element %s", mode->valuestring, json_key_mode);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+        }
+
+        char *fix = res->strings[2];
+        char *fix_id = res->strings[3];
+        char *plan = res->strings[4];
+        char *plan_id = res->strings[5];
+
+        if (fix != NULL && fix_id != NULL)
+        {
+            const struct ofp_order_info *info = ofp_order_info_by_str_id(fix_id);
+            if (info == NULL)
+            {
+                ESP_LOGD(TAG, "Value %s for element %s is not an order id", mode->valuestring, json_key_mode);
+                free(res);
+                cJSON_Delete(root);
+                return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+            }
+
+            if (!ofp_zone_set_mode_fixed(zone, info->order_id))
+            {
+                ESP_LOGW(TAG, "Could not set zone fixed mode");
+                free(res);
+                cJSON_Delete(root);
+                return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set zone fixed mode");
+            }
+        }
+        else if (plan != NULL && plan_id != NULL)
+        {
+            if (!ofp_zone_set_mode_planning(zone, atoi(plan_id)))
+            {
+                ESP_LOGW(TAG, "Could not set zone planning mode");
+                free(res);
+                cJSON_Delete(root);
+                return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set zone planning mode");
+            }
+        }
+        else
+        {
+            free(res);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "No arguments provided");
+        }
+
+        free(res);
+    }
+
+    cJSON_Delete(root);
+    return httpd_resp_sendstr(req, "");
 }
 
 esp_err_t serve_api_get_override(httpd_req_t *req, struct re_result *captures)

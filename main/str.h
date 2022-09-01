@@ -2,6 +2,7 @@
 #define STR_H
 
 const char *parse_int_re_str;
+const char *parse_zone_mode_re_str;
 
 const char *default_nvs_partition_name;
 
