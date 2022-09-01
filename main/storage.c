@@ -104,7 +104,7 @@ const char *kv_get_ns_zone(void)
 
 static bool kv_build_ns_slots_for_planning(int planning_id, char *buf)
 {
-    int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_pl_sl_%i", planning_id);
+    int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_sl_%i", planning_id);
     return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
 }
 
