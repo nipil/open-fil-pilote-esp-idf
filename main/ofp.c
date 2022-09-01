@@ -450,6 +450,11 @@ struct ofp_hw *ofp_hw_get_current(void)
 
 /* planning functions */
 
+struct ofp_planning_list *ofp_planning_list_get(void)
+{
+    return plan_list_global;
+}
+
 void ofp_planning_list_init(void)
 {
     // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
