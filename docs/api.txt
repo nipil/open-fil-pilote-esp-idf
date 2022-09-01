@@ -61,6 +61,7 @@ GET /ofp-api/v1/zones
                 "current": "nofreeze"
             },
             ...
+        ]
     }
 
 PATCH /ofp-api/v1/zones/${zoneId}
