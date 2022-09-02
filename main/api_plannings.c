@@ -63,9 +63,46 @@ esp_err_t serve_api_get_plannings_id(httpd_req_t *req, struct re_result *capture
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    struct ofp_planning_list *plan_list = ofp_planning_list_get();
+    if (plan_list == NULL)
+    {
+        ESP_LOGW(TAG, "No planning list available");
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Planning list not initialized");
+    }
 
-    return httpd_resp_send_500(req);
+    int planning_id = atoi(captures->strings[2]);
+    ESP_LOGD(TAG, "planning_id %i", planning_id);
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGD(TAG, "planning not found");
+        return httpd_resp_send_404(req);
+    }
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON *slots = cJSON_AddArrayToObject(root, json_key_slots);
+    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
+    {
+        struct ofp_planning_slot *slot = plan->slots[i];
+        if (slot == NULL)
+            continue;
+
+        const struct ofp_order_info *info = ofp_order_info_by_num_id(slot->order_id);
+        if (info == NULL)
+        {
+            ESP_LOGW(TAG, "Invalid order id %i found in slot %s, skipping it", slot->order_id, slot->id_start);
+            continue;
+        }
+
+        cJSON *s = cJSON_CreateObject();
+        cJSON_AddItemToArray(slots, s);
+        cJSON_AddStringToObject(s, json_key_start, slot->id_start);
+        cJSON_AddStringToObject(s, json_key_order, info->id);
+    }
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
+    return result;
 }
 
 esp_err_t serve_api_patch_plannings_id(httpd_req_t *req, struct re_result *captures)
