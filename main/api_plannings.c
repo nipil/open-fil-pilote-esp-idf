@@ -50,9 +50,56 @@ esp_err_t serve_api_post_plannings(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    struct ofp_planning_list *plan_list = ofp_planning_list_get();
+    if (plan_list == NULL)
+    {
+        ESP_LOGW(TAG, "No planning list available");
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Planning list not initialized");
+    }
 
-    return httpd_resp_send_500(req);
+    // read
+    char *buf = webserver_get_request_data_atomic(req);
+    if (buf == NULL)
+    {
+        ESP_LOGW(TAG, "Failed getting request data");
+        return ESP_FAIL;
+    }
+
+    // parse
+    cJSON *root = cJSON_Parse(buf);
+
+    // cleanup
+    free(buf);
+
+    // parse error
+    if (root == NULL)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
+
+    // name
+    cJSON *name = cJSON_GetObjectItemCaseSensitive(root, stor_key_name);
+    if (name != NULL)
+    {
+        if (!cJSON_IsString(name) || (name->valuestring == NULL))
+        {
+            ESP_LOGD(TAG, "Invalid type or value for element %s", stor_key_name);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+        }
+
+        ESP_LOGV(TAG, "name: %s", name->valuestring);
+        if (!ofp_planning_list_add_new_planning(name->valuestring))
+        {
+            ESP_LOGW(TAG, "Could not create new planning '%s'", name->valuestring);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not create new planning");
+        }
+        ESP_LOGV(TAG, "Planning created.");
+    }
+
+    // not providing any matching element is not an error
+
+    cJSON_Delete(root);
+    return httpd_resp_sendstr(req, "");
 }
 
 esp_err_t serve_api_get_plannings_id(httpd_req_t *req, struct re_result *captures)
