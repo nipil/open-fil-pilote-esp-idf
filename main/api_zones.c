@@ -222,6 +222,8 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
                 cJSON_Delete(root);
                 return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set zone fixed mode");
             }
+
+            ESP_LOGV(TAG, "mode fix finished");
         }
         else if (plan != NULL && plan_id != NULL)
         {
@@ -232,16 +234,13 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
                 cJSON_Delete(root);
                 return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set zone planning mode");
             }
+            ESP_LOGV(TAG, "mode plan finished");
         }
-        else
-        {
-            free(res);
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "No arguments provided");
-        }
-
+        // no other valid case according to REGEX
         free(res);
     }
+
+    // not providing any matching element is not an error
 
     cJSON_Delete(root);
     return httpd_resp_sendstr(req, "");

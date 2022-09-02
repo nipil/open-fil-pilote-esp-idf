@@ -501,6 +501,7 @@ static int ofp_planning_list_get_next_planning_id(void)
 
 static struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id)
 {
+    assert(plan_list_global);
     ESP_LOGD(TAG, "ofp_planning_list_find_planning_by_id %i", planning_id);
 
     for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
