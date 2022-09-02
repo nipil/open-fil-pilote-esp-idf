@@ -17,7 +17,6 @@ esp_err_t serve_api_get_plannings(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // No list available, means provide
     struct ofp_planning_list *plan_list = ofp_planning_list_get();
     if (plan_list == NULL)
     {
