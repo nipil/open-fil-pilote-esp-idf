@@ -196,6 +196,7 @@ void ofp_hw_update(struct ofp_hw *hw);
 /* planning accessors */
 void ofp_planning_list_init(void);
 struct ofp_planning_list *ofp_planning_list_get(void);
+struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id);
 bool ofp_planning_list_add_new_planning(char *description);
 bool ofp_planning_list_remove_planning(int planning_id);
 bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_order_id order_id);

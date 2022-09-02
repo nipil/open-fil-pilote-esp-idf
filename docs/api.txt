@@ -92,7 +92,7 @@ DELETE /ofp-api/v1/plannings/${planningId}
 
 GET /ofp-api/v1/plannings/${planningId}
     {
-        "details": [
+        "slots": [
             {
                 "start": "00h00",
                 "order": "nofreeze"

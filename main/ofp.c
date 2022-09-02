@@ -499,7 +499,7 @@ static int ofp_planning_list_get_next_planning_id(void)
     return ++plan_list_global->max_id;
 }
 
-static struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id)
+struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id)
 {
     assert(plan_list_global);
     ESP_LOGD(TAG, "ofp_planning_list_find_planning_by_id %i", planning_id);
