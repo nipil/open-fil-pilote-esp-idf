@@ -146,6 +146,7 @@ async function changeZoneOverrides(override) {
 }
 
 async function apiGetOrderTypesJson() {
+    // TODO: reorder
     return await getUrlJson('/ofp-api/v1/orders');
 }
 
@@ -304,6 +305,7 @@ async function createPlanning(name) {
     console.log('createPlanning', name);
     await postUrlJson(`/ofp-api/v1/plannings`, { name: name }).catch(logError);
     await loadPlanningList().catch(logError);
+    // TODO: select newly created planning
 }
 
 async function renamePlanning(id) {
@@ -358,6 +360,7 @@ async function loadPlanningList() {
 /*******************************************************************************/
 
 async function apiGetPlanningSlotsJson(planningId) {
+    // TODO: reorder
     return await getUrlJson(`/ofp-api/v1/plannings/${planningId}`);
 }
 
