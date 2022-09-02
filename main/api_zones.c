@@ -144,6 +144,15 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
         {
+            /*
+             * BUG: there is something weird about the strlen of the error_ptr when parsing a empty string ()
+             * V (12:08:14.016) webserver: Received 1 bytes
+             * V (12:08:14.017) webserver: 0x3ffd570c   20 00 <-- incoming data
+             * V (12:08:14.030) api_zones: --- parse error
+             * V (12:08:14.031) api_zones: 0x3ffd570d   8a fb 3f dc <-- error_ptr
+             * V (12:08:14.043) api_zones: 7 0x3ffd570d <-- strlen(error_ptr) error_ptr
+             * D (12:08:14.044) api_zones: JSON parse error, before: ��?܊�? <-- logging with %s
+             */
             ESP_LOGD(TAG, "JSON parse error, before: %s", error_ptr);
         }
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
