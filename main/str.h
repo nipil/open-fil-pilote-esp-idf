@@ -8,6 +8,12 @@ const char *default_nvs_partition_name;
 
 const char *null_str;
 
+const char *http_get;
+const char *http_post;
+const char *http_put;
+const char *http_patch;
+const char *http_delete;
+
 const char *stor_key_hardware_type;
 
 const char *json_key_current;

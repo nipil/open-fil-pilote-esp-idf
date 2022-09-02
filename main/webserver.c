@@ -309,6 +309,44 @@ static esp_err_t https_handler_generic(httpd_req_t *req)
     return httpd_resp_send_404(req);
 }
 
+static esp_err_t https_handler_input_middleware(httpd_req_t *req)
+{
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+    struct timeval begin, end;
+    gettimeofday(&begin, NULL);
+
+    esp_err_t result = https_handler_generic(req);
+
+    gettimeofday(&end, NULL);
+    uint32_t delta_ms = (end.tv_sec - begin.tv_sec) * 1000LL + (end.tv_usec - begin.tv_usec) / 1000LL;
+
+    const char *m = NULL, *u = "???";
+    switch (req->method)
+    {
+    case HTTP_GET:
+        m = http_get;
+        break;
+    case HTTP_POST:
+        m = http_post;
+        break;
+    case HTTP_PUT:
+        m = http_put;
+        break;
+    case HTTP_PATCH:
+        m = http_patch;
+        break;
+    case HTTP_DELETE:
+        m = http_delete;
+        break;
+    default:
+        m = u;
+        break;
+    }
+    ESP_LOGD(TAG, "Request duration for %s %s : %u milliseconds", m, req->uri, delta_ms);
+
+    return result;
+}
+
 /***************************************************************************/
 
 static void webserver_register_wildcard_method(httpd_handle_t *new_server, httpd_method_t method, esp_err_t (*handler)(httpd_req_t *r))
@@ -324,11 +362,11 @@ static void webserver_register_wildcard_method(httpd_handle_t *new_server, httpd
 static void webserver_register_uri_handlers(httpd_handle_t new_server)
 {
     // use only generic handlers to avoid consuming too many handlers
-    webserver_register_wildcard_method(new_server, HTTP_GET, https_handler_generic);
-    webserver_register_wildcard_method(new_server, HTTP_POST, https_handler_generic);
-    webserver_register_wildcard_method(new_server, HTTP_PUT, https_handler_generic);
-    webserver_register_wildcard_method(new_server, HTTP_PATCH, https_handler_generic);
-    webserver_register_wildcard_method(new_server, HTTP_DELETE, https_handler_generic);
+    webserver_register_wildcard_method(new_server, HTTP_GET, https_handler_input_middleware);
+    webserver_register_wildcard_method(new_server, HTTP_POST, https_handler_input_middleware);
+    webserver_register_wildcard_method(new_server, HTTP_PUT, https_handler_input_middleware);
+    webserver_register_wildcard_method(new_server, HTTP_PATCH, https_handler_input_middleware);
+    webserver_register_wildcard_method(new_server, HTTP_DELETE, https_handler_input_middleware);
 }
 
 /***************************************************************************/

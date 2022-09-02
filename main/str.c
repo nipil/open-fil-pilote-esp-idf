@@ -10,6 +10,12 @@ const char *default_nvs_partition_name = NVS_DEFAULT_PART_NAME;
 
 const char *null_str = "NULL";
 
+const char *http_get = "GET";
+const char *http_post = "POST";
+const char *http_put = "PUT";
+const char *http_patch = "PATCH";
+const char *http_delete = "DELETE";
+
 const char *stor_key_hardware_type = "hardware_type";
 
 const char *json_key_current = "current";
