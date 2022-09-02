@@ -361,7 +361,6 @@ async function loadPlanningList() {
 /*******************************************************************************/
 
 async function apiGetPlanningSlotsJson(planningId) {
-    // TODO: reorder
     return await getUrlJson(`/ofp-api/v1/plannings/${planningId}`);
 }
 
@@ -391,6 +390,15 @@ async function addPlanningSlot(planningId, startId, order) {
 
 async function loadPlanningSlots(planningId) {
     let { slots } = await apiGetPlanningSlotsJson(planningId);
+
+    // order by name
+    slots.sort((a, b) => {
+        if (a.start === b.start) {
+            return 0;
+        }
+        return a.start < b.start ? -1 : 1;
+    });
+
     let { orders } = await apiGetOrderTypesJson();
 
     let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
