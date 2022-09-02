@@ -75,26 +75,29 @@ esp_err_t serve_api_post_plannings(httpd_req_t *req, struct re_result *captures)
     if (root == NULL)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
 
-    // name
+    // name is required
     cJSON *name = cJSON_GetObjectItemCaseSensitive(root, stor_key_name);
-    if (name != NULL)
+    if (name == NULL)
     {
-        if (!cJSON_IsString(name) || (name->valuestring == NULL))
-        {
-            ESP_LOGD(TAG, "Invalid type or value for element %s", stor_key_name);
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
-        }
-
-        ESP_LOGV(TAG, "name: %s", name->valuestring);
-        if (!ofp_planning_list_add_new_planning(name->valuestring))
-        {
-            ESP_LOGW(TAG, "Could not create new planning '%s'", name->valuestring);
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not create new planning");
-        }
-        ESP_LOGV(TAG, "Planning created.");
+        ESP_LOGD(TAG, "Missing JSON element '%s'", stor_key_name);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing JSON element");
     }
+
+    if (!cJSON_IsString(name) || (name->valuestring == NULL))
+    {
+        ESP_LOGD(TAG, "Invalid type or value for element %s", stor_key_name);
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+    }
+
+    ESP_LOGV(TAG, "name: %s", name->valuestring);
+    if (!ofp_planning_list_add_new_planning(name->valuestring))
+    {
+        ESP_LOGW(TAG, "Could not create new planning '%s'", name->valuestring);
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not create new planning");
+    }
+    ESP_LOGV(TAG, "Planning created.");
 
     // not providing any matching element is not an error
 
