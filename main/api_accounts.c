@@ -18,8 +18,7 @@ esp_err_t serve_api_get_accounts(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_404(req);
 
     // TODO: not yet implemented
-
-    return httpd_resp_send_500(req);
+    return httpd_resp_sendstr(req, "{ \"accounts\": [ { \"id\": \"admin\", \"type\": \"admin\" }, { \"id\": \"test\", \"type\": \"user\"} ] }");
 }
 
 esp_err_t serve_api_post_accounts(httpd_req_t *req, struct re_result *captures)
