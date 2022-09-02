@@ -328,6 +328,7 @@ function getSelectedPlanning() {
 
 async function loadPlanningList() {
     let { plannings } = await apiGetPlanningListJson();
+    plannings.sort((a, b) => a.name - b.name);
 
     let template = { '<>': 'option', 'value': '${id}', 'html': '${name}' };
 
