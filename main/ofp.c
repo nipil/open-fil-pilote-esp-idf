@@ -933,6 +933,8 @@ bool ofp_planning_list_add_new_planning(char *description)
     assert(description != NULL);
     ESP_LOGD(TAG, "ofp_planning_list_add_new_planning desc %s", description);
 
+    // TODO: check for duplicate names
+
     // initialize
     struct ofp_planning *plan = ofp_planning_init(ofp_planning_list_get_next_planning_id(), description);
     if (plan == NULL)
@@ -1020,6 +1022,8 @@ bool ofp_planning_change_description(int planning_id, char *description)
 {
     assert(description != NULL);
     ESP_LOGD(TAG, "ofp_planning_change_description planning_id %i description %s", planning_id, description);
+
+    // TODO: check for duplicate target name
 
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
     if (plan == NULL)
