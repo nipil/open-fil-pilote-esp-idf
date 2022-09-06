@@ -325,8 +325,9 @@ bool ofp_zone_store(struct ofp_zone *zone)
     assert(zone != NULL);
     ESP_LOGD(TAG, "ofp_zone_store zone id %s", zone->id);
 
-    int len = strlen(zone->description) + 2 + 2 * 9 + 1; // mmmmmmmmm:vvvvvvvvv:ddddddddddddd....dd\0
-    char *buf = calloc(len, sizeof(char));
+    // mmmmmmmmm:vvvvvvvvv:ddddddddddddd....dd\0
+    int len = strlen(zone->description) + 2 /* : */ + 2 * 9 /* int32 */ + 1 /* \0 */;
+    char *buf = malloc(len);
     if (buf == NULL)
     {
         ESP_LOGE(TAG, "Memory allocation failed while storing zone %i", zone->mode);
@@ -343,11 +344,13 @@ bool ofp_zone_store(struct ofp_zone *zone)
         break;
     default:
         ESP_LOGE(TAG, "Unknown zone mode: %i", zone->mode);
+        free(buf);
         return false;
     }
 
     kv_ns_set_str_atomic(kv_get_ns_zone(), zone->id, buf);
 
+    free(buf);
     return true;
 }
 
