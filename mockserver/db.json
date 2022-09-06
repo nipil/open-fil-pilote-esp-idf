@@ -1,62 +1,60 @@
 {
-
+  "/ofp-api/v1/reboot": "Redirect page",
   "/ofp-api/v1/override": {
     "override": "cozyminus1"
   },
-
   "/ofp-api/v1/zones": {
     "zones": [
       {
         "id": "e1z1",
-        "desc": "salon",
+        "description": "salon",
         "mode": ":planning:0",
         "current": "economy"
       },
       {
         "id": "e1z2",
-        "desc": "chambre parents",
+        "description": "chambre parents",
         "mode": ":fixed:nofreeze",
         "current": "nofreeze"
       },
       {
         "id": "e1z3",
-        "desc": "e1z3",
+        "description": "e1z3",
         "mode": ":fixed:economy",
         "current": "economy"
       },
       {
         "id": "e1z4",
-        "desc": "bureau cecile",
+        "description": "bureau cecile",
         "mode": ":fixed:cozyminus2",
         "current": "cozyminus2"
       },
       {
         "id": "e2z1",
-        "desc": "e2z1",
+        "description": "e2z1",
         "mode": ":fixed:cozyminus1",
         "current": "cozyminus1"
       },
       {
         "id": "e2z2",
-        "desc": "e2z2",
+        "description": "e2z2",
         "mode": ":fixed:cozy",
         "current": "cozy"
       },
       {
         "id": "e2z3",
-        "desc": "salle de bain",
+        "description": "salle de bain",
         "mode": ":planning:1",
         "current": "offload"
       },
       {
         "id": "e2z4",
-        "desc": "inutilisé",
+        "description": "inutilisé",
         "mode": ":fixed:offload",
         "current": "offload"
       }
     ]
   },
-
   "/ofp-api/v1/orders": {
     "orders": [
       {
@@ -91,9 +89,7 @@
       }
     ]
   },
-
-  "/ofp-api/v1/accounts":
-  {
+  "/ofp-api/v1/accounts": {
     "accounts": [
       {
         "id": "admin",
