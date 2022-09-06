@@ -337,7 +337,7 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
 
     // generic values
     const struct ofp_order_info *info = ofp_order_info_by_str_id(override->valuestring);
-    if (override == NULL)
+    if (info == NULL)
     {
         ESP_LOGD(TAG, "Invalid order override %s", override->valuestring);
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
