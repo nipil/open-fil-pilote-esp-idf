@@ -563,6 +563,20 @@ static int show_zones(int argc, char **argv)
         return -1;
     }
 
+    // override
+    enum ofp_order_id order_id;
+    bool active = ofp_override_get_order_id(&order_id);
+    const struct ofp_order_info *info = NULL;
+    if (active)
+    {
+        info = ofp_order_info_by_num_id(order_id);
+        printf("Override active : order %s\r\n", info->id);
+    }
+    else
+    {
+        printf("Override inactive\r\n");
+    }
+
     printf("Zone count: %i\r\n", hw->zone_set.count);
     for (int i = 0; i < hw->zone_set.count; i++)
     {

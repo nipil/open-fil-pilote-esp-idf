@@ -19,6 +19,12 @@ static const char str_re_zone_config_mode_value[] = "^([[:digit:]]+):([[:digit:]
 static const char str_planning_slot_id_start_printf[] = "%02ih%02i";
 static const char re_planning_slot_id_start_printf[] = "^(2[0-3]|[0-1][[:digit:]])h([0-5][[:digit:]])$";
 
+/* global override instance */
+static struct ofp_override override_global = {
+    .active = false,
+    .order_id = DEFAULT_FIXED_ORDER_FOR_ZONES,
+};
+
 /* global hardware instance, get it using ofp_hw_get() */
 static struct ofp_hw *hw_global = NULL;
 
@@ -66,6 +72,58 @@ static const struct ofp_order_info order_info[] = {
         .class = "warning",
         .order_id = HW_OFP_ORDER_ID_EXTENDED_COZYMINUS1,
     }};
+
+/* override */
+void ofp_override_load(void)
+{
+    ESP_LOGD(TAG, "ofp_override_load");
+    int32_t n = kv_ns_get_i32_atomic(kv_get_ns_ofp(), stor_key_zone_override, -1);
+    if (n == -1)
+    {
+        ofp_override_disable();
+        return;
+    }
+    ofp_override_enable(n);
+}
+
+void ofp_override_store(void)
+{
+    ESP_LOGD(TAG, "ofp_override_store");
+
+    if (!override_global.active)
+    {
+        kv_ns_delete_atomic(kv_get_ns_ofp(), stor_key_zone_override);
+        return;
+    }
+
+    kv_ns_set_i32_atomic(kv_get_ns_ofp(), stor_key_zone_override, override_global.order_id);
+}
+
+void ofp_override_enable(enum ofp_order_id order_id)
+{
+    ESP_LOGD(TAG, "ofp_override_enable order_id %i", order_id);
+    assert(ofp_order_id_is_valid(order_id));
+    override_global.active = true;
+    override_global.order_id = order_id;
+}
+
+void ofp_override_disable(void)
+{
+    ESP_LOGD(TAG, "ofp_override_disable");
+    override_global.active = false;
+    override_global.order_id = DEFAULT_FIXED_ORDER_FOR_ZONES;
+}
+
+bool ofp_override_get_order_id(enum ofp_order_id *order_id)
+{
+    assert(order_id != NULL);
+
+    if (!override_global.active)
+        return false;
+
+    *order_id = override_global.order_id;
+    return true;
+}
 
 /* private forward declarations */
 static void ofp_planning_list_load_plannings(void);

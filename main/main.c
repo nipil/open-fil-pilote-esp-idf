@@ -84,6 +84,9 @@ void app_main()
     uptime_sync_start();
 
     // initialize plannings
+    ofp_override_load();
+
+    // initialize plannings
     ofp_planning_list_init();
 
     // register every hardware available at compilation time

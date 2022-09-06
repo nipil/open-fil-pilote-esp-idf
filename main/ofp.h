@@ -34,6 +34,14 @@ struct ofp_order_info
     enum ofp_order_id order_id;
 };
 
+/* override */
+
+struct ofp_override
+{
+    bool active;
+    enum ofp_order_id order_id;
+};
+
 /* zones */
 
 enum ofp_zone_mode // do NOT EVER change the numerical IDs
@@ -160,6 +168,13 @@ struct ofp_planning_list
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id);
 const struct ofp_order_info *ofp_order_info_by_str_id(char *order_id);
 bool ofp_order_id_is_valid(enum ofp_order_id order_id);
+
+/* override */
+void ofp_override_load(void);
+void ofp_override_store(void);
+void ofp_override_enable(enum ofp_order_id order_id);
+void ofp_override_disable(void);
+bool ofp_override_get_order_id(enum ofp_order_id *order_id);
 
 /* enable an hardware implementation to be used */
 void ofp_hw_register(struct ofp_hw *hw);
