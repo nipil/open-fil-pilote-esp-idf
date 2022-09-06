@@ -215,8 +215,6 @@ bool ofp_zone_set_description(struct ofp_zone *zone, const char *description)
 
     strcpy(zone->description, description);
 
-    // TODO: store in NVS
-
     return true;
 }
 
@@ -231,8 +229,6 @@ bool ofp_zone_set_mode_fixed(struct ofp_zone *zone, enum ofp_order_id order_id)
     zone->mode_data.order_id = order_id;
     ESP_LOGV(TAG, "zone %s mode %i order_id %i", zone->id, zone->mode, zone->mode_data.order_id);
 
-    // TODO: store in NVS
-
     return true;
 }
 
@@ -246,8 +242,6 @@ bool ofp_zone_set_mode_planning(struct ofp_zone *zone, int planning_id)
     zone->mode = HW_OFP_ZONE_MODE_PLANNING;
     zone->mode_data.planning_id = planning_id;
     ESP_LOGV(TAG, "zone %s mode %i order_id %i", zone->id, zone->mode, zone->mode_data.planning_id);
-
-    // TODO: store in NVS
 
     return true;
 }
@@ -306,6 +300,37 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
     free(buf);
 
     return result;
+}
+
+bool ofp_zone_store(struct ofp_zone *zone)
+{
+    assert(zone != NULL);
+    ESP_LOGD(TAG, "ofp_zone_store zone id %s", zone->id);
+
+    int len = strlen(zone->description) + 2 + 2 * 9 + 1; // mmmmmmmmm:vvvvvvvvv:ddddddddddddd....dd\0
+    char *buf = calloc(len, sizeof(char));
+    if (buf == NULL)
+    {
+        ESP_LOGE(TAG, "Memory allocation failed while storing zone %i", zone->mode);
+        return false;
+    }
+
+    switch (zone->mode)
+    {
+    case HW_OFP_ZONE_MODE_FIXED:
+        snprintf(buf, len, "%i:%i:%s", zone->mode, zone->mode_data.order_id, zone->description);
+        break;
+    case HW_OFP_ZONE_MODE_PLANNING:
+        snprintf(buf, len, "%i:%i:%s", zone->mode, zone->mode_data.planning_id, zone->description);
+        break;
+    default:
+        ESP_LOGE(TAG, "Unknown zone mode: %i", zone->mode);
+        return false;
+    }
+
+    kv_ns_set_str_atomic(kv_get_ns_zone(), zone->id, buf);
+
+    return true;
 }
 
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id)

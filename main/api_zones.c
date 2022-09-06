@@ -158,6 +158,8 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
     }
 
+    bool need_storing = false;
+
     // description
     cJSON *desc = cJSON_GetObjectItemCaseSensitive(root, json_key_description);
     if (desc != NULL)
@@ -176,6 +178,9 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
             cJSON_Delete(root);
             return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set zone description");
         }
+
+        need_storing = true;
+
         ESP_LOGV(TAG, "Description updated.");
     }
 
@@ -238,11 +243,22 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
         }
         // no other valid case according to REGEX
         free(res);
+
+        need_storing = true;
     }
 
     // not providing any matching element is not an error
 
+    // cleanup
     cJSON_Delete(root);
+
+    // update storage if needed
+    if (need_storing && !ofp_zone_store(zone))
+    {
+        ESP_LOGW(TAG, "Could store updated zone");
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could store updated zone");
+    }
+
     return httpd_resp_sendstr(req, "");
 }
 
