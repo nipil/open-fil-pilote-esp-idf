@@ -14,7 +14,7 @@ static const char TAG[] = "ofp";
 #define OFP_MAX_LEN_INT32 11
 
 /* constants */
-static const char str_re_zone_config_mode_value[] = "^m([[:digit:]]+):v([[:digit:]]+)$";
+static const char str_re_zone_config_mode_value[] = "^([[:digit:]]+):([[:digit:]]+):(.*)$";
 static const char str_planning_slot_id_start_printf[] = "%02ih%02i";
 static const char re_planning_slot_id_start_printf[] = "^(2[0-3]|[0-1][[:digit:]])h([0-5][[:digit:]])$";
 
@@ -265,8 +265,11 @@ static bool ofp_zone_set_mode(struct ofp_zone *zone, enum ofp_zone_mode mode, in
 /* load zone configuration from NVS */
 static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
 {
+    assert(hw_id != NULL);
+    assert(zone != NULL);
+
     // TODO: test after zone config write from API is implemented
-    ESP_LOGV(TAG, "zone id %s desc %s", zone->id, zone->description);
+    ESP_LOGD(TAG, "ofp_zone_load_mode zone id %s desc %s", zone->id, zone->description);
 
     // defaults
     zone->mode = HW_OFP_ZONE_MODE_FIXED;
@@ -288,9 +291,25 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
     int result = true;
     ESP_LOGV(TAG, "Zone config string: %s", buf);
     struct re_result *res = re_match(str_re_zone_config_mode_value, buf);
-    if (res == NULL || res->count != 3 || !ofp_zone_set_mode(zone, atoi(res->strings[1]), atoi(res->strings[2])))
+    if (res == NULL || res->count != 4)
     {
         ESP_LOGW(TAG, "Invalid mode-string %s for zone %s", buf, zone->id);
+        result = false;
+    }
+
+    enum ofp_zone_mode mode = atoi(res->strings[1]);
+    int mode_value = atoi(res->strings[2]);
+    char *desc = res->strings[3];
+
+    if (!ofp_zone_set_mode(zone, mode, mode_value))
+    {
+        ESP_LOGW(TAG, "Could not set mode %i value %i for zone %s", mode, mode_value, zone->id);
+        result = false;
+    }
+
+    if (!ofp_zone_set_description(zone, desc))
+    {
+        ESP_LOGW(TAG, "Could not set description zone %s : %s", zone->id, desc);
         result = false;
     }
 
@@ -438,7 +457,7 @@ void ofp_hw_initialize(void)
         struct ofp_zone *zone = &current_hw->zone_set.zones[i];
         if (!ofp_zone_load_mode(current_hw->id, zone))
         {
-            ESP_LOGW(TAG, "Could not load configuration for zone %s, reverting to default", zone->id);
+            ESP_LOGI(TAG, "No configuration stored for zone %s, reverting to default", zone->id);
             continue;
         }
     }
