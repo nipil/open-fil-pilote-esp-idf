@@ -976,12 +976,36 @@ static void ofp_planning_list_load_plannings(void)
     nvs_release_iterator(it_plan);
 }
 
+static struct ofp_planning *ofp_planning_list_find_planning_by_description(const char *description)
+{
+    assert(description != NULL);
+    ESP_LOGD(TAG, "ofp_planning_list_find_planning_by_description desc %s", description);
+
+    for (int i = 0; i < OFP_MAX_PLANNING_COUNT; i++)
+    {
+        struct ofp_planning *plan = plan_list_global->plannings[i];
+        ESP_LOGV(TAG, "index %i %p", i, plan);
+
+        if (plan == NULL)
+            continue;
+
+        if (strcmp(description, plan->description) == 0)
+            return plan;
+    }
+    return NULL;
+}
+
 bool ofp_planning_list_add_new_planning(char *description)
 {
     assert(description != NULL);
     ESP_LOGD(TAG, "ofp_planning_list_add_new_planning desc %s", description);
 
-    // TODO: check for duplicate names
+    // check for duplicate description
+    if (ofp_planning_list_find_planning_by_description(description))
+    {
+        ESP_LOGW(TAG, "Planning with same description already exists");
+        return false;
+    }
 
     // initialize
     struct ofp_planning *plan = ofp_planning_init(ofp_planning_list_get_next_planning_id(), description);
@@ -1071,7 +1095,12 @@ bool ofp_planning_change_description(int planning_id, char *description)
     assert(description != NULL);
     ESP_LOGD(TAG, "ofp_planning_change_description planning_id %i description %s", planning_id, description);
 
-    // TODO: check for duplicate target name
+    // check for duplicate description
+    if (ofp_planning_list_find_planning_by_description(description))
+    {
+        ESP_LOGW(TAG, "Planning with same description already exists");
+        return false;
+    }
 
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
     if (plan == NULL)
