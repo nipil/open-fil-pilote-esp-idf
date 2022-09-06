@@ -12,6 +12,7 @@ static const char TAG[] = "ofp";
 /* defines */
 #define DEFAULT_FIXED_ORDER_FOR_ZONES HW_OFP_ORDER_ID_STANDARD_COZY
 #define OFP_MAX_LEN_INT32 11
+#define OFP_MAX_LEN_PLANNING_START 6
 
 /* constants */
 static const char str_re_zone_config_mode_value[] = "^([[:digit:]]+):([[:digit:]]+):(.*)$";
@@ -629,6 +630,14 @@ static void ofp_planning_purge(struct ofp_planning *plan)
     kv_ns_delete_atomic(kv_get_ns_plan(), buf);
 }
 
+char *ofp_planning_slot_get_start_string(struct ofp_planning_slot *slot)
+{
+    char *buf = malloc(OFP_MAX_LEN_PLANNING_START);
+    assert(buf != NULL);
+    snprintf(buf, OFP_MAX_LEN_PLANNING_START, str_planning_slot_id_start_printf, slot->hour, slot->minute);
+    return buf;
+}
+
 static struct ofp_planning_slot *ofp_planning_slot_init(int hour, int minute, enum ofp_order_id order_id)
 {
     ESP_LOGD(TAG, "ofp_planning_slot_init hour %i minute %i order_id %i", hour, minute, order_id);
@@ -642,38 +651,45 @@ static struct ofp_planning_slot *ofp_planning_slot_init(int hour, int minute, en
     assert(slot != NULL);
 
     // init
-    snprintf(slot->id_start, OFP_MAX_LEN_PLANNING_START, str_planning_slot_id_start_printf, hour, minute);
+    slot->hour = hour;
+    slot->minute = minute;
     slot->order_id = order_id;
 
-    ESP_LOGV(TAG, "slot %s order_id %i", slot->id_start, slot->order_id);
+    ESP_LOGV(TAG, "slot %ih%i order_id %i", slot->hour, slot->minute, slot->order_id);
     return slot;
 }
 
 static void ofp_planning_slot_free(struct ofp_planning_slot *slot)
 {
     assert(slot != NULL);
-    ESP_LOGD(TAG, "ofp_planning_slot_free slot %s", slot->id_start);
+    ESP_LOGD(TAG, "ofp_planning_slot_free slot %ih%i", slot->hour, slot->minute);
     free(slot);
 }
 
 static void ofp_planning_slot_store(int planning_id, struct ofp_planning_slot *slot)
 {
     assert(slot != NULL);
-    ESP_LOGD(TAG, "ofp_planning_slot_store planning_id %i slot %s", planning_id, slot->id_start);
+    ESP_LOGD(TAG, "ofp_planning_slot_store planning_id %i slot %ih%i", planning_id, slot->hour, slot->minute);
 
     if (!kv_set_ns_slots_for_planning(planning_id))
         return;
-    kv_ns_set_i32_atomic(kv_get_ns_slots(), slot->id_start, slot->order_id);
+
+    char *buf = ofp_planning_slot_get_start_string(slot);
+    kv_ns_set_i32_atomic(kv_get_ns_slots(), buf, slot->order_id);
+    free(buf);
 }
 
 static void ofp_planning_slot_purge(int planning_id, struct ofp_planning_slot *slot)
 {
     assert(slot != NULL);
-    ESP_LOGD(TAG, "ofp_planning_slot_purge planning_id %i slot %s", planning_id, slot->id_start);
+    ESP_LOGD(TAG, "ofp_planning_slot_purge planning_id %i slot %ih%i", planning_id, slot->hour, slot->minute);
 
     if (!kv_set_ns_slots_for_planning(planning_id))
         return;
-    kv_ns_delete_atomic(kv_get_ns_slots(), slot->id_start);
+
+    char *buf = ofp_planning_slot_get_start_string(slot);
+    kv_ns_delete_atomic(kv_get_ns_slots(), buf);
+    free(buf);
 }
 
 static bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_slot *slot)
@@ -681,7 +697,7 @@ static bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_plan
     assert(planning != NULL);
     assert(slot != NULL);
 
-    ESP_LOGD(TAG, "ofp_planning_add_slot planning %i slot %s", planning->id, slot->id_start);
+    ESP_LOGD(TAG, "ofp_planning_add_slot planning %i slot %ih%i", planning->id, slot->hour, slot->minute);
 
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
     {
@@ -702,15 +718,12 @@ static struct ofp_planning_slot *ofp_planning_slot_find_by_id(struct ofp_plannin
     assert(plan != NULL);
     ESP_LOGD(TAG, "ofp_planning_slot_find_by_id planning_id %i hour %i minute %i", plan->id, hour, minute);
 
-    char buf[OFP_MAX_LEN_PLANNING_START];
-    snprintf(buf, sizeof(buf), str_planning_slot_id_start_printf, hour, minute);
-
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
     {
         struct ofp_planning_slot *slot = plan->slots[i];
         if (slot == NULL)
             continue;
-        if (strcmp(slot->id_start, buf) == 0)
+        if (slot->hour == hour && slot->minute == minute)
         {
             ESP_LOGV(TAG, "found at %i slot %p", i, slot);
             return slot;
@@ -748,7 +761,7 @@ bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_o
 
     if (!ofp_planning_add_slot(plan, slot))
     {
-        ESP_LOGW(TAG, "Could not add slot %s to planning %i, skipping slot", slot->id_start, plan->id);
+        ESP_LOGW(TAG, "Could not add slot %ih%i to planning %i, skipping slot", slot->hour, slot->minute, plan->id);
         ofp_planning_slot_free(slot);
         return false;
     }
@@ -769,9 +782,6 @@ static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int mi
         return false;
     }
 
-    char buf[OFP_MAX_LEN_PLANNING_START];
-    snprintf(buf, sizeof(buf), str_planning_slot_id_start_printf, hour, minute);
-
     // search and prune
     struct ofp_planning_slot *slot = NULL;
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
@@ -781,7 +791,7 @@ static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int mi
         if (*candidate == NULL)
             continue;
 
-        if (strcmp((*candidate)->id_start, buf) != 0)
+        if ((*candidate)->hour != hour || (*candidate)->minute != minute)
             continue;
 
         slot = *candidate;
@@ -792,7 +802,7 @@ static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int mi
 
     if (slot == NULL)
     {
-        ESP_LOGD(TAG, "slot %s not found", buf);
+        ESP_LOGD(TAG, "slot %ih%i not found", hour, minute);
         return false;
     }
 
@@ -915,7 +925,7 @@ static void ofp_planning_load_slots(struct ofp_planning *plan)
         // add
         if (!ofp_planning_add_slot(plan, slot))
         {
-            ESP_LOGW(TAG, "Could not add slot %s to planning %i, skipping slot", slot->id_start, plan->id);
+            ESP_LOGW(TAG, "Could not add slot %ih%i to planning %i, skipping slot", slot->hour, slot->minute, plan->id);
             ofp_planning_slot_free(slot);
             continue;
         }
@@ -1038,7 +1048,7 @@ bool ofp_planning_list_add_new_planning(char *description)
 
     if (!ofp_planning_add_slot(plan, slot))
     {
-        ESP_LOGW(TAG, "Could not add slot %s to planning %i, skipping slot", slot->id_start, plan->id);
+        ESP_LOGW(TAG, "Could not add slot %ih%i to planning %i, skipping slot", slot->hour, slot->minute, plan->id);
         ofp_planning_slot_free(slot);
         return false;
     }
@@ -1186,16 +1196,17 @@ bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_
     struct ofp_planning_slot *target = ofp_planning_slot_find_by_id(plan, new_hour, new_minute);
     if (target != NULL)
     {
-        ESP_LOGW(TAG, "Could not set slot start to %s, as another one already exists in planning %i namespace", target->id_start, plan->id);
+        ESP_LOGW(TAG, "Could not set slot start to %ih%i, as another one already exists in planning %i namespace", target->hour, target->minute, plan->id);
         return false;
     }
 
     // modify id_start in NVS and memory
-    ESP_LOGV(TAG, "Old slot id_start %s", slot->id_start);
+    ESP_LOGV(TAG, "Old slot %ih%i", slot->hour, slot->minute);
     ofp_planning_slot_purge(plan->id, slot);
-    snprintf(slot->id_start, sizeof(slot->id_start), str_planning_slot_id_start_printf, new_hour, new_minute);
+    slot->hour = new_hour;
+    slot->minute = new_minute;
     ofp_planning_slot_store(plan->id, slot);
-    ESP_LOGV(TAG, "New slot id_start %s", slot->id_start);
+    ESP_LOGV(TAG, "New slot %ih%i", slot->hour, slot->minute);
 
     return true;
 }

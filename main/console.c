@@ -627,9 +627,9 @@ static int show_plannings(int argc, char **argv)
             if (slot == NULL)
                 continue;
 
-            printf("\t\tSlot index %i holds a slot: id_start %s order_id: %s\r\n",
+            printf("\t\tSlot index %i holds a slot: hour %i minute %i order_id: %s\r\n",
                    j,
-                   slot->id_start,
+                   slot->hour, slot->minute,
                    ofp_order_info_by_num_id(slot->order_id)->id);
         }
     }

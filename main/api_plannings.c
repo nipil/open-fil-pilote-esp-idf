@@ -140,14 +140,18 @@ esp_err_t serve_api_get_plannings_id(httpd_req_t *req, struct re_result *capture
         const struct ofp_order_info *info = ofp_order_info_by_num_id(slot->order_id);
         if (info == NULL)
         {
-            ESP_LOGW(TAG, "Invalid order id %i found in slot %s, skipping it", slot->order_id, slot->id_start);
+            ESP_LOGW(TAG, "Invalid order id %i found in slot %ih%i, skipping it", slot->order_id, slot->hour, slot->minute);
             continue;
         }
 
+        char *start = ofp_planning_slot_get_start_string(slot); // must be freed
+
         cJSON *s = cJSON_CreateObject();
         cJSON_AddItemToArray(slots, s);
-        cJSON_AddStringToObject(s, json_key_start, slot->id_start);
+        cJSON_AddStringToObject(s, json_key_start, start);
         cJSON_AddStringToObject(s, json_key_order, info->id);
+
+        free(start);
     }
 
     esp_err_t result = serve_json(req, root);

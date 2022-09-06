@@ -10,7 +10,6 @@
 #define OFP_MAX_LEN_ID 16
 #define OFP_MAX_LEN_VALUE 32
 #define OFP_MAX_LEN_DESCRIPTION 128
-#define OFP_MAX_LEN_PLANNING_START 6
 
 /* orders */
 
@@ -137,7 +136,8 @@ struct ofp_hw_list
 
 struct ofp_planning_slot
 {
-    char id_start[OFP_MAX_LEN_PLANNING_START];
+    int hour;
+    int minute;
     enum ofp_order_id order_id;
 };
 
@@ -203,6 +203,7 @@ bool ofp_planning_list_remove_planning(int planning_id);
 bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_order_id order_id);
 bool ofp_planning_remove_existing_slot(int planning_id, int hour, int minute);
 bool ofp_planning_change_description(int planning_id, char *description);
+char *ofp_planning_slot_get_start_string(struct ofp_planning_slot *slot); // MUST BE FREED BY CALLER
 bool ofp_planning_slot_set_order(int planning_id, int hour, int minute, enum ofp_order_id order_id);
 bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_minute, int new_hour, int new_minute);
 
