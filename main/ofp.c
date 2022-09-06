@@ -618,7 +618,9 @@ static void ofp_planning_purge(struct ofp_planning *plan)
     snprintf(buf, sizeof(buf), "%i", plan->id);
 
     // clear every slots in planning ID namespace
-    kv_set_ns_slots_for_planning(plan->id);
+    if (!kv_set_ns_slots_for_planning(plan->id))
+        return;
+
     kv_ns_clear_atomic(kv_get_ns_slots());
 
     // delete planning in plannings namespace
@@ -657,7 +659,8 @@ static void ofp_planning_slot_store(int planning_id, struct ofp_planning_slot *s
     assert(slot != NULL);
     ESP_LOGD(TAG, "ofp_planning_slot_store planning_id %i slot %s", planning_id, slot->id_start);
 
-    kv_set_ns_slots_for_planning(planning_id);
+    if (!kv_set_ns_slots_for_planning(planning_id))
+        return;
     kv_ns_set_i32_atomic(kv_get_ns_slots(), slot->id_start, slot->order_id);
 }
 
@@ -666,7 +669,8 @@ static void ofp_planning_slot_purge(int planning_id, struct ofp_planning_slot *s
     assert(slot != NULL);
     ESP_LOGD(TAG, "ofp_planning_slot_purge planning_id %i slot %s", planning_id, slot->id_start);
 
-    kv_set_ns_slots_for_planning(planning_id);
+    if (!kv_set_ns_slots_for_planning(planning_id))
+        return;
     kv_ns_delete_atomic(kv_get_ns_slots(), slot->id_start);
 }
 
@@ -860,7 +864,8 @@ static void ofp_planning_load_slots(struct ofp_planning *plan)
     ESP_LOGD(TAG, "ofp_planning_load_slots planning_id %i", plan->id);
 
     // search slots
-    kv_set_ns_slots_for_planning(plan->id);
+    if (!kv_set_ns_slots_for_planning(plan->id))
+        return;
     nvs_iterator_t it_slot = nvs_entry_find(default_nvs_partition_name, kv_get_ns_slots(), NVS_TYPE_I32);
     for (; it_slot != NULL; it_slot = nvs_entry_next(it_slot))
     {

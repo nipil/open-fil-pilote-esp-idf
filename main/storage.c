@@ -73,7 +73,10 @@ static char ns_ofp_pl_sl[NVS_NS_NAME_MAX_SIZE] = {0};
 bool kv_build_ns_hardware(const char *hw_id, char *buf)
 {
     int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_hw_%s", hw_id);
-    return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
+    bool result = (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
+    if (!result)
+        ESP_LOGW(TAG, "Could not set namespace for hardware %s", hw_id);
+    return result;
 }
 
 bool kv_set_ns_hardware(const char *hw_id)
@@ -89,7 +92,10 @@ const char *kv_get_ns_hardware(void)
 static bool kv_build_ns_zone_for_hardware(const char *hw_id, char *buf)
 {
     int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_zn_%s", hw_id);
-    return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
+    bool result = (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
+    if (!result)
+        ESP_LOGW(TAG, "Could not set zone namespace for hardware %s", hw_id);
+    return result;
 }
 
 bool kv_set_ns_zone_for_hardware(const char *hw_id)
@@ -105,7 +111,10 @@ const char *kv_get_ns_zone(void)
 static bool kv_build_ns_slots_for_planning(int planning_id, char *buf)
 {
     int n = snprintf(buf, NVS_NS_NAME_MAX_SIZE, "ofp_sl_%i", planning_id);
-    return (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
+    bool result = (n >= 0 && n < NVS_NS_NAME_MAX_SIZE);
+    if (!result)
+        ESP_LOGW(TAG, "Could not set namespace for planning %i", planning_id);
+    return result;
 }
 
 bool kv_set_ns_slots_for_planning(int planning_id)
