@@ -527,42 +527,111 @@ void ofp_hw_initialize(void)
     hw_global = current_hw;
 }
 
-static bool ofp_zone_update_current(struct ofp_zone *zone)
+static bool ofp_zone_update_from_planning(struct ofp_zone *zone, struct tm *timeinfo)
 {
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+
     ESP_LOGD(TAG, "ofp_zone_update_current");
-    // TODO: not yes implemented
-    // TODO: get plannings, find timeslot, get final order, update current
-    return false;
+
+    // planning exists
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(zone->mode_data.planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGW(TAG, "Unknown planning %i for zone %s", zone->mode_data.planning_id, zone->id);
+        return false;
+    }
+
+    // find most recent slot
+    int min_delta = 24 * 60 * 60;
+    int current_since_midnight = timeinfo->tm_hour * 60 * 60 + timeinfo->tm_min * 60 + timeinfo->tm_sec;
+    ESP_LOGV(TAG, "current since midnight: %i", current_since_midnight);
+    struct ofp_planning_slot *most_recent_slot = NULL;
+    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
+    {
+        struct ofp_planning_slot *slot = plan->slots[i];
+
+        if (slot == NULL)
+            continue;
+
+        ESP_LOGV(TAG, "planning %i slot %ih%i", plan->id, slot->hour, slot->minute);
+
+        int slot_since_midnight = slot->hour * 60 * 60 + slot->minute * 60;
+        ESP_LOGV(TAG, "slot since midnight: %i", slot_since_midnight);
+
+        int delta = current_since_midnight - slot_since_midnight;
+        ESP_LOGV(TAG, "delta %i min_delta is %i", delta, min_delta);
+
+        // reject future slots and slots older than current
+        if (delta < 0 || delta > min_delta)
+        {
+            ESP_LOGV(TAG, "Skipping slot");
+            continue;
+        }
+
+        // keep
+        ESP_LOGV(TAG, "Retaining as better");
+        min_delta = delta;
+        most_recent_slot = slot;
+    }
+
+    // no slot found (should never happen)
+    if (most_recent_slot == NULL)
+    {
+        ESP_LOGW(TAG, "No slot found in planning %i for zone %s", zone->mode_data.planning_id, zone->id);
+        return false;
+    }
+
+    // apply slot order
+    zone->current = most_recent_slot->order_id;
+    ESP_LOGV(TAG, "zone %s planning %i order %i", zone->id, plan->id, zone->current);
+    return true;
 }
 
-void ofp_hw_update(struct ofp_hw *hw)
+void ofp_zone_update_current_orders(struct ofp_hw *hw, struct tm *timeinfo)
 {
-    ESP_LOGD(TAG, "ofp_hw_update_zones");
+    ESP_LOGD(TAG, "ofp_zone_update_current_orders");
 
-    // current time
-    time_t now;
-    struct tm ti;
-    time(&now);
-    time_to_localtime(&now, &ti);
-
-    char buf[LOCALTIME_TO_STRING_BUFFER_LENGTH];
-    localtime_to_string(&ti, buf, sizeof(buf));
-    ESP_LOGV(TAG, "current time: %s", buf);
+    enum ofp_order_id override_order_id;
+    bool override_active = ofp_override_get_order_id(&override_order_id);
 
     // compute current zone orders
     for (int i = 0; i < hw->zone_set.count; i++)
     {
         struct ofp_zone *zone = &hw->zone_set.zones[i];
-        if (!ofp_zone_update_current(zone))
+
+        // if there is an active override
+        if (override_active)
         {
-            ESP_LOGW(TAG, "Could not update zone %s current order", zone->id);
+            zone->current = override_order_id;
+            ESP_LOGV(TAG, "overriding zone %s with order %i", zone->id, zone->current);
             continue;
         }
+
+        switch (zone->mode)
+        {
+        case HW_OFP_ZONE_MODE_FIXED:
+            // if the zone has a fixed configuration
+            zone->current = zone->mode_data.order_id;
+            ESP_LOGV(TAG, "fixed zone %s with order %i", zone->id, zone->current);
+            break;
+
+        case HW_OFP_ZONE_MODE_PLANNING:
+            // if the zone is driven by a planning
+            if (!ofp_zone_update_from_planning(zone, timeinfo))
+            {
+                zone->current = DEFAULT_FIXED_ORDER_FOR_ZONES;
+                ESP_LOGW(TAG, "Could not update zone %s current order from planning", zone->id);
+            }
+            break;
+
+        default:
+            zone->current = DEFAULT_FIXED_ORDER_FOR_ZONES;
+            ESP_LOGW(TAG, "Unknown mode %i for zone %s", zone->mode, zone->id);
+            break;
+        }
+
         ESP_LOGV(TAG, "zone %s current %i", zone->id, zone->current);
     }
-
-    // apply resulting zone orders to the hardware
-    hw->hw_hooks.apply(hw);
 }
 
 /* access the global hardware instance */

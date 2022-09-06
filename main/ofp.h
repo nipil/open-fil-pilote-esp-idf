@@ -1,6 +1,8 @@
 #ifndef OFP_H
 #define OFP_H
 
+#include <time.h>
+
 /* limits */
 #define OFP_MAX_ZONE_COUNT 64
 #define OFP_MAX_PLANNING_COUNT 32
@@ -196,6 +198,7 @@ bool ofp_zone_set_description(struct ofp_zone *zone, const char *description);
 bool ofp_zone_set_mode_fixed(struct ofp_zone *zone, enum ofp_order_id order_id);
 bool ofp_zone_set_mode_planning(struct ofp_zone *zone, int planning_id);
 bool ofp_zone_store(struct ofp_zone *zone);
+void ofp_zone_update_current_orders(struct ofp_hw *hw, struct tm *timeinfo);
 
 /* allocate new space for zones set */
 bool ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count);
@@ -205,9 +208,6 @@ struct ofp_hw *ofp_hw_get_current(void);
 
 /* initialize the hardware based on stored hardware id */
 void ofp_hw_initialize(void);
-
-/* update current orders for the zones and apply them to the hardware */
-void ofp_hw_update(struct ofp_hw *hw);
 
 /* planning accessors */
 void ofp_planning_list_init(void);

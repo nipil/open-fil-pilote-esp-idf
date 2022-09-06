@@ -114,7 +114,23 @@ void app_main()
     /* main loop */
     while (current_hw != NULL)
     {
-        ofp_hw_update(current_hw);
+        // current time
+        time_t now;
+        struct tm ti;
+        time(&now);
+        time_to_localtime(&now, &ti);
+
+        // track time
+        char buf[LOCALTIME_TO_STRING_BUFFER_LENGTH];
+        localtime_to_string(&ti, buf, sizeof(buf));
+        ESP_LOGV(TAG, "current time: %s", buf);
+
+        // compute orders
+        ofp_zone_update_current_orders(current_hw, &ti);
+        // apply orders
+        current_hw->hw_hooks.apply(current_hw);
+
+        // sleep
         vTaskDelay(pdMS_TO_TICKS(MAIN_LOOP_WAIT_MILLISECONDS));
     }
     ESP_LOGD(TAG, "app_main finished");
