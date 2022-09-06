@@ -268,7 +268,6 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
     assert(hw_id != NULL);
     assert(zone != NULL);
 
-    // TODO: test after zone config write from API is implemented
     ESP_LOGD(TAG, "ofp_zone_load_mode zone id %s desc %s", zone->id, zone->description);
 
     // defaults
