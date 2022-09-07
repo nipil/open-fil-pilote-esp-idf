@@ -15,9 +15,8 @@ static const char TAG[] = "ofp";
 #define OFP_MAX_LEN_PLANNING_START 6
 
 /* constants */
-static const char str_re_zone_config_mode_value[] = "^([[:digit:]]+):([[:digit:]]+):(.*)$";
-static const char str_planning_slot_id_start_printf[] = "%02ih%02i";
-static const char re_planning_slot_id_start_printf[] = "^(2[0-3]|[0-1][[:digit:]])h([0-5][[:digit:]])$";
+static const char str_zone_config_mode_value_regex[] = "^([[:digit:]]+):([[:digit:]]+):(.*)$"; // mode:value:description
+static const char str_zone_config_mode_value_printf[] = "%i:%i:%s";
 
 /* global override instance */
 static struct ofp_override override_global = {
@@ -412,7 +411,7 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
     // parse
     int result = true;
     ESP_LOGV(TAG, "Zone config string: %s", buf);
-    struct re_result *res = re_match(str_re_zone_config_mode_value, buf);
+    struct re_result *res = re_match(str_zone_config_mode_value_regex, buf);
     if (res == NULL || res->count != 4)
     {
         ESP_LOGW(TAG, "Invalid mode-string %s for zone %s", buf, zone->id);
@@ -460,10 +459,10 @@ bool ofp_zone_store(struct ofp_zone *zone)
     switch (zone->mode)
     {
     case HW_OFP_ZONE_MODE_FIXED:
-        snprintf(buf, len, "%i:%i:%s", zone->mode, zone->mode_data.order_id, zone->description);
+        snprintf(buf, len, str_zone_config_mode_value_printf, zone->mode, zone->mode_data.order_id, zone->description);
         break;
     case HW_OFP_ZONE_MODE_PLANNING:
-        snprintf(buf, len, "%i:%i:%s", zone->mode, zone->mode_data.planning_id, zone->description);
+        snprintf(buf, len, str_zone_config_mode_value_printf, zone->mode, zone->mode_data.planning_id, zone->description);
         break;
     default:
         ESP_LOGE(TAG, "Unknown zone mode: %i", zone->mode);

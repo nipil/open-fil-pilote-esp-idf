@@ -166,6 +166,8 @@ struct ofp_hw_list
 
 struct ofp_planning_slot
 {
+    int id;
+    enum ofp_day_of_week dow;
     int hour;
     int minute;
     enum ofp_order_id order_id;
@@ -235,11 +237,12 @@ struct ofp_planning_list *ofp_planning_list_get(void);
 struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id);
 bool ofp_planning_list_add_new_planning(char *description);
 bool ofp_planning_list_remove_planning(int planning_id);
-bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_order_id order_id);
-bool ofp_planning_remove_existing_slot(int planning_id, int hour, int minute);
+bool ofp_planning_add_new_slot(int planning_id, enum ofp_day_of_week dow, int hour, int minute, enum ofp_order_id order_id);
+bool ofp_planning_remove_existing_slot(int planning_id, enum ofp_day_of_week dow, int hour, int minute);
 bool ofp_planning_change_description(int planning_id, char *description);
-char *ofp_planning_slot_get_start_string(struct ofp_planning_slot *slot); // MUST BE FREED BY CALLER
-bool ofp_planning_slot_set_order(int planning_id, int hour, int minute, enum ofp_order_id order_id);
-bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_minute, int new_hour, int new_minute);
+bool ofp_planning_slot_set_dow(int planning_id, enum ofp_day_of_week current_dow, int current_hour, int current_minute, int new_dow);
+bool ofp_planning_slot_set_hour(int planning_id, enum ofp_day_of_week current_dow, int current_hour, int current_minute, int new_hour);
+bool ofp_planning_slot_set_minute(int planning_id, enum ofp_day_of_week current_dow, int current_hour, int current_minute, int new_minute);
+bool ofp_planning_slot_set_order(int planning_id, enum ofp_day_of_week dow, int hour, int minute, enum ofp_order_id order_id);
 
 #endif /* OFP_H */
