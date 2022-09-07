@@ -99,18 +99,25 @@
             <div class="mb-3" id="planningSlots">
             </div>
 
-            <div class="row">
-              <div class="col">
-                <form class="form-floating">
-                  <input type="text" class="form-control" id="newSlotInput">
-                  <label for="newPlanningInput">ex: 16h55</label>
-                </form>
-              </div>
-              <div class="col">
-                <select class="form-select" id="newSlotSelect">
+            <h5>Ajout d'une &eacute;tape</h5>
+            <div class="row mb-3">
+              <div class="col-sm">
+                <select id="planningSlotSelectDow_add" class="form-select">
                 </select>
               </div>
-              <div class="col-auto mb-3">
+              <div class="col-sm">
+                <select id="planningSlotSelectHour_add" class="form-select">
+                </select>
+              </div>
+              <div class="col-sm">
+                <select id="planningSlotSelectMinute_add" class="form-select">
+                </select>
+              </div>
+              <div class="col-sm">
+                <select id="planningSlotSelectOrder_add" class="form-select">
+                </select>
+              </div>
+              <div class="col-sm">
                 <button class='btn btn-primary' id='newSlotButton'>
                   <span class='bi bi-plus'></span>
                 </button>

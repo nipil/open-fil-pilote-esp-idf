@@ -124,39 +124,84 @@
   "/ofp-api/v1/plannings/0": {
     "slots": [
       {
-        "start": "00h00",
+        "id": 0,
+        "dow": 6,
+        "hour": 0,
+        "minute": 0,
         "order": "nofreeze"
       },
       {
-        "start": "05h00",
+        "id": 1,
+        "dow": 4,
+        "hour": 5,
+        "minute": 0,
         "order": "economy"
       },
       {
-        "start": "07h00",
+        "id": 18,
+        "dow": 2,
+        "hour": 7,
+        "minute": 0,
         "order": "cozy"
       },
       {
-        "start": "09h00",
+        "id": 14,
+        "dow": 0,
+        "hour": 9,
+        "minute": 0,
         "order": "economy"
       },
       {
-        "start": "17h00",
+        "id": 12,
+        "dow": 5,
+        "hour": 17,
+        "minute": 0,
         "order": "cozy"
       },
       {
-        "start": "21h00",
+        "id": 6,
+        "dow": 3,
+        "hour": 21,
+        "minute": 0,
         "order": "nofreeze"
+      },
+      {
+        "id": 4,
+        "dow": 1,
+        "hour": 23,
+        "minute": 0,
+        "order": "economy"
+      },
+      {
+        "id": 40,
+        "dow": 1,
+        "hour": 22,
+        "minute": 10,
+        "order": "economy"
+      },
+      {
+        "id": 41,
+        "dow": 1,
+        "hour": 22,
+        "minute": 0,
+        "order": "economy"
       }
     ]
   },
   "/ofp-api/v1/plannings/1": {
     "slots": [
       {
-        "start": "00h00",
+        "id": 1,
+        "dow": 0,
+        "hour": 0,
+        "minute": 0,
         "order": "economy"
       },
       {
-        "start": "17h00",
+        "id": 0,
+        "dow": 4,
+        "hour": 17,
+        "minute": 0,
         "order": "cozy"
       }
     ]
@@ -164,15 +209,24 @@
   "/ofp-api/v1/plannings/2": {
     "slots": [
       {
-        "start": "00h00",
+        "id": 0,
+        "dow": 0,
+        "hour": 0,
+        "minute": 0,
         "order": "cozy"
       },
       {
-        "start": "09h00",
+        "id": 1,
+        "dow": 1,
+        "hour": 9,
+        "minute": 0,
         "order": "economy"
       },
       {
-        "start": "10h00",
+        "id": 2,
+        "dow": 2,
+        "hour": 10,
+        "minute": 0,
         "order": "nofreeze"
       }
     ]

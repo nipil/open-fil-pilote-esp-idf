@@ -1,5 +1,48 @@
 /*******************************************************************************/
 
+const slot_dow = [
+    {
+        "id": 0,
+        "name": "Dimanche",
+    },
+    {
+        "id": 1,
+        "name": "Lundi",
+    },
+    {
+        "id": 2,
+        "name": "Mardi",
+    },
+    {
+        "id": 3,
+        "name": "Mercredi",
+    },
+    {
+        "id": 4,
+        "name": "Jeudi",
+    },
+    {
+        "id": 5,
+        "name": "Vendredi",
+    },
+    {
+        "id": 6,
+        "name": "Samedi",
+    },
+];
+
+function arrayDictNumber(count) {
+    let data = [...Array(count).keys()];
+    let expand = data.map((x) => ({ id: x, name: x.toString().padStart(2, '0') }));
+    return expand
+}
+
+const slot_hours = arrayDictNumber(24);
+
+const slot_minutes = arrayDictNumber(60);
+
+/*******************************************************************************/
+
 function handleHttpErrors(response) {
     if (!response.ok) {
         throw Error(response.status);
@@ -364,27 +407,39 @@ async function apiGetPlanningSlotsJson(planningId) {
     return await getUrlJson(`/ofp-api/v1/plannings/${planningId}`);
 }
 
-async function changePlanningSlotMode(planningId, startId, newMode) {
-    console.log('changePlanningSlotMode', planningId, startId, newMode);
-    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`, { mode: newMode }).catch(logError);
+async function changePlanningSlotDay(planningId, slotId, newDow) {
+    console.log('changePlanningSlotDay', planningId, slotId, newDow);
+    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { dow: newDow }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
-async function changePlanningSlotStart(planningId, startId, newStart) {
-    console.log('changePlanningSlotStart', planningId, startId, newStart);
-    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`, { start: newStart }).catch(logError);
+async function changePlanningSlotHour(planningId, slotId, newHour) {
+    console.log('changePlanningSlotHour', planningId, slotId, newHour);
+    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { hour: newHour }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
-async function deletePlanningSlot(planningId, startId) {
-    console.log('deletePlanningSlot', planningId, startId);
-    await deleteUrl(`/ofp-api/v1/plannings/${planningId}/slots/${startId}`).catch(logError);
+async function changePlanningSlotMinute(planningId, slotId, newMinute) {
+    console.log('changePlanningSlotMinute', planningId, slotId, newMinute);
+    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { minute: newMinute }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
-async function addPlanningSlot(planningId, startId, order) {
-    console.log('addPlanningSlot', planningId, startId, order);
-    await postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { start: startId, mode: order }).catch(logError);
+async function changePlanningSlotMode(planningId, slotId, newMode) {
+    console.log('changePlanningSlotMode', planningId, slotId, newMode);
+    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { mode: newMode }).catch(logError);
+    await loadPlanningSlots(planningId).catch(logError);
+}
+
+async function deletePlanningSlot(planningId, slotId) {
+    console.log('deletePlanningSlot', planningId, slotId);
+    await deleteUrl(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`).catch(logError);
+    await loadPlanningSlots(planningId).catch(logError);
+}
+
+async function addPlanningSlot(planningId, slotId, dow, hour, minute, order) {
+    console.log('addPlanningSlot', planningId, slotId, order);
+    await postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { dow: dow, hour: hour, minute: minute, mode: order }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
@@ -393,50 +448,79 @@ async function loadPlanningSlots(planningId) {
 
     // order by name
     slots.sort((a, b) => {
-        if (a.start === b.start) {
-            return 0;
-        }
-        return a.start < b.start ? -1 : 1;
+        if (a.dow !== b.dow) return (a.dow < b.dow) ? -1 : 1;
+        if (a.hour !== b.hour) return (a.hour < b.hour) ? -1 : 1;
+        if (a.minute !== b.minute) return (a.minute < b.minute) ? -1 : 1;
+        return 0;
     });
 
     let { orders } = await apiGetOrderTypesJson();
 
+    let dowHtml = json2html.render(slot_dow, { '<>': 'option', 'value': '${id}', 'html': '${name}' });
+    let hourHtml = json2html.render(slot_hours, { '<>': 'option', 'value': '${id}', 'html': '${name}h' });
+    let minuteHtml = json2html.render(slot_minutes, { '<>': 'option', 'value': '${id}', 'html': '${name}m' });
     let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
 
     let template = {
         '<>': 'div', 'class': 'row mb-3', 'html': [
             {
-                '<>': 'div', 'class': 'col', 'html': [
+                '<>': 'div', 'class': 'col-sm', 'html': [
                     {
-                        '<>': 'input',
-                        'class': 'form-control',
-                        'type': 'text',
-                        'value': '${start}',
+                        '<>': 'select',
+                        'id': 'planningSlotSelectDow_${id}',
+                        'class': 'form-select',
                         'onchange': function (e) {
-                            changePlanningSlotStart(planningId, e.obj.start, e.event.currentTarget.value);
-                        }
-                    },
+                            changePlanningSlotDay(planningId, e.obj.id, e.event.currentTarget.value);
+                        },
+                        'html': dowHtml
+                    }
                 ]
             },
             {
-                '<>': 'div', 'class': 'col', 'html': [
+                '<>': 'div', 'class': 'col-sm', 'html': [
                     {
                         '<>': 'select',
-                        'id': 'planningSlotSelect_${start}',
+                        'id': 'planningSlotSelectHour_${id}',
                         'class': 'form-select',
                         'onchange': function (e) {
-                            changePlanningSlotMode(planningId, e.obj.start, e.event.currentTarget.value);
+                            changePlanningSlotHour(planningId, e.obj.id, e.event.currentTarget.value);
+                        },
+                        'html': hourHtml
+                    }
+                ]
+            },
+            {
+                '<>': 'div', 'class': 'col-sm', 'html': [
+                    {
+                        '<>': 'select',
+                        'id': 'planningSlotSelectMinute_${id}',
+                        'class': 'form-select',
+                        'onchange': function (e) {
+                            changePlanningSlotMinute(planningId, e.obj.id, e.event.currentTarget.value);
+                        },
+                        'html': minuteHtml
+                    }
+                ]
+            },
+            {
+                '<>': 'div', 'class': 'col-sm', 'html': [
+                    {
+                        '<>': 'select',
+                        'id': 'planningSlotSelectOrder_${id}',
+                        'class': 'form-select',
+                        'onchange': function (e) {
+                            changePlanningSlotMode(planningId, e.obj.id, e.event.currentTarget.value);
                         },
                         'html': optionsHtml
                     }
                 ]
             },
             {
-                '<>': 'div', 'class': 'col-auto', 'html': [
+                '<>': 'div', 'class': 'col-sm', 'html': [
                     {
                         '<>': 'button', 'class': 'btn btn-danger',
                         'onclick': function (e) {
-                            deletePlanningSlot(planningId, e.obj.start);
+                            deletePlanningSlot(planningId, e.obj.id);
                         },
                         'html': [{ '<>': 'span', 'class': 'bi bi-trash' }]
                     }
@@ -451,24 +535,37 @@ async function loadPlanningSlots(planningId) {
     // NOTE: json2html requires jquery to insert event handlers
     $('#planningSlots').json2html(slots, template);
 
+    // select current data
     slots.forEach(function (slot) {
-        let e = document.getElementById(`planningSlotSelect_${slot.start}`);
+        let e = document.getElementById(`planningSlotSelectDow_${slot.id}`);
+        e.value = slot.dow;
+        e = document.getElementById(`planningSlotSelectHour_${slot.id}`);
+        e.value = slot.hour;
+        e = document.getElementById(`planningSlotSelectMinute_${slot.id}`);
+        e.value = slot.minute;
+        e = document.getElementById(`planningSlotSelectOrder_${slot.id}`);
         e.value = `:fixed:${slot.order}`;
     });
 
-    // setup new slot UI
-    let eli = document.getElementById('newSlotInput');
-    let els = document.getElementById('newSlotSelect');
-    els.innerHTML = optionsHtml;
+    // add inputs
+    let eld = document.getElementById('planningSlotSelectDow_add');
+    eld.innerHTML = dowHtml;
+    let elh = document.getElementById('planningSlotSelectHour_add');
+    elh.innerHTML = hourHtml;
+    let elm = document.getElementById('planningSlotSelectMinute_add');
+    elm.innerHTML = minuteHtml;
+    let elo = document.getElementById('planningSlotSelectOrder_add');
+    elo.innerHTML = optionsHtml;
+
+    // add button
     el = document.getElementById('newSlotButton');
-    el.onclick = function (e) {
-        let start = eli.value.trim();
-        if (start.length === 0) return;
-        let order = els.value.trim();
-        if (order.length === 0) return;
-        eli.value = '';
-        addPlanningSlot(planningId, start, order);
-    };
+    el.onclick = async function (e) {
+        addPlanningSlot(planningId, eld.value, elh.value, elm.value, elo.value);
+        eld.value = null;
+        elh.value = null;
+        elm.value = null;
+        elo.value = null;
+    }
 }
 
 /**************************************************************************/
