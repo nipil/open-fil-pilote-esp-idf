@@ -606,9 +606,13 @@ static bool ofp_zone_update_from_planning(struct ofp_zone *zone, struct tm *time
     }
 
     // find most recent slot
-    int min_delta = 24 * 60 * 60;
-    int current_since_midnight = timeinfo->tm_hour * 60 * 60 + timeinfo->tm_min * 60 + timeinfo->tm_sec;
-    ESP_LOGV(TAG, "current since midnight: %i", current_since_midnight);
+    int min_delta = 7 * 24 * 60 * 60; // 7 days
+    int current_since_start_of_week =
+        timeinfo->tm_wday * 24 * 60 * 60 +
+        timeinfo->tm_hour * 60 * 60 +
+        timeinfo->tm_min * 60 +
+        timeinfo->tm_sec;
+    ESP_LOGV(TAG, "current since start of week: %i", current_since_start_of_week);
     struct ofp_planning_slot *most_recent_slot = NULL;
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
     {
@@ -619,10 +623,13 @@ static bool ofp_zone_update_from_planning(struct ofp_zone *zone, struct tm *time
 
         ESP_LOGV(TAG, "planning %i slot %ih%i", plan->id, slot->hour, slot->minute);
 
-        int slot_since_midnight = slot->hour * 60 * 60 + slot->minute * 60;
-        ESP_LOGV(TAG, "slot since midnight: %i", slot_since_midnight);
+        int slot_since_start_of_week =
+            slot->dow * 24 * 60 * 60 +
+            slot->hour * 60 * 60 +
+            slot->minute * 60;
+        ESP_LOGV(TAG, "slot since start of week: %i", slot_since_start_of_week);
 
-        int delta = current_since_midnight - slot_since_midnight;
+        int delta = current_since_start_of_week - slot_since_start_of_week;
         ESP_LOGV(TAG, "delta %i min_delta is %i", delta, min_delta);
 
         // reject future slots and slots older than current
@@ -638,9 +645,10 @@ static bool ofp_zone_update_from_planning(struct ofp_zone *zone, struct tm *time
         most_recent_slot = slot;
     }
 
-    // no slot found (should never happen)
+    // before the first slot, or no slot at all
     if (most_recent_slot == NULL)
     {
+        // TODO: rollover from order at end of the week, if any
         ESP_LOGW(TAG, "No slot found in planning %i for zone %s", zone->mode_data.planning_id, zone->id);
         return false;
     }
