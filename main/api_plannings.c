@@ -144,14 +144,13 @@ esp_err_t serve_api_get_plannings_id(httpd_req_t *req, struct re_result *capture
             continue;
         }
 
-        char *start = ofp_planning_slot_get_start_string(slot); // must be freed
-
         cJSON *s = cJSON_CreateObject();
         cJSON_AddItemToArray(slots, s);
-        cJSON_AddStringToObject(s, json_key_start, start);
+        cJSON_AddNumberToObject(s, json_key_id, slot->id);
+        cJSON_AddNumberToObject(s, json_key_dow, slot->dow);
+        cJSON_AddNumberToObject(s, json_key_hour, slot->hour);
+        cJSON_AddNumberToObject(s, json_key_minute, slot->minute);
         cJSON_AddStringToObject(s, json_key_order, info->id);
-
-        free(start);
     }
 
     esp_err_t result = serve_json(req, root);

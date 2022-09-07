@@ -28,7 +28,9 @@ const char *json_key_plannings;
 const char *json_key_orders;
 const char *json_key_slots;
 const char *json_key_order;
-const char *json_key_start;
+const char *json_key_dow;
+const char *json_key_hour;
+const char *json_key_minute;
 
 const char *json_type_number;
 const char *json_type_string;

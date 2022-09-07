@@ -30,7 +30,9 @@ const char *json_key_plannings = "plannings";
 const char *json_key_orders = "orders";
 const char *json_key_slots = "slots";
 const char *json_key_order = "order";
-const char *json_key_start = "start";
+const char *json_key_dow = "dow";
+const char *json_key_hour = "hour";
+const char *json_key_minute = "minute";
 
 const char *json_type_number = "number";
 const char *json_type_string = "string";

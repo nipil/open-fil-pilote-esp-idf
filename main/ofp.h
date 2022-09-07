@@ -178,7 +178,7 @@ struct ofp_planning
 {
     int id;
     char *description;
-    // Fixed size, so no 'count' member
+    int max_slot_id;
     struct ofp_planning_slot *slots[OFP_MAX_PLANNING_SLOT_COUNT];
 };
 
@@ -239,11 +239,11 @@ struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id);
 bool ofp_planning_list_add_new_planning(char *description);
 bool ofp_planning_list_remove_planning(int planning_id);
 bool ofp_planning_add_new_slot(int planning_id, enum ofp_day_of_week dow, int hour, int minute, enum ofp_order_id order_id);
-bool ofp_planning_remove_existing_slot(int planning_id, enum ofp_day_of_week dow, int hour, int minute);
+bool ofp_planning_remove_existing_slot(int planning_id, int slot_id);
 bool ofp_planning_change_description(int planning_id, char *description);
-bool ofp_planning_slot_set_dow(int planning_id, enum ofp_day_of_week current_dow, int current_hour, int current_minute, int new_dow);
-bool ofp_planning_slot_set_hour(int planning_id, enum ofp_day_of_week current_dow, int current_hour, int current_minute, int new_hour);
-bool ofp_planning_slot_set_minute(int planning_id, enum ofp_day_of_week current_dow, int current_hour, int current_minute, int new_minute);
-bool ofp_planning_slot_set_order(int planning_id, enum ofp_day_of_week dow, int hour, int minute, enum ofp_order_id order_id);
+bool ofp_planning_slot_set_dow(int planning_id, int slot_id, int dow);
+bool ofp_planning_slot_set_hour(int planning_id, int slot_id, int hour);
+bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute);
+bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id order_id);
 
 #endif /* OFP_H */

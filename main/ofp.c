@@ -11,11 +11,13 @@ static const char TAG[] = "ofp";
 
 /* defines */
 #define DEFAULT_FIXED_ORDER_FOR_ZONES HW_OFP_ORDER_ID_STANDARD_COZY
-#define OFP_MAX_LEN_PLANNING_START 6
+#define OFP_MAX_LEN_PLANNING_SLOT_VALUE 10 // dow:hour:minute:order_id
 
 /* constants */
 static const char str_zone_config_mode_value_regex[] = "^([[:digit:]]+):([[:digit:]]+):(.*)$"; // mode:value:description
 static const char str_zone_config_mode_value_printf[] = "%i:%i:%s";
+static const char str_planning_slot_value_printf[] = "d%ih%im%io%i";
+static const char str_planning_slot_value_regex[] = "^([[:digit:]]+):(2[0-3]|[0-1][[:digit:]]):([0-5][[:digit:]]):([[:digit:]]+)$"; // dow:hour:minute:order_id
 
 /* global override instance */
 static struct ofp_override override_global = {
@@ -754,6 +756,11 @@ struct ofp_planning *ofp_planning_list_find_planning_by_id(int planning_id)
     return NULL;
 }
 
+static int ofp_planning_get_next_slot_id(struct ofp_planning *plan)
+{
+    return ++plan->max_slot_id;
+}
+
 static struct ofp_planning *ofp_planning_init(int planning_id, char *description)
 {
     assert(planning_id >= 0);
@@ -819,18 +826,12 @@ static void ofp_planning_purge(struct ofp_planning *plan)
     kv_ns_delete_atomic(kv_get_ns_plan(), buf);
 }
 
-char *ofp_planning_slot_get_start_string(struct ofp_planning_slot *slot)
+static struct ofp_planning_slot *ofp_planning_slot_init(int id, enum ofp_day_of_week dow, int hour, int minute, enum ofp_order_id order_id)
 {
-    char *buf = malloc(OFP_MAX_LEN_PLANNING_START);
-    assert(buf != NULL);
-    snprintf(buf, OFP_MAX_LEN_PLANNING_START, str_planning_slot_id_start_printf, slot->hour, slot->minute);
-    return buf;
-}
+    ESP_LOGD(TAG, "ofp_planning_slot_init id %i dow %i hour %i minute %i order_id %i", id, dow, hour, minute, order_id);
 
-static struct ofp_planning_slot *ofp_planning_slot_init(int hour, int minute, enum ofp_order_id order_id)
-{
-    ESP_LOGD(TAG, "ofp_planning_slot_init hour %i minute %i order_id %i", hour, minute, order_id);
-
+    assert(id >= 0);
+    assert(ofp_day_of_week_is_valid(dow));
     assert(hour >= 0 && hour < 24);
     assert(minute >= 0 && minute < 60);
     assert(ofp_order_id_is_valid(order_id));
@@ -840,45 +841,51 @@ static struct ofp_planning_slot *ofp_planning_slot_init(int hour, int minute, en
     assert(slot != NULL);
 
     // init
+    slot->id = id;
+    slot->dow = dow;
     slot->hour = hour;
     slot->minute = minute;
     slot->order_id = order_id;
 
-    ESP_LOGV(TAG, "slot %ih%i order_id %i", slot->hour, slot->minute, slot->order_id);
+    ESP_LOGV(TAG, "slot id %i p %p", slot->id, slot);
     return slot;
 }
 
 static void ofp_planning_slot_free(struct ofp_planning_slot *slot)
 {
     assert(slot != NULL);
-    ESP_LOGD(TAG, "ofp_planning_slot_free slot %ih%i", slot->hour, slot->minute);
+    ESP_LOGD(TAG, "ofp_planning_slot_free slot id %i p %p", slot->id, slot);
     free(slot);
 }
 
 static void ofp_planning_slot_store(int planning_id, struct ofp_planning_slot *slot)
 {
     assert(slot != NULL);
-    ESP_LOGD(TAG, "ofp_planning_slot_store planning_id %i slot %ih%i", planning_id, slot->hour, slot->minute);
+    ESP_LOGD(TAG, "ofp_planning_slot_store planning_id %i slot_id %i", planning_id, slot->id);
 
     if (!kv_set_ns_slots_for_planning(planning_id))
         return;
 
-    char *buf = ofp_planning_slot_get_start_string(slot);
-    kv_ns_set_i32_atomic(kv_get_ns_slots(), buf, slot->order_id);
-    free(buf);
+    char key[OFP_MAX_LEN_INT32];
+    snprintf(key, sizeof(key), "%i", slot->id);
+
+    char val[OFP_MAX_LEN_PLANNING_SLOT_VALUE];
+    snprintf(val, sizeof(val), str_planning_slot_value_printf, slot->dow, slot->hour, slot->minute, slot->order_id);
+
+    kv_ns_set_str_atomic(kv_get_ns_slots(), key, val);
 }
 
 static void ofp_planning_slot_purge(int planning_id, struct ofp_planning_slot *slot)
 {
     assert(slot != NULL);
-    ESP_LOGD(TAG, "ofp_planning_slot_purge planning_id %i slot %ih%i", planning_id, slot->hour, slot->minute);
+    ESP_LOGD(TAG, "ofp_planning_slot_purge planning_id %i slot_id %i", planning_id, slot->id);
 
     if (!kv_set_ns_slots_for_planning(planning_id))
         return;
 
-    char *buf = ofp_planning_slot_get_start_string(slot);
-    kv_ns_delete_atomic(kv_get_ns_slots(), buf);
-    free(buf);
+    char key[OFP_MAX_LEN_INT32];
+    snprintf(key, sizeof(key), "%i", slot->id);
+    kv_ns_delete_atomic(kv_get_ns_slots(), key);
 }
 
 static bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_planning_slot *slot)
@@ -886,7 +893,14 @@ static bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_plan
     assert(planning != NULL);
     assert(slot != NULL);
 
-    ESP_LOGD(TAG, "ofp_planning_add_slot planning %i slot %ih%i", planning->id, slot->hour, slot->minute);
+    ESP_LOGD(TAG, "ofp_planning_add_slot planning %i slot %i", planning->id, slot->id);
+
+    // keep max_slot_id in sync if needed
+    if (slot->id > planning->max_slot_id)
+    {
+        planning->max_slot_id = slot->id;
+        ESP_LOGV(TAG, "max_slot_id updated to %i", planning->max_slot_id);
+    }
 
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
     {
@@ -902,17 +916,17 @@ static bool ofp_planning_add_slot(struct ofp_planning *planning, struct ofp_plan
     return false;
 }
 
-static struct ofp_planning_slot *ofp_planning_slot_find_by_id(struct ofp_planning *plan, int hour, int minute)
+static struct ofp_planning_slot *ofp_planning_slot_find_by_id(struct ofp_planning *plan, int slot_id)
 {
     assert(plan != NULL);
-    ESP_LOGD(TAG, "ofp_planning_slot_find_by_id planning_id %i hour %i minute %i", plan->id, hour, minute);
+    ESP_LOGD(TAG, "ofp_planning_slot_find_by_id planning_id %i slot_id %i", plan->id, slot_id);
 
     for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
     {
         struct ofp_planning_slot *slot = plan->slots[i];
         if (slot == NULL)
             continue;
-        if (slot->hour == hour && slot->minute == minute)
+        if (slot->id == slot_id)
         {
             ESP_LOGV(TAG, "found at %i slot %p", i, slot);
             return slot;
@@ -921,9 +935,29 @@ static struct ofp_planning_slot *ofp_planning_slot_find_by_id(struct ofp_plannin
     return NULL;
 }
 
-bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_order_id order_id)
+static struct ofp_planning_slot *ofp_planning_slot_find_by_values(struct ofp_planning *plan, enum ofp_day_of_week dow, int hour, int minute)
 {
-    ESP_LOGD(TAG, "ofp_planning_add_new_slot planning_id %i hour %i minute %i order_id %i", planning_id, hour, minute, order_id);
+    assert(plan != NULL);
+    ESP_LOGD(TAG, "ofp_planning_slot_find_by_values planning_id %i dow %i hour %i minute %i", plan->id, dow, hour, minute);
+
+    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
+    {
+        struct ofp_planning_slot *s = plan->slots[i];
+        ESP_LOGV(TAG, "index %i %p", i, s);
+        if (s == NULL)
+            continue;
+        if (s->dow == dow && s->hour == hour && s->minute == minute)
+        {
+            ESP_LOGV(TAG, "found at %i slot %p", i, s);
+            return s;
+        }
+    }
+    return NULL;
+}
+
+bool ofp_planning_add_new_slot(int planning_id, enum ofp_day_of_week dow, int hour, int minute, enum ofp_order_id order_id)
+{
+    ESP_LOGD(TAG, "ofp_planning_add_new_slot planning_id %i dow %i hour %i minute %i order_id %i", planning_id, dow, hour, minute, order_id);
 
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
     if (plan == NULL)
@@ -932,14 +966,17 @@ bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_o
         return false;
     }
 
-    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, hour, minute);
+    // duplicates
+    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_values(plan, dow, hour, minute);
     if (slot != NULL)
     {
-        ESP_LOGW(TAG, "Planning slot %02ih%02i already exists for planning %i", hour, minute, plan->id);
+        ESP_LOGW(TAG, "Planning slot %i already exists in planning %i with dow %i hour %i minute %i ", slot->id, plan->id, slot->dow, slot->hour, slot->minute);
         return false;
     }
 
-    slot = ofp_planning_slot_init(hour, minute, order_id);
+    // create
+    int slot_id = ofp_planning_get_next_slot_id(plan);
+    slot = ofp_planning_slot_init(slot_id, dow, hour, minute, order_id);
     if (plan == NULL)
     {
         ESP_LOGW(TAG, "Could not create new planning slot");
@@ -958,18 +995,10 @@ bool ofp_planning_add_new_slot(int planning_id, int hour, int minute, enum ofp_o
     return true;
 }
 
-static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int minute)
+static bool ofp_planning_remove_slot(struct ofp_planning *plan, int slot_id)
 {
-    assert(hour >= 0 && hour < 24);
-    assert(minute >= 0 && minute < 60);
     assert(plan != NULL);
-    ESP_LOGD(TAG, "ofp_planning_remove_slot planning %i hour %i minude %i", plan->id, hour, minute);
-
-    if (hour == 0 && minute == 0)
-    {
-        ESP_LOGW(TAG, "Could not remove midnight slot for planning %i", plan->id);
-        return false;
-    }
+    ESP_LOGD(TAG, "ofp_planning_remove_slot planning %i slot %i", plan->id, slot_id);
 
     // search and prune
     struct ofp_planning_slot *slot = NULL;
@@ -980,8 +1009,14 @@ static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int mi
         if (*candidate == NULL)
             continue;
 
-        if ((*candidate)->hour != hour || (*candidate)->minute != minute)
+        if ((*candidate)->id != slot_id)
             continue;
+
+        if ((*candidate)->dow == OFP_DOW_SUNDAY /* 0 */ && (*candidate)->hour == 0 && (*candidate)->minute == 0)
+        {
+            ESP_LOGW(TAG, "Could not remove first slot slot for planning %i", plan->id);
+            return false;
+        }
 
         slot = *candidate;
         *candidate = NULL; // remove from slot list
@@ -991,7 +1026,7 @@ static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int mi
 
     if (slot == NULL)
     {
-        ESP_LOGD(TAG, "slot %ih%i not found", hour, minute);
+        ESP_LOGD(TAG, "slot %i not found", slot_id);
         return false;
     }
 
@@ -1002,12 +1037,9 @@ static bool ofp_planning_remove_slot(struct ofp_planning *plan, int hour, int mi
     return true;
 }
 
-bool ofp_planning_remove_existing_slot(int planning_id, int hour, int minute)
+bool ofp_planning_remove_existing_slot(int planning_id, int slot_id)
 {
-    ESP_LOGD(TAG, "ofp_planning_remove_slot planning %i hour %i minude %i", planning_id, hour, minute);
-
-    assert(hour >= 0 && hour < 24);
-    assert(minute >= 0 && minute < 60);
+    ESP_LOGD(TAG, "ofp_planning_remove_slot planning %i slot %i", planning_id, slot_id);
 
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
     if (plan == NULL)
@@ -1016,7 +1048,7 @@ bool ofp_planning_remove_existing_slot(int planning_id, int hour, int minute)
         return false;
     }
 
-    return ofp_planning_remove_slot(plan, hour, minute);
+    return ofp_planning_remove_slot(plan, slot_id);
 }
 
 /*
@@ -1067,44 +1099,70 @@ static void ofp_planning_load_slots(struct ofp_planning *plan)
     // search slots
     if (!kv_set_ns_slots_for_planning(plan->id))
         return;
-    nvs_iterator_t it_slot = nvs_entry_find(default_nvs_partition_name, kv_get_ns_slots(), NVS_TYPE_I32);
+    nvs_iterator_t it_slot = nvs_entry_find(default_nvs_partition_name, kv_get_ns_slots(), NVS_TYPE_STR);
     for (; it_slot != NULL; it_slot = nvs_entry_next(it_slot))
     {
         nvs_entry_info_t info;
         nvs_entry_info(it_slot, &info);
 
-        struct re_result *res = re_match(re_planning_slot_id_start_printf, info.key);
-        if (res == NULL || res->count != 3)
+        int slot_id;
+        if (!parse_int(info.key, &slot_id))
         {
             ESP_LOGW(TAG, "Ignoring slot with invalid key for planning %i: %s", plan->id, info.key);
             return;
         }
 
-        // parse
-        int hour = atoi(res->strings[1]);
-        int minute = atoi(res->strings[2]);
-
-        // cleanup
-        if (res != NULL)
-            re_free(res);
-
-        // check for duplicates
-        if (ofp_planning_slot_find_by_id(plan, hour, minute) != NULL)
+        // check for duplicates (based on IDs, not inner data)
+        if (ofp_planning_slot_find_by_id(plan, slot_id) != NULL)
         {
-            ESP_LOGW(TAG, "Ignoring duplicate slot id found in planning %i namespace: %s", plan->id, info.key);
+            ESP_LOGW(TAG, "Ignoring duplicate slot id found in planning %i namespace: %i", plan->id, slot_id);
             continue;
         }
 
-        // ordering
-        enum ofp_order_id order_id = kv_ns_get_i32_atomic(kv_get_ns_slots(), info.key, DEFAULT_FIXED_ORDER_FOR_ZONES); // TODO: do not use default but fail instead ?
+        // get
+        char *value = kv_ns_get_str_atomic(kv_get_ns_slots(), info.key); // must be free'd
+        if (value == NULL)
+        {
+            ESP_LOGW(TAG, "Could not read slot id %i found in planning %i namespace, ignoring", slot_id, plan->id);
+            continue;
+        }
+
+        // parse
+        struct re_result *res = re_match(str_planning_slot_value_regex, value);
+        if (res == NULL || res->count != 5)
+        {
+            ESP_LOGW(TAG, "Ignoring invalid slot configuration %s for slot %i of planning %i", value, slot_id, plan->id);
+            continue;
+        }
+        enum ofp_day_of_week dow = atoi(res->strings[1]);
+        int hour = atoi(res->strings[2]);
+        int minute = atoi(res->strings[3]);
+        enum ofp_order_id order_id = atoi(res->strings[4]);
+
+        // checking
+        if (!ofp_day_of_week_is_valid(dow))
+        {
+            ESP_LOGW(TAG, "Ignoring planning %i slot %i with invalid day of week %i", plan->id, slot_id, dow);
+            continue;
+        }
+        if (hour < 0 || hour >= 24)
+        {
+            ESP_LOGW(TAG, "Ignoring planning %i slot %i with invalid hour %i", plan->id, slot_id, hour);
+            continue;
+        }
+        if (minute < 0 || minute >= 60)
+        {
+            ESP_LOGW(TAG, "Ignoring planning %i slot %i with invalid hour %i", plan->id, slot_id, minute);
+            continue;
+        }
         if (!ofp_order_id_is_valid(order_id))
         {
-            ESP_LOGW(TAG, "Ignoring slot with invalid order id for planning %i: %i", plan->id, order_id);
-            return;
+            ESP_LOGW(TAG, "Ignoring planning %i slot %i with invalid order id %i", plan->id, slot_id, order_id);
+            continue;
         }
 
         // create
-        struct ofp_planning_slot *slot = ofp_planning_slot_init(hour, minute, order_id);
+        struct ofp_planning_slot *slot = ofp_planning_slot_init(slot_id, dow, hour, minute, order_id);
         if (slot == NULL)
         {
             ESP_LOGW(TAG, "Could not create slot %s for planning %i, skipping slot", info.key, plan->id);
@@ -1226,7 +1284,8 @@ bool ofp_planning_list_add_new_planning(char *description)
         return false;
     }
 
-    struct ofp_planning_slot *slot = ofp_planning_slot_init(0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES);
+    int slot_id = ofp_planning_get_next_slot_id(plan);
+    struct ofp_planning_slot *slot = ofp_planning_slot_init(slot_id, OFP_DOW_SUNDAY, 0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES); // TODO: ID
     if (slot == NULL)
     {
         ESP_LOGW(TAG, "Could not initialize new slot for planning %i", plan->id);
@@ -1321,12 +1380,10 @@ bool ofp_planning_change_description(int planning_id, char *description)
     return true;
 }
 
-bool ofp_planning_slot_set_order(int planning_id, int hour, int minute, enum ofp_order_id order_id)
+bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id order_id)
 {
-    ESP_LOGD(TAG, "ofp_planning_slot_set_order planning_id %i hour %i minute %i order_id %i", planning_id, hour, minute, order_id);
+    ESP_LOGD(TAG, "ofp_planning_slot_set_order planning_id %i slot_id %i order_id %i", planning_id, slot_id, order_id);
 
-    assert(hour >= 0 && hour < 24);
-    assert(minute >= 0 && minute < 60);
     assert(ofp_order_id_is_valid(order_id));
 
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
@@ -1336,10 +1393,10 @@ bool ofp_planning_slot_set_order(int planning_id, int hour, int minute, enum ofp
         return false;
     }
 
-    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, hour, minute);
+    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, slot_id);
     if (slot == NULL)
     {
-        ESP_LOGW(TAG, "Could not find slot %02ih%02i in planning %i", hour, minute, plan->id);
+        ESP_LOGW(TAG, "Could not find slot %i in planning %i", slot_id, plan->id);
         return false;
     }
 
@@ -1357,14 +1414,11 @@ bool ofp_planning_slot_set_order(int planning_id, int hour, int minute, enum ofp
     return true;
 }
 
-bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_minute, int new_hour, int new_minute)
+bool ofp_planning_slot_set_dow(int planning_id, int slot_id, int dow)
 {
-    ESP_LOGD(TAG, "ofp_planning_slot_set_start planning_id %i cur_hour %i cur_minute %i new_hour %i new_minute %i", planning_id, current_hour, current_minute, new_hour, new_minute);
+    ESP_LOGD(TAG, "ofp_planning_slot_set_dow planning_id %i slot_id %i dow %i", planning_id, slot_id, dow);
 
-    assert(current_hour >= 0 && current_hour < 24);
-    assert(current_minute >= 0 && current_minute < 60);
-    assert(new_hour >= 0 && new_hour < 24);
-    assert(new_minute >= 0 && new_minute < 60);
+    assert(ofp_day_of_week_is_valid(dow));
 
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
     if (plan == NULL)
@@ -1373,29 +1427,91 @@ bool ofp_planning_slot_set_start(int planning_id, int current_hour, int current_
         return false;
     }
 
-    // check if current does exist
-    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, current_hour, current_minute);
+    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, slot_id);
     if (slot == NULL)
     {
-        ESP_LOGW(TAG, "Could not find slot %02ih%02i in planning %i", current_hour, current_minute, plan->id);
+        ESP_LOGW(TAG, "Could not find slot %i in planning %i", slot_id, plan->id);
         return false;
     }
 
-    // check if target does not exist
-    struct ofp_planning_slot *target = ofp_planning_slot_find_by_id(plan, new_hour, new_minute);
-    if (target != NULL)
+    if (slot->dow == dow)
     {
-        ESP_LOGW(TAG, "Could not set slot start to %ih%i, as another one already exists in planning %i namespace", target->hour, target->minute, plan->id);
+        ESP_LOGV(TAG, "dow not changed");
+        return true;
+    }
+
+    ESP_LOGV(TAG, "Old slot dow %i", slot->dow);
+    slot->dow = dow;
+    ESP_LOGV(TAG, "New slot dow %i", slot->dow);
+    ofp_planning_slot_store(plan->id, slot);
+
+    return true;
+}
+
+bool ofp_planning_slot_set_hour(int planning_id, int slot_id, int hour)
+{
+    ESP_LOGD(TAG, "ofp_planning_slot_set_hour planning_id %i slot_id %i hour %i", planning_id, slot_id, hour);
+
+    assert(hour >= 0 && hour < 24);
+
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGW(TAG, "Could not find planning %i", planning_id);
         return false;
     }
 
-    // modify id_start in NVS and memory
-    ESP_LOGV(TAG, "Old slot %ih%i", slot->hour, slot->minute);
-    ofp_planning_slot_purge(plan->id, slot);
-    slot->hour = new_hour;
-    slot->minute = new_minute;
+    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, slot_id);
+    if (slot == NULL)
+    {
+        ESP_LOGW(TAG, "Could not find slot %i in planning %i", slot_id, plan->id);
+        return false;
+    }
+
+    if (slot->hour == hour)
+    {
+        ESP_LOGV(TAG, "hour not changed");
+        return true;
+    }
+
+    ESP_LOGV(TAG, "Old slot hour %i", slot->hour);
+    slot->hour = hour;
+    ESP_LOGV(TAG, "New slot hour %i", slot->hour);
     ofp_planning_slot_store(plan->id, slot);
-    ESP_LOGV(TAG, "New slot %ih%i", slot->hour, slot->minute);
+
+    return true;
+}
+
+bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute)
+{
+    ESP_LOGD(TAG, "ofp_planning_slot_set_minute planning_id %i slot_id %i minute %i", planning_id, slot_id, minute);
+
+    assert(minute >= 0 && minute < 60);
+
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    if (plan == NULL)
+    {
+        ESP_LOGW(TAG, "Could not find planning %i", planning_id);
+        return false;
+    }
+
+    struct ofp_planning_slot *slot = ofp_planning_slot_find_by_id(plan, slot_id);
+    if (slot == NULL)
+    {
+        ESP_LOGW(TAG, "Could not find slot %i in planning %i", slot_id, plan->id);
+        return false;
+    }
+
+    if (slot->minute == minute)
+    {
+        ESP_LOGV(TAG, "minute not changed");
+        return true;
+    }
+
+    ESP_LOGV(TAG, "Old slot minute %i", slot->minute);
+    slot->minute = minute;
+    ESP_LOGV(TAG, "New slot minute %i", slot->minute);
+    ofp_planning_slot_store(plan->id, slot);
 
     return true;
 }
