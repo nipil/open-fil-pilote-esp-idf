@@ -11,7 +11,6 @@ static const char TAG[] = "ofp";
 
 /* defines */
 #define DEFAULT_FIXED_ORDER_FOR_ZONES HW_OFP_ORDER_ID_STANDARD_COZY
-#define OFP_MAX_LEN_INT32 11
 #define OFP_MAX_LEN_PLANNING_START 6
 
 /* constants */
