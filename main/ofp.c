@@ -73,6 +73,70 @@ static const struct ofp_order_info order_info[] = {
         .order_id = HW_OFP_ORDER_ID_EXTENDED_COZYMINUS1,
     }};
 
+struct ofp_day_of_week_info day_of_week_info[] = {
+    {
+        OFP_DOW_SUNDAY,
+        "Dimanche",
+    },
+    {
+        OFP_DOW_MONDAY,
+        "Lundi",
+    },
+    {
+        OPF_DOW_TUESDAY,
+        "Mardi",
+    },
+    {
+        OFP_DOW_WEDNESDAY,
+        "Mercredi",
+    },
+    {
+        OFP_DOW_THURSDAY,
+        "Jeudi",
+    },
+    {
+        OFP_DOW_FRIDAY,
+        "Vendredi",
+    },
+    {
+        OFP_DOW_SATURDAY,
+        "Samedi",
+    },
+};
+
+/* day_of_week_info */
+
+bool ofp_day_of_week_is_valid(enum ofp_day_of_week dow)
+{
+    return (dow >= 0 && dow < OFP_DOW_ENUM_SIZE);
+}
+
+struct ofp_day_of_week_info *ofp_day_of_week_info_find_by_name(const char *name)
+{
+    if (name == NULL)
+        return NULL;
+    for (int i = 0; i < OFP_DOW_ENUM_SIZE; i++)
+    {
+        struct ofp_day_of_week_info *info = &day_of_week_info[i];
+        if (strcmp(info->name, name) == 0)
+            return info;
+    }
+    return NULL;
+}
+
+struct ofp_day_of_week_info *ofp_day_of_week_info_find_by_id(enum ofp_day_of_week dow)
+{
+    if (!ofp_day_of_week_is_valid(dow))
+        return NULL;
+    for (int i = 0; i < OFP_DOW_ENUM_SIZE; i++)
+    {
+        struct ofp_day_of_week_info *info = &day_of_week_info[i];
+        if (info->id == dow)
+            return info;
+    }
+    return NULL;
+}
+
 /* override */
 void ofp_override_load(void)
 {

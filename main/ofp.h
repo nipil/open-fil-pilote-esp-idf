@@ -13,6 +13,26 @@
 #define OFP_MAX_LEN_VALUE 32
 #define OFP_MAX_LEN_DESCRIPTION 128
 
+/* days of week (see struct tm and tm_wday values) */
+
+enum ofp_day_of_week
+{
+    OFP_DOW_SUNDAY = 0,
+    OFP_DOW_MONDAY,
+    OPF_DOW_TUESDAY,
+    OFP_DOW_WEDNESDAY,
+    OFP_DOW_THURSDAY,
+    OFP_DOW_FRIDAY,
+    OFP_DOW_SATURDAY,
+    OFP_DOW_ENUM_SIZE
+};
+
+struct ofp_day_of_week_info
+{
+    enum ofp_day_of_week id;
+    char name[OFP_MAX_LEN_ID];
+};
+
 /* orders */
 
 enum ofp_order_id // do NOT EVER change the numerical IDs
