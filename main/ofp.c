@@ -115,7 +115,7 @@ bool ofp_day_of_week_is_valid(enum ofp_day_of_week dow)
     return (dow >= 0 && dow < OFP_DOW_ENUM_SIZE);
 }
 
-struct ofp_day_of_week_info *ofp_day_of_week_info_find_by_name(const char *name)
+static struct ofp_day_of_week_info *ofp_day_of_week_info_find_by_name(const char *name)
 {
     if (name == NULL)
         return NULL;
@@ -128,7 +128,7 @@ struct ofp_day_of_week_info *ofp_day_of_week_info_find_by_name(const char *name)
     return NULL;
 }
 
-struct ofp_day_of_week_info *ofp_day_of_week_info_find_by_id(enum ofp_day_of_week dow)
+static struct ofp_day_of_week_info *ofp_day_of_week_info_find_by_id(enum ofp_day_of_week dow)
 {
     if (!ofp_day_of_week_is_valid(dow))
         return NULL;

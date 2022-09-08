@@ -189,6 +189,9 @@ struct ofp_planning_list
     struct ofp_planning *plannings[OFP_MAX_PLANNING_COUNT];
 };
 
+/* day of week */
+bool ofp_day_of_week_is_valid(enum ofp_day_of_week dow);
+
 /* order accessors */
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id);
 const struct ofp_order_info *ofp_order_info_by_str_id(char *order_id);
