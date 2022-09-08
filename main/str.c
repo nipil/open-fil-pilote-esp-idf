@@ -74,7 +74,7 @@ const char *route_api_reboot = "^/ofp-api/v([[:digit:]]+)/reboot$";
 const char *route_api_plannings = "^/ofp-api/v([[:digit:]]+)/plannings$";
 const char *route_api_planning_id = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)$";
 const char *route_api_planning_id_slots = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)/slots$";
-const char *route_api_planning_id_slots_id = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)/slots/((2[0-3]|[0-1][[:digit:]])h[0-5][[:digit:]])$";
+const char *route_api_planning_id_slots_id = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)/slots/([[:digit:]]+)$";
 
 const char *http_302_hdr = "302 Found";
 
