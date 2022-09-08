@@ -627,7 +627,7 @@ static bool ofp_zone_update_from_planning(struct ofp_zone *zone, struct tm *time
 {
     // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
 
-    ESP_LOGD(TAG, "ofp_zone_update_current");
+    ESP_LOGD(TAG, "ofp_zone_update_from_planning");
 
     // planning exists
     struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(zone->mode_data.planning_id);
@@ -653,7 +653,7 @@ static bool ofp_zone_update_from_planning(struct ofp_zone *zone, struct tm *time
         if (slot == NULL)
             continue;
 
-        ESP_LOGV(TAG, "planning %i slot %ih%i", plan->id, slot->hour, slot->minute);
+        ESP_LOGV(TAG, "planning %i slot %i dow %i hour %i minute %i", plan->id, slot->id, slot->dow, slot->hour, slot->minute);
 
         int slot_since_start_of_week =
             slot->dow * 24 * 60 * 60 +
