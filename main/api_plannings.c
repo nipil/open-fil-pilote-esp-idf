@@ -385,7 +385,7 @@ esp_err_t serve_api_post_plannings_id_slots(httpd_req_t *req, struct re_result *
     if (!ofp_planning_add_new_slot(id, dow, hour, minute, found_mode_data.order_id))
     {
         ESP_LOGW(TAG, "Could not add new slot to planning %i", id);
-        return false;
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not add new slot to planning");
     }
 
     return httpd_resp_sendstr(req, "");
