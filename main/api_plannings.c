@@ -80,6 +80,7 @@ esp_err_t serve_api_post_plannings(httpd_req_t *req, struct re_result *captures)
     if (name == NULL)
     {
         ESP_LOGD(TAG, "Missing JSON element '%s'", stor_key_name);
+        cJSON_Delete(root);
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing JSON element");
     }
 
