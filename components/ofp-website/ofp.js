@@ -419,25 +419,25 @@ async function apiGetPlanningSlotsJson(planningId) {
 
 async function changePlanningSlotDay(planningId, slotId, newDow) {
     console.log('changePlanningSlotDay', planningId, slotId, newDow);
-    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { dow: newDow }).catch(logError);
+    await patchUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { dow: +newDow }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
 async function changePlanningSlotHour(planningId, slotId, newHour) {
     console.log('changePlanningSlotHour', planningId, slotId, newHour);
-    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { hour: newHour }).catch(logError);
+    await patchUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { hour: +newHour }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
 async function changePlanningSlotMinute(planningId, slotId, newMinute) {
     console.log('changePlanningSlotMinute', planningId, slotId, newMinute);
-    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { minute: newMinute }).catch(logError);
+    await patchUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { minute: +newMinute }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
 async function changePlanningSlotMode(planningId, slotId, newMode) {
     console.log('changePlanningSlotMode', planningId, slotId, newMode);
-    await putUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { mode: newMode }).catch(logError);
+    await patchUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { mode: newMode }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
