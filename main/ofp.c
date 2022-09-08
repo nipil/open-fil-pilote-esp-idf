@@ -19,6 +19,10 @@ static const char TAG[] = "ofp";
 static const char str_zone_config_mode_value_printf[] = "%i:%i:%s";
 static const char str_zone_config_mode_value_regex[] = "^([[:digit:]]+):([[:digit:]]+):(.*)$";
 
+// planning slot value : dow:hour:minute:order_id
+static const char str_planning_slot_value_printf[] = "%i:%i:%i:%i";
+static const char str_planning_slot_value_regex[] = "^([[:digit:]]+):(2[0-3]|1[[:digit:]]|[[:digit:]]):([1-5][[:digit:]]|[[:digit:]]):([[:digit:]]+)$"; // dow:hour:minute:order_id
+
 /* global override instance */
 static struct ofp_override override_global = {
     .active = false,

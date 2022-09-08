@@ -166,9 +166,51 @@ esp_err_t serve_api_patch_plannings_id(httpd_req_t *req, struct re_result *captu
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(id);
+    if (plan == NULL)
+        return httpd_resp_send_404(req);
 
-    return httpd_resp_send_500(req);
+    // read
+    char *buf = webserver_get_request_data_atomic(req);
+    if (buf == NULL)
+    {
+        ESP_LOGW(TAG, "Failed getting request data");
+        return ESP_FAIL;
+    }
+    ESP_LOGV(TAG, "Request data: %s", buf);
+
+    // parse
+    cJSON *root = cJSON_Parse(buf);
+
+    // cleanup
+    free(buf);
+
+    // parse error
+    if (root == NULL)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
+
+    // optional name
+    cJSON *name = cJSON_GetObjectItemCaseSensitive(root, stor_key_name);
+    if (name != NULL)
+    {
+        if (!cJSON_IsString(name) || name->valuestring == NULL)
+        {
+            ESP_LOGD(TAG, "Invalid type or value for element %s", stor_key_name);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+        }
+        if (!ofp_planning_change_description(plan->id, name->valuestring))
+        {
+            ESP_LOGW(TAG, "Could not set description for planning %i: %s", plan->id, name->valuestring);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set description for planning");
+        }
+    }
+
+    // not providing any matching element is not an error
+
+    cJSON_Delete(root);
+    return httpd_resp_sendstr(req, "");
 }
 
 esp_err_t serve_api_delete_plannings_id(httpd_req_t *req, struct re_result *captures)

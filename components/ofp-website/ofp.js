@@ -360,6 +360,9 @@ async function renamePlanning(id) {
     let name = promptNonEmptyString('Entrez le nouveau nom du planning');
     await patchUrlJson(`/ofp-api/v1/plannings/${id}`, { name: name }).catch(logError);
     await loadPlanningList().catch(logError);
+
+    // reload zone to update planning name
+    await loadZoneConfiguration().catch(logError);
 }
 
 async function deletePlanning(id) {
