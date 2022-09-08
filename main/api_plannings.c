@@ -371,7 +371,99 @@ esp_err_t serve_api_patch_plannings_id_slots_id(httpd_req_t *req, struct re_resu
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    // read
+    char *buf = webserver_get_request_data_atomic(req);
+    if (buf == NULL)
+    {
+        ESP_LOGW(TAG, "Failed getting request data");
+        return ESP_FAIL;
+    }
+
+    // parse
+    cJSON *root = cJSON_Parse(buf);
+
+    // cleanup
+    free(buf);
+
+    // parse error
+    if (root == NULL)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
+
+    int itmp;
+
+    // dow is optional
+    enum ofp_day_of_week dow = OFP_DOW_ENUM_SIZE;
+    enum json_helper_result jres = cjson_get_child_int(root, json_key_dow, &itmp);
+    if (jres != JSON_HELPER_RESULT_NOT_FOUND)
+    {
+        if (jres == JSON_HELPER_RESULT_INVALID || !ofp_day_of_week_is_valid(itmp))
+        {
+            ESP_LOGD(TAG, "Invalid dow");
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid dow");
+        }
+        dow = itmp;
+        ESP_LOGV(TAG, "dow: %i", dow);
+        if (!ofp_planning_slot_set_dow(id, slot_id, dow))
+        {
+            ESP_LOGD(TAG, "Could not set planning dow %i", dow);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set slot dow");
+        }
+    }
+
+    // hour is optional
+    int hour = -1;
+    jres = cjson_get_child_int(root, json_key_hour, &itmp);
+    if (jres != JSON_HELPER_RESULT_NOT_FOUND)
+    {
+        if (jres == JSON_HELPER_RESULT_INVALID || itmp < 0 || itmp >= 60)
+        {
+            ESP_LOGD(TAG, "Invalid hour");
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid hour");
+        }
+        hour = itmp;
+        ESP_LOGV(TAG, "hour: %i", hour);
+        if (!ofp_planning_slot_set_hour(id, slot_id, hour))
+        {
+            ESP_LOGD(TAG, "Could not set planning hour %i", hour);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set slot hour");
+        }
+    }
+
+    // minute is optional
+    int minute = -1;
+    jres = cjson_get_child_int(root, json_key_minute, &itmp);
+    if (jres != JSON_HELPER_RESULT_NOT_FOUND)
+    {
+        if (jres == JSON_HELPER_RESULT_INVALID || itmp < 0 || itmp >= 60)
+        {
+            ESP_LOGD(TAG, "Invalid minute");
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid minute");
+        }
+        minute = itmp;
+        ESP_LOGV(TAG, "minute: %i", minute);
+        if (!ofp_planning_slot_set_minute(id, slot_id, minute))
+        {
+            ESP_LOGD(TAG, "Could not set planning minute %i", minute);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set slot minute");
+        }
+    }
+
+    /*
+    TODO patch slot mode
+        bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id order_id);
+    */
+
+    // not providing any matching element is not an error
+    cJSON_Delete(root);
+    // return httpd_resp_sendstr(req, "");
+
+    // TODO: store here, only if anything changed
 
     return httpd_resp_send_500(req);
 }
