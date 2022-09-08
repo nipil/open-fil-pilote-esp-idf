@@ -585,3 +585,52 @@ void wait_sec(uint32_t sec)
     ESP_LOGV(TAG, "wait_sec %i", sec);
     vTaskDelay(pdMS_TO_TICKS(sec * 1000));
 }
+
+/* cJson helper functions */
+
+enum json_helper_result cjson_get_child_int(cJSON *node, const char *key, int *target)
+{
+    assert(node != NULL);
+    assert(key != NULL);
+    assert(target != NULL);
+
+    cJSON *j_target = cJSON_GetObjectItemCaseSensitive(node, key);
+    if (j_target == NULL)
+    {
+        ESP_LOGD(TAG, "Missing JSON element '%s'", key);
+        return JSON_HELPER_RESULT_NOT_FOUND;
+    }
+    if (!cJSON_IsNumber(j_target))
+    {
+        ESP_LOGD(TAG, "Invalid type or value for element %s", key);
+        return JSON_HELPER_RESULT_INVALID;
+    }
+    *target = j_target->valueint;
+    ESP_LOGV(TAG, "value: %i", *target);
+    return JSON_HELPER_RESULT_SUCCESS;
+}
+
+enum json_helper_result cjson_get_child_string(cJSON *node, const char *key, char **target)
+{
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+    assert(node != NULL);
+    assert(key != NULL);
+    assert(target != NULL);
+
+    cJSON *j_target = cJSON_GetObjectItemCaseSensitive(node, key);
+    if (j_target == NULL)
+    {
+        ESP_LOGD(TAG, "Missing JSON element '%s'", key);
+        *target = NULL;
+        return JSON_HELPER_RESULT_NOT_FOUND;
+    }
+    if (!cJSON_IsString(j_target) || j_target->valuestring == NULL)
+    {
+        ESP_LOGD(TAG, "Invalid type or value for element %s", key);
+        *target = NULL;
+        return JSON_HELPER_RESULT_INVALID;
+    }
+    *target = j_target->valuestring;
+    ESP_LOGV(TAG, "value %s", *target);
+    return JSON_HELPER_RESULT_SUCCESS;
+}

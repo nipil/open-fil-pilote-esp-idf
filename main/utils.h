@@ -4,6 +4,8 @@
 #include <time.h>
 #include <regex.h>
 
+#include <cJSON.h>
+
 #define LOCALTIME_TO_STRING_BUFFER_LENGTH 64
 
 // Some useful macros (source: linux kernel)
@@ -59,6 +61,18 @@
         29, 28, 27, 26, 25, 24, 23, 22, 21, 20,           \
         19, 18, 17, 16, 15, 14, 13, 12, 11, 10,           \
         9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+
+// json helpers
+
+enum json_helper_result
+{
+    JSON_HELPER_RESULT_SUCCESS = 0,
+    JSON_HELPER_RESULT_NOT_FOUND = -1,
+    JSON_HELPER_RESULT_INVALID = -2,
+};
+
+enum json_helper_result cjson_get_child_int(cJSON *node, const char *key, int *target);
+enum json_helper_result cjson_get_child_string(cJSON *node, const char *key, char **target);
 
 // regexp helper structure
 struct re_result
