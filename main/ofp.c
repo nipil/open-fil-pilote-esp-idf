@@ -1047,7 +1047,7 @@ static bool ofp_planning_remove_slot(struct ofp_planning *plan, int slot_id)
 
         if ((*candidate)->dow == OFP_DOW_SUNDAY /* 0 */ && (*candidate)->hour == 0 && (*candidate)->minute == 0)
         {
-            ESP_LOGW(TAG, "Could not remove first slot slot for planning %i", plan->id);
+            ESP_LOGW(TAG, "Could not remove first slot for planning %i", plan->id);
             return false;
         }
 
