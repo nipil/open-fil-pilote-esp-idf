@@ -160,31 +160,24 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
 
     bool need_storing = false;
 
-    // description
-    cJSON *desc = cJSON_GetObjectItemCaseSensitive(root, json_key_description);
-    if (desc != NULL)
+    // optional description
+
+    // name is optional
+    char *desc = NULL;
+    if (cjson_get_child_string(root, stor_key_name, &desc) == JSON_HELPER_RESULT_INVALID)
     {
-        if (!cJSON_IsString(desc) || (desc->valuestring == NULL))
-        {
-            ESP_LOGD(TAG, "Invalid type or value for element %s", json_key_description);
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
-        }
-
-        ESP_LOGV(TAG, "description: %s", desc->valuestring);
-        if (!ofp_zone_set_description(zone, desc->valuestring))
-        {
-            ESP_LOGW(TAG, "Could not set zone description");
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set zone description");
-        }
-
-        need_storing = true;
-
-        ESP_LOGV(TAG, "Description updated.");
+        ESP_LOGD(TAG, "Invalid description");
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid description");
+    }
+    if (desc != NULL && !ofp_zone_set_description(zone, desc))
+    {
+        ESP_LOGW(TAG, "Could not set zone description");
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set zone description");
     }
 
-    // mode
+    // optional mode
     cJSON *mode = cJSON_GetObjectItemCaseSensitive(root, json_key_mode);
     if (mode != NULL)
     {
@@ -253,7 +246,7 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
     cJSON_Delete(root);
 
     // update storage if needed
-    if (need_storing && !ofp_zone_store(zone))
+    if ((desc != NULL || need_storing) && !ofp_zone_store(zone))
     {
         ESP_LOGW(TAG, "Could store updated zone");
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could store updated zone");
@@ -319,21 +312,17 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
     }
 
-    // required string parameter
-    cJSON *override = cJSON_GetObjectItemCaseSensitive(root, stor_key_zone_override);
-    if (override == NULL)
+    // override is required
+    char *override = NULL;
+    if (cjson_get_child_string(root, stor_key_zone_override, &override) != JSON_HELPER_RESULT_SUCCESS || override == NULL)
     {
-        ESP_LOGD(TAG, "Missing JSON element %s", stor_key_zone_override);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
-    }
-    if (!cJSON_IsString(override) || (override->valuestring == NULL))
-    {
-        ESP_LOGD(TAG, "Invalid type or value for element %s", stor_key_zone_override);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+        ESP_LOGD(TAG, "Invalid override");
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid override");
     }
 
     // special value
-    if (strcmp(override->valuestring, stor_val_none) == 0)
+    if (strcmp(override, stor_val_none) == 0)
     {
         // set zone override in common namespace
         ofp_override_disable();
@@ -342,10 +331,10 @@ esp_err_t serve_api_put_override(httpd_req_t *req, struct re_result *captures)
     }
 
     // generic values
-    const struct ofp_order_info *info = ofp_order_info_by_str_id(override->valuestring);
+    const struct ofp_order_info *info = ofp_order_info_by_str_id(override);
     if (info == NULL)
     {
-        ESP_LOGD(TAG, "Invalid order override %s", override->valuestring);
+        ESP_LOGD(TAG, "Invalid order override %s", override);
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
     }
 

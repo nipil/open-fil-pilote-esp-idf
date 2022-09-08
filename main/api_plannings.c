@@ -76,25 +76,18 @@ esp_err_t serve_api_post_plannings(httpd_req_t *req, struct re_result *captures)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
 
     // name is required
-    cJSON *name = cJSON_GetObjectItemCaseSensitive(root, stor_key_name);
-    if (name == NULL)
+    char *name = NULL;
+    if (cjson_get_child_string(root, stor_key_name, &name) != JSON_HELPER_RESULT_SUCCESS)
     {
-        ESP_LOGD(TAG, "Missing JSON element '%s'", stor_key_name);
+        ESP_LOGD(TAG, "Invalid name");
         cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing JSON element");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid name");
     }
 
-    if (!cJSON_IsString(name) || (name->valuestring == NULL))
+    ESP_LOGV(TAG, "name: %s", name);
+    if (!ofp_planning_list_add_new_planning(name))
     {
-        ESP_LOGD(TAG, "Invalid type or value for element %s", stor_key_name);
-        cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
-    }
-
-    ESP_LOGV(TAG, "name: %s", name->valuestring);
-    if (!ofp_planning_list_add_new_planning(name->valuestring))
-    {
-        ESP_LOGW(TAG, "Could not create new planning '%s'", name->valuestring);
+        ESP_LOGW(TAG, "Could not create new planning '%s'", name);
         cJSON_Delete(root);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not create new planning");
     }
@@ -189,22 +182,20 @@ esp_err_t serve_api_patch_plannings_id(httpd_req_t *req, struct re_result *captu
     if (root == NULL)
         return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
 
-    // optional name
-    cJSON *name = cJSON_GetObjectItemCaseSensitive(root, stor_key_name);
-    if (name != NULL)
+    // name is optional
+    char *name = NULL;
+    if (cjson_get_child_string(root, stor_key_name, &name) == JSON_HELPER_RESULT_INVALID)
     {
-        if (!cJSON_IsString(name) || name->valuestring == NULL)
-        {
-            ESP_LOGD(TAG, "Invalid type or value for element %s", stor_key_name);
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
-        }
-        if (!ofp_planning_change_description(plan->id, name->valuestring))
-        {
-            ESP_LOGW(TAG, "Could not set description for planning %i: %s", plan->id, name->valuestring);
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set description for planning");
-        }
+        ESP_LOGD(TAG, "Invalid name");
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid name");
+    }
+
+    if (name != NULL && !ofp_planning_change_description(plan->id, name))
+    {
+        ESP_LOGW(TAG, "Could not set description for planning %i: %s", plan->id, name);
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set description for planning");
     }
 
     // not providing any matching element is not an error
@@ -253,55 +244,36 @@ esp_err_t serve_api_post_plannings_id_slots(httpd_req_t *req, struct re_result *
     // cleanup
     free(buf);
 
+    int itmp;
+
     // dow is required
-    cJSON *j_dow = cJSON_GetObjectItemCaseSensitive(root, json_key_dow);
-    if (j_dow == NULL)
+    if (cjson_get_child_int(root, json_key_dow, &itmp) != JSON_HELPER_RESULT_SUCCESS || !ofp_day_of_week_is_valid(itmp))
     {
-        ESP_LOGD(TAG, "Missing JSON element '%s'", json_key_dow);
+        ESP_LOGD(TAG, "Invalid dow");
         cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing JSON element");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid dow");
     }
-    if (!cJSON_IsNumber(j_dow) || !ofp_day_of_week_is_valid(j_dow->valueint))
-    {
-        ESP_LOGD(TAG, "Invalid type or value for element %s", json_key_dow);
-        cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
-    }
-    enum ofp_day_of_week dow = j_dow->valueint;
+    enum ofp_day_of_week dow = itmp;
     ESP_LOGV(TAG, "dow: %i", dow);
 
     // hour is required
-    cJSON *j_hour = cJSON_GetObjectItemCaseSensitive(root, json_key_hour);
-    if (j_hour == NULL)
+    if (cjson_get_child_int(root, json_key_hour, &itmp) != JSON_HELPER_RESULT_SUCCESS || itmp < 0 || itmp >= 24)
     {
-        ESP_LOGD(TAG, "Missing JSON element '%s'", json_key_hour);
+        ESP_LOGD(TAG, "Invalid hour");
         cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing JSON element");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid hour");
     }
-    if (!cJSON_IsNumber(j_hour) || j_hour->valueint < 0 || j_hour->valueint >= 24)
-    {
-        ESP_LOGD(TAG, "Invalid type or value for element %s", json_key_hour);
-        cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
-    }
-    int hour = j_hour->valueint;
+    int hour = itmp;
     ESP_LOGV(TAG, "hour: %i", hour);
 
     // minute is required
-    cJSON *j_minute = cJSON_GetObjectItemCaseSensitive(root, json_key_minute);
-    if (j_minute == NULL)
+    if (cjson_get_child_int(root, json_key_minute, &itmp) != JSON_HELPER_RESULT_SUCCESS || itmp < 0 || itmp >= 60)
     {
-        ESP_LOGD(TAG, "Missing JSON element '%s'", json_key_minute);
+        ESP_LOGD(TAG, "Invalid minute");
         cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing JSON element");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid minute");
     }
-    if (!cJSON_IsNumber(j_minute) || j_minute->valueint < 0 || j_minute->valueint >= 24)
-    {
-        ESP_LOGD(TAG, "Invalid type or value for element %s", json_key_minute);
-        cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
-    }
-    int minute = j_minute->valueint;
+    int minute = itmp;
     ESP_LOGV(TAG, "minute: %i", minute);
 
     // required mode
