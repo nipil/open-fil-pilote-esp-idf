@@ -815,6 +815,9 @@ static struct ofp_planning *ofp_planning_init(int planning_id, char *description
         return NULL;
     }
 
+    // no slots yet
+    plan->max_slot_id = -1;
+
     // init main
     plan->id = planning_id;
     plan->description = strdup(description);
