@@ -179,9 +179,13 @@ esp_err_t serve_api_delete_plannings_id(httpd_req_t *req, struct re_result *capt
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    if (ofp_planning_list_find_planning_by_id(id) == NULL)
+        return httpd_resp_send_404(req);
 
-    return httpd_resp_send_500(req);
+    if (!ofp_planning_list_remove_planning(id))
+        return httpd_resp_send_500(req);
+
+    return httpd_resp_sendstr(req, "");
 }
 
 esp_err_t serve_api_post_plannings_id_slots(httpd_req_t *req, struct re_result *captures)

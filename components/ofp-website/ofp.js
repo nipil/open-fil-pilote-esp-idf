@@ -362,6 +362,9 @@ async function deletePlanning(id) {
     console.log('deletePlanning', id);
     await deleteUrl(`/ofp-api/v1/plannings/${id}`).catch(logError);
     await loadPlanningList().catch(logError);
+
+    // reload zone in case planning was referenced in a zone and zone was updated
+    await loadZoneConfiguration().catch(logError);
 }
 
 function getSelectedPlanning() {

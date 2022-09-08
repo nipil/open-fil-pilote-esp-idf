@@ -477,6 +477,27 @@ bool ofp_zone_store(struct ofp_zone *zone)
     return true;
 }
 
+static void ofp_zone_check_deleted_planning(int planning_id)
+{
+    ESP_LOGD(TAG, "ofp_zone_check_deleted_planning planning %i", planning_id);
+
+    struct ofp_hw *current_hw = ofp_hw_get_current();
+    if (current_hw == NULL)
+        return;
+
+    // reset every zone which referenced this planning
+    for (int i = 0; i < current_hw->zone_set.count; i++)
+    {
+        struct ofp_zone *zone = &current_hw->zone_set.zones[i];
+        ESP_LOGV(TAG, "zone %i mode %i data %i", i, zone->mode, zone->mode_data.planning_id);
+        if (zone->mode == HW_OFP_ZONE_MODE_PLANNING && zone->mode_data.planning_id == planning_id)
+        {
+            ESP_LOGI(TAG, "Setting zone %s to fixed order %i because configured planning %i was deleted, ", planning_id, zone->id, DEFAULT_FIXED_ORDER_FOR_ZONES);
+            ofp_zone_set_mode_fixed(zone, DEFAULT_FIXED_ORDER_FOR_ZONES);
+        }
+    }
+}
+
 const struct ofp_order_info *ofp_order_info_by_num_id(enum ofp_order_id order_id)
 {
     assert(order_id < HW_OFP_ORDER_ID_ENUM_SIZE);
@@ -1351,6 +1372,9 @@ bool ofp_planning_list_remove_planning(int planning_id)
         ofp_planning_slot_free(*candidate);
         *candidate = NULL; // remove from slot list
     }
+
+    // de-reference planning from zones
+    ofp_zone_check_deleted_planning(plan->id);
 
     ofp_planning_purge(plan);
 
