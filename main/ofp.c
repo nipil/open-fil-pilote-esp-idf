@@ -492,7 +492,7 @@ static void ofp_zone_check_deleted_planning(int planning_id)
         ESP_LOGV(TAG, "zone %i mode %i data %i", i, zone->mode, zone->mode_data.planning_id);
         if (zone->mode == HW_OFP_ZONE_MODE_PLANNING && zone->mode_data.planning_id == planning_id)
         {
-            ESP_LOGI(TAG, "Setting zone %s to fixed order %i because configured planning %i was deleted, ", planning_id, zone->id, DEFAULT_FIXED_ORDER_FOR_ZONES);
+            ESP_LOGI(TAG, "Setting zone %s to fixed order %i because configured planning %i was deleted, ", zone->id, DEFAULT_FIXED_ORDER_FOR_ZONES, planning_id);
             ofp_zone_set_mode_fixed(zone, DEFAULT_FIXED_ORDER_FOR_ZONES);
         }
     }
