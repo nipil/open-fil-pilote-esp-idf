@@ -713,7 +713,7 @@ void ofp_zone_update_current_orders(struct ofp_hw *hw, struct tm *timeinfo)
             if (!ofp_zone_update_from_planning(zone, timeinfo))
             {
                 zone->current = DEFAULT_FIXED_ORDER_FOR_ZONES;
-                ESP_LOGW(TAG, "Could not update zone %s current order from planning", zone->id);
+                ESP_LOGW(TAG, "Could not update zone %s from planning, using default order %i", zone->id, zone->current);
             }
             break;
 
@@ -1158,6 +1158,7 @@ static void ofp_planning_load_slots(struct ofp_planning *plan)
 
         // parse
         struct re_result *res = re_match(str_planning_slot_value_regex, value);
+        ESP_LOGV(TAG, "re_match %p %i", res, res ? res->count : -1);
         if (res == NULL || res->count != 5)
         {
             ESP_LOGW(TAG, "Ignoring invalid slot configuration %s for slot %i of planning %i", value, slot_id, plan->id);
