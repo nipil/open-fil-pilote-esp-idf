@@ -437,9 +437,9 @@ async function deletePlanningSlot(planningId, slotId) {
     await loadPlanningSlots(planningId).catch(logError);
 }
 
-async function addPlanningSlot(planningId, slotId, dow, hour, minute, order) {
-    console.log('addPlanningSlot', planningId, slotId, order);
-    await postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { dow: dow, hour: hour, minute: minute, mode: order }).catch(logError);
+async function addPlanningSlot(planningId, dow, hour, minute, order) {
+    console.log('addPlanningSlot', planningId, dow, hour, minute, order);
+    await postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { dow: +dow, hour: +hour, minute: +minute, mode: order }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 

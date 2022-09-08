@@ -94,8 +94,18 @@ GET /ofp-api/v1/plannings/${planningId}
     {
         "slots": [
             {
-                "start": "00h00",
-                "order": "nofreeze"
+            "id": 0,
+            "dow": 6,
+            "hour": 0,
+            "minute": 0,
+            "order": "nofreeze"
+            },
+            {
+            "id": 1,
+            "dow": 4,
+            "hour": 5,
+            "minute": 0,
+            "order": "economy"
             },
             ...
         ]
@@ -104,11 +114,18 @@ GET /ofp-api/v1/plannings/${planningId}
 ---------------------------------------------------------------------
 
 POST /ofp-api/v1/plannings/${planningId}/slots
-    { start: "00h53", mode: ":fixed:cozyminus2" }
+    {
+    "dow": 0,
+    "hour": 0,
+    "minute": 0,
+    "mode": ":fixed:offload"
+    }
 
 PUT /ofp-api/v1/plannings/${planningId}/slots/${startId}
-    { start: "00h53" }
-    { mode: ":fixed:cozyminus2" }
+    { "dow": 0 }
+    { "hour": 0 }
+    { "minute": 0 }
+    { "mode": ":fixed:offload" }
 
 DELETE /ofp-api/v1/plannings/${planningId}/slots/${startId}
 
