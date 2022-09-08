@@ -309,6 +309,9 @@ static bool ofp_hw_param_load_value(const char *hw_id, struct ofp_hw_param *para
 
     case HW_OFP_PARAM_TYPE_STRING:
         result = ofp_hw_param_load_value_string(hw_id, param);
+
+        // TODO: strip
+
         ESP_LOGV(TAG, "value string %s", param->value.string_);
         return result;
 
@@ -323,6 +326,8 @@ bool ofp_zone_set_id(struct ofp_zone *zone, const char *id)
     assert(zone != NULL);
     assert(id != NULL);
 
+    // TODO: strip and check length
+
     int len = strlen(id);
     if (len + 1 > OFP_MAX_LEN_ID)
         return false;
@@ -335,6 +340,8 @@ bool ofp_zone_set_description(struct ofp_zone *zone, const char *description)
 {
     assert(zone != NULL);
     assert(description != NULL);
+
+    // TODO: strip and check length
 
     int len = strlen(description);
     if (len + 1 > OFP_MAX_LEN_DESCRIPTION)
@@ -1295,6 +1302,8 @@ bool ofp_planning_list_add_new_planning(char *description)
     assert(description != NULL);
     ESP_LOGD(TAG, "ofp_planning_list_add_new_planning desc %s", description);
 
+    // TODO: strip and check length
+
     // check for duplicate description
     if (ofp_planning_list_find_planning_by_description(description))
     {
@@ -1393,6 +1402,8 @@ bool ofp_planning_change_description(int planning_id, char *description)
 {
     assert(description != NULL);
     ESP_LOGD(TAG, "ofp_planning_change_description planning_id %i description %s", planning_id, description);
+
+    // TODO: strip and check length
 
     // check for duplicate description
     if (ofp_planning_list_find_planning_by_description(description))
