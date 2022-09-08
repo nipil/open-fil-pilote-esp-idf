@@ -414,7 +414,11 @@ esp_err_t serve_api_delete_plannings_id_slots_id(httpd_req_t *req, struct re_res
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    if (!ofp_planning_remove_existing_slot(id, slot_id))
+    {
+        ESP_LOGW(TAG, "Could not remove slot %i from planning %i", slot_id, id);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not remove slot");
+    }
 
-    return httpd_resp_send_500(req);
+    return httpd_resp_sendstr(req, "");
 }
