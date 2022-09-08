@@ -612,7 +612,7 @@ enum json_helper_result cjson_get_child_int(cJSON *node, const char *key, int *t
 
 enum json_helper_result cjson_get_child_string(cJSON *node, const char *key, char **target)
 {
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     assert(node != NULL);
     assert(key != NULL);
     assert(target != NULL);
