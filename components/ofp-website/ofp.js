@@ -408,6 +408,8 @@ async function loadPlanningList() {
     if (planningId) {
         // action during initial loading : use cache if possible
         await loadPlanningSlots(planningId);
+    } else {
+        clearPlanningSlots();
     }
 }
 
@@ -451,6 +453,11 @@ async function addPlanningSlot(planningId, dow, hour, minute, order) {
     console.log('addPlanningSlot', planningId, dow, hour, minute, order);
     await postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { dow: +dow, hour: +hour, minute: +minute, mode: order }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
+}
+
+function clearPlanningSlots() {
+    // clear content
+    document.getElementById('planningSlots').textContent = '';
 }
 
 async function loadPlanningSlots(planningId) {
@@ -539,8 +546,7 @@ async function loadPlanningSlots(planningId) {
         ]
     };
 
-    // clear content
-    document.getElementById('planningSlots').textContent = '';
+    clearPlanningSlots();
 
     // NOTE: json2html requires jquery to insert event handlers
     $('#planningSlots').json2html(slots, template);
