@@ -226,7 +226,7 @@ esp_err_t serve_api_delete_plannings_id(httpd_req_t *req, struct re_result *capt
         return httpd_resp_send_404(req);
 
     if (!ofp_planning_list_remove_planning(id))
-        return httpd_resp_send_500(req);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not remove planning");
 
     return httpd_resp_sendstr(req, "");
 }

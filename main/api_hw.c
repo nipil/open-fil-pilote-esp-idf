@@ -128,7 +128,7 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
         default:
             ESP_LOGW(TAG, "Invalid ofp_hw_param_type value detected: %i for parameter %s of hardware %s", param->type, param->id, hw->id);
             cJSON_Delete(root);
-            return httpd_resp_send_500(req);
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Invalid hardware parameter value detected");
         }
     }
     kv_close(h);
