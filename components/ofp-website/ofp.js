@@ -348,6 +348,10 @@ async function createPlanning(name) {
     console.log('createPlanning', name);
     await postUrlJson(`/ofp-api/v1/plannings`, { name: name }).catch(logError);
     await loadPlanningList().catch(logError);
+
+    // reload zone in case planning was referenced in a zone and zone was updated
+    await loadZoneConfiguration().catch(logError);
+
     // TODO: select newly created planning
 }
 
