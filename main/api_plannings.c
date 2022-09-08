@@ -454,18 +454,31 @@ esp_err_t serve_api_patch_plannings_id_slots_id(httpd_req_t *req, struct re_resu
         }
     }
 
-    /*
-    TODO patch slot mode
-        bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id order_id);
-    */
+    // mode is optional
+    char *mode = NULL;
+    if (cjson_get_child_string(root, json_key_mode, &mode) == JSON_HELPER_RESULT_SUCCESS)
+    {
+        const struct ofp_order_info *info = ofp_order_info_by_str_id(mode);
+        if (info == NULL)
+        {
+            ESP_LOGD(TAG, "Invalid mode");
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid mode");
+        }
+        ESP_LOGV(TAG, "mode: %i", info->order_id);
+        if (!ofp_planning_slot_set_order(id, slot_id, info->order_id))
+        {
+            ESP_LOGD(TAG, "Could not set slot mode %i", info->order_id);
+            cJSON_Delete(root);
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set slot mode");
+        }
+    }
 
     // not providing any matching element is not an error
+
     cJSON_Delete(root);
-    // return httpd_resp_sendstr(req, "");
 
-    // TODO: store here, only if anything changed
-
-    return httpd_resp_send_500(req);
+    return httpd_resp_sendstr(req, "");
 }
 
 esp_err_t serve_api_delete_plannings_id_slots_id(httpd_req_t *req, struct re_result *captures)

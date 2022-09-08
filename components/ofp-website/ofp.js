@@ -469,7 +469,7 @@ async function loadPlanningSlots(planningId) {
     let dowHtml = json2html.render(slot_dow, { '<>': 'option', 'value': '${id}', 'html': '${name}' });
     let hourHtml = json2html.render(slot_hours, { '<>': 'option', 'value': '${id}', 'html': '${name}h' });
     let minuteHtml = json2html.render(slot_minutes, { '<>': 'option', 'value': '${id}', 'html': '${name}m' });
-    let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': ':fixed:${id}', 'html': '${name}' });
+    let optionsHtml = json2html.render(orders, { '<>': 'option', 'value': '${id}', 'html': '${name}' });
 
     let template = {
         '<>': 'div', 'class': 'row mb-3', 'html': [
@@ -554,7 +554,7 @@ async function loadPlanningSlots(planningId) {
         e = document.getElementById(`planningSlotSelectMinute_${slot.id}`);
         e.value = slot.minute;
         e = document.getElementById(`planningSlotSelectOrder_${slot.id}`);
-        e.value = `:fixed:${slot.order}`;
+        e.value = slot.order;
     });
 
     // add inputs
