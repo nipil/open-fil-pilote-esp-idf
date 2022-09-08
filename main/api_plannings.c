@@ -121,9 +121,8 @@ esp_err_t serve_api_get_plannings_id(httpd_req_t *req, struct re_result *capture
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Planning list not initialized");
     }
 
-    int planning_id = atoi(captures->strings[2]);
-    ESP_LOGD(TAG, "planning_id %i", planning_id);
-    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(planning_id);
+    ESP_LOGD(TAG, "planning_id %i", id);
+    struct ofp_planning *plan = ofp_planning_list_find_planning_by_id(id);
     if (plan == NULL)
     {
         ESP_LOGD(TAG, "planning not found");
