@@ -201,12 +201,12 @@ esp_err_t serve_api_post_plannings_id_slots(httpd_req_t *req, struct re_result *
     return httpd_resp_send_500(req);
 }
 
-esp_err_t serve_api_put_plannings_id_slots_id(httpd_req_t *req, struct re_result *captures)
+esp_err_t serve_api_patch_plannings_id_slots_id(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);
     int id = re_get_int(captures, 2);
     char *slot_id = re_get_string(captures, 3);
-    ESP_LOGD(TAG, "serve_api_put_plannings_id_slots_id version=%i id=%i slot_id=%s", version, id, slot_id);
+    ESP_LOGD(TAG, "serve_api_patch_plannings_id_slots_id version=%i id=%i slot_id=%s", version, id, slot_id);
     if (version != 1)
         return httpd_resp_send_404(req);
 

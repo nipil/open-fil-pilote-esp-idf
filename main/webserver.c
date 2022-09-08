@@ -220,9 +220,6 @@ static esp_err_t https_handler_put(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_override, serve_api_put_override))
         return result;
 
-    if (api_route_try(&result, req, route_api_planning_id_slots_id, serve_api_put_plannings_id_slots_id))
-        return result;
-
     return httpd_resp_send_404(req);
 }
 
@@ -237,6 +234,9 @@ static esp_err_t https_handler_patch(httpd_req_t *req)
         return result;
 
     if (api_route_try(&result, req, route_api_planning_id, serve_api_patch_plannings_id))
+        return result;
+
+    if (api_route_try(&result, req, route_api_planning_id_slots_id, serve_api_patch_plannings_id_slots_id))
         return result;
 
     return httpd_resp_send_404(req);
