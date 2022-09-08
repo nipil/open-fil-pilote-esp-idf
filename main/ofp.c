@@ -423,9 +423,9 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
         result = false;
     }
 
-    enum ofp_zone_mode mode = atoi(res->strings[1]);
-    int mode_value = atoi(res->strings[2]);
-    char *desc = res->strings[3];
+    enum ofp_zone_mode mode = re_get_int(res, 1);
+    int mode_value = re_get_int(res, 2);
+    char *desc = re_get_string(res, 3);
 
     if (!ofp_zone_set_mode(zone, mode, mode_value))
     {
@@ -1168,10 +1168,11 @@ static void ofp_planning_load_slots(struct ofp_planning *plan)
             ESP_LOGW(TAG, "Ignoring invalid slot configuration %s for slot %i of planning %i", value, slot_id, plan->id);
             continue;
         }
-        enum ofp_day_of_week dow = atoi(res->strings[1]);
-        int hour = atoi(res->strings[2]);
-        int minute = atoi(res->strings[3]);
-        enum ofp_order_id order_id = atoi(res->strings[4]);
+
+        enum ofp_day_of_week dow = re_get_int(res, 1);
+        int hour = re_get_int(res, 2);
+        int minute = re_get_int(res, 3);
+        enum ofp_order_id order_id = re_get_int(res, 4);
 
         // checking
         if (!ofp_day_of_week_is_valid(dow))
