@@ -14,10 +14,10 @@ static const char TAG[] = "ofp";
 #define OFP_MAX_LEN_PLANNING_SLOT_VALUE 10 // dow:hour:minute:order_id
 
 /* constants */
-static const char str_zone_config_mode_value_regex[] = "^([[:digit:]]+):([[:digit:]]+):(.*)$"; // mode:value:description
+
+// zone config value = mode:value:description
 static const char str_zone_config_mode_value_printf[] = "%i:%i:%s";
-static const char str_planning_slot_value_printf[] = "d%ih%im%io%i";
-static const char str_planning_slot_value_regex[] = "^([[:digit:]]+):(2[0-3]|[0-1][[:digit:]]):([0-5][[:digit:]]):([[:digit:]]+)$"; // dow:hour:minute:order_id
+static const char str_zone_config_mode_value_regex[] = "^([[:digit:]]+):([[:digit:]]+):(.*)$";
 
 /* global override instance */
 static struct ofp_override override_global = {
