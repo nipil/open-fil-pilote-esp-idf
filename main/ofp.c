@@ -1020,7 +1020,7 @@ bool ofp_planning_add_new_slot(int planning_id, enum ofp_day_of_week dow, int ho
 
     if (!ofp_planning_add_slot(plan, slot))
     {
-        ESP_LOGW(TAG, "Could not add slot %ih%i to planning %i, skipping slot", slot->hour, slot->minute, plan->id);
+        ESP_LOGW(TAG, "Could not add slot %i to planning %i, skipping slot", slot->id, plan->id);
         ofp_planning_slot_free(slot);
         return false;
     }
