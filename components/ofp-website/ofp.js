@@ -437,9 +437,9 @@ async function changePlanningSlotMinute(planningId, slotId, newMinute) {
     await loadPlanningSlots(planningId).catch(logError);
 }
 
-async function changePlanningSlotMode(planningId, slotId, newMode) {
-    console.log('changePlanningSlotMode', planningId, slotId, newMode);
-    await patchUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { mode: newMode }).catch(logError);
+async function changePlanningSlotMode(planningId, slotId, newOrder) {
+    console.log('changePlanningSlotMode', planningId, slotId, newOrder);
+    await patchUrlJson(`/ofp-api/v1/plannings/${planningId}/slots/${slotId}`, { order: newOrder }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 
@@ -451,7 +451,7 @@ async function deletePlanningSlot(planningId, slotId) {
 
 async function addPlanningSlot(planningId, dow, hour, minute, order) {
     console.log('addPlanningSlot', planningId, dow, hour, minute, order);
-    await postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { dow: +dow, hour: +hour, minute: +minute, mode: order }).catch(logError);
+    await postUrlJson(`/ofp-api/v1/plannings/${planningId}/slots`, { dow: +dow, hour: +hour, minute: +minute, order: order }).catch(logError);
     await loadPlanningSlots(planningId).catch(logError);
 }
 

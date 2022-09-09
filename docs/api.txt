@@ -118,14 +118,14 @@ POST /ofp-api/v1/plannings/${planningId}/slots
     "dow": 0,
     "hour": 0,
     "minute": 0,
-    "mode": ":fixed:offload"
+    "order": "offload"
     }
 
 PATCH /ofp-api/v1/plannings/${planningId}/slots/${slotId}
     { "dow": 0 }
     { "hour": 0 }
     { "minute": 0 }
-    { "mode": ":fixed:offload" }
+    { "order": "offload" }
 
 DELETE /ofp-api/v1/plannings/${planningId}/slots/${slotId}
 

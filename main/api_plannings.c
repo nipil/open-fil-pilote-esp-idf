@@ -276,84 +276,29 @@ esp_err_t serve_api_post_plannings_id_slots(httpd_req_t *req, struct re_result *
     int minute = itmp;
     ESP_LOGV(TAG, "minute: %i", minute);
 
-    // required mode
-    enum ofp_zone_mode found_mode = HW_OFP_ZONE_MODE_ENUM_SIZE;
-    union ofp_zone_mode_data found_mode_data = {.planning_id = -1};
-    cJSON *j_mode = cJSON_GetObjectItemCaseSensitive(root, json_key_mode);
-    if (j_mode == NULL)
+    // order is required
+    char *order = NULL;
+    if (cjson_get_child_string(root, json_key_order, &order) != JSON_HELPER_RESULT_SUCCESS || order == NULL)
     {
-        ESP_LOGD(TAG, "Missing JSON element '%s'", json_key_minute);
+        ESP_LOGD(TAG, "Invalid order");
         cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Missing JSON element");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid order");
     }
-    if (!cJSON_IsString(j_mode) || (j_mode->valuestring == NULL))
+
+    const struct ofp_order_info *info = ofp_order_info_by_str_id(order);
+    if (info == NULL)
     {
-        ESP_LOGD(TAG, "Invalid value for element %s", json_key_mode);
-        cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid parameter");
+        ESP_LOGD(TAG, "Invalid order %s", order);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid order");
     }
 
-    ESP_LOGV(TAG, "mode: %s", j_mode->valuestring);
-    struct re_result *res = re_match(parse_zone_mode_re_str, j_mode->valuestring);
-    if (res == NULL || res->count != 6)
-    {
-        ESP_LOGD(TAG, "No match for mode in value %s for element %s", j_mode->valuestring, json_key_mode);
-        cJSON_Delete(root);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid mode string");
-    }
-
-    char *fix = res->strings[2];
-    char *fix_id = res->strings[3];
-    char *plan = res->strings[4];
-    char *plan_id = res->strings[5];
-
-    if (fix != NULL && fix_id != NULL)
-    {
-        const struct ofp_order_info *info = ofp_order_info_by_str_id(fix_id);
-        if (info == NULL)
-        {
-            ESP_LOGD(TAG, "Value %s is not an order id", fix_id);
-            free(res);
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid fixed mode");
-        }
-
-        found_mode = HW_OFP_ZONE_MODE_FIXED;
-        found_mode_data.order_id = info->order_id;
-        ESP_LOGV(TAG, "mode fixe %i", found_mode_data.order_id);
-    }
-    else if (plan != NULL && plan_id != NULL)
-    {
-        int planning_id = atoi(plan_id);
-
-        if (ofp_planning_list_find_planning_by_id(planning_id) == NULL)
-        {
-            ESP_LOGD(TAG, "Invalid planning id %i ", planning_id);
-            free(res);
-            cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid planning id");
-        }
-
-        found_mode = HW_OFP_ZONE_MODE_PLANNING;
-        found_mode_data.planning_id = planning_id;
-        ESP_LOGV(TAG, "mode plan %i", found_mode_data.planning_id);
-    }
-
-    // no other valid case according to REGEX
-    free(res);
+    ESP_LOGV(TAG, "dow %i hour %i minute %i order_id %i", dow, hour, minute, info->order_id);
 
     // every data has been extracted from JSON
     cJSON_Delete(root);
 
-    // slots only allow fixed orderb
-    if (found_mode != HW_OFP_ZONE_MODE_FIXED)
-    {
-        ESP_LOGD(TAG, "Invalid mode %i", found_mode);
-        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid mode");
-    }
-
     // add
-    if (!ofp_planning_add_new_slot(id, dow, hour, minute, found_mode_data.order_id))
+    if (!ofp_planning_add_new_slot(id, dow, hour, minute, info->order_id))
     {
         ESP_LOGW(TAG, "Could not add new slot to planning %i", id);
         return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not add new slot to planning");
@@ -454,23 +399,23 @@ esp_err_t serve_api_patch_plannings_id_slots_id(httpd_req_t *req, struct re_resu
         }
     }
 
-    // mode is optional
-    char *mode = NULL;
-    if (cjson_get_child_string(root, json_key_mode, &mode) == JSON_HELPER_RESULT_SUCCESS)
+    // order is optional
+    char *order = NULL;
+    if (cjson_get_child_string(root, json_key_order, &order) == JSON_HELPER_RESULT_SUCCESS)
     {
-        const struct ofp_order_info *info = ofp_order_info_by_str_id(mode);
+        const struct ofp_order_info *info = ofp_order_info_by_str_id(order);
         if (info == NULL)
         {
-            ESP_LOGD(TAG, "Invalid mode");
+            ESP_LOGD(TAG, "Invalid order");
             cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid mode");
+            return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid order");
         }
-        ESP_LOGV(TAG, "mode: %i", info->order_id);
+        ESP_LOGV(TAG, "order: %i", info->order_id);
         if (!ofp_planning_slot_set_order(id, slot_id, info->order_id))
         {
-            ESP_LOGD(TAG, "Could not set slot mode %i", info->order_id);
+            ESP_LOGD(TAG, "Could not set slot order %i", info->order_id);
             cJSON_Delete(root);
-            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set slot mode");
+            return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not set slot order");
         }
     }
 
