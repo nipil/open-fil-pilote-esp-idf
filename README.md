@@ -27,7 +27,6 @@ Configurer l'analyseur de code de l'éditeur via la commande de palette "ESP-IDP
 
 # roadmap
 
-- fix current order computation
 - user operations
 - authentication
 - add partial reload buttons
