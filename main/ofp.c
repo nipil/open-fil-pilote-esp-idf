@@ -1442,7 +1442,7 @@ bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id
     return true;
 }
 
-bool ofp_planning_slot_set_dow(int planning_id, int slot_id, int dow)
+bool ofp_planning_slot_set_dow(int planning_id, int slot_id, enum ofp_day_of_week dow)
 {
     ESP_LOGD(TAG, "ofp_planning_slot_set_dow planning_id %i slot_id %i dow %i", planning_id, slot_id, dow);
 

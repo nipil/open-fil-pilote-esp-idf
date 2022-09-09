@@ -244,7 +244,7 @@ bool ofp_planning_list_remove_planning(int planning_id);
 bool ofp_planning_add_new_slot(int planning_id, enum ofp_day_of_week dow, int hour, int minute, enum ofp_order_id order_id);
 bool ofp_planning_remove_existing_slot(int planning_id, int slot_id);
 bool ofp_planning_change_description(int planning_id, char *description);
-bool ofp_planning_slot_set_dow(int planning_id, int slot_id, int dow);
+bool ofp_planning_slot_set_dow(int planning_id, int slot_id, enum ofp_day_of_week dow);
 bool ofp_planning_slot_set_hour(int planning_id, int slot_id, int hour);
 bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute);
 bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id order_id);
