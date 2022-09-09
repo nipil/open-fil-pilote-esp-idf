@@ -1408,6 +1408,33 @@ bool ofp_planning_change_description(int planning_id, char *description)
     return true;
 }
 
+static bool ofp_planning_slot_set_without_duplicates(struct ofp_planning *plan, struct ofp_planning_slot *slot, enum ofp_day_of_week dow, int hour, int minute, enum ofp_order_id order_id)
+{
+    ESP_LOGD(TAG, "ofp_planning_slot_set_without_duplicates planning_id %i slot_id %i dow %i hour %i minute %i order_id %i", plan->id, slot->id, dow, hour, minute, order_id);
+
+    assert(plan != NULL);
+    assert(slot != NULL);
+
+    for (int i = 0; i < OFP_MAX_PLANNING_SLOT_COUNT; i++)
+    {
+        struct ofp_planning_slot *candidate = plan->slots[i];
+        if (candidate == NULL)
+            continue;
+        if (candidate->dow == dow && candidate->hour == hour && candidate->minute == minute)
+        {
+            ESP_LOGD(TAG, "Avoiding duplicating slot %i", candidate->id);
+            return false;
+        }
+    }
+
+    ESP_LOGV(TAG, "Updating slot");
+    slot->dow = dow;
+    slot->hour = hour;
+    slot->minute = minute;
+    slot->order_id = order_id;
+    return true;
+}
+
 bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id order_id)
 {
     ESP_LOGD(TAG, "ofp_planning_slot_set_order planning_id %i slot_id %i order_id %i", planning_id, slot_id, order_id);
@@ -1434,9 +1461,12 @@ bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id
         return true;
     }
 
-    ESP_LOGV(TAG, "Old slot order_id %i", slot->order_id);
-    slot->order_id = order_id;
-    ESP_LOGV(TAG, "New slot order_id %i", slot->order_id);
+    if (!ofp_planning_slot_set_without_duplicates(plan, slot, slot->dow, slot->hour, slot->minute, order_id))
+    {
+        ESP_LOGW(TAG, "Preventing duplicate when modifying order");
+        return false;
+    }
+
     ofp_planning_slot_store(plan->id, slot);
 
     return true;
@@ -1470,13 +1500,16 @@ bool ofp_planning_slot_set_dow(int planning_id, int slot_id, enum ofp_day_of_wee
 
     if ((slot->dow == OFP_DOW_SUNDAY || dow == OFP_DOW_SUNDAY) && slot->hour == 0 && slot->minute == 0)
     {
-        ESP_LOGV(TAG, "Invalid dow modification");
+        ESP_LOGV(TAG, "Protecting first slot");
         return false;
     }
 
-    ESP_LOGV(TAG, "Old slot dow %i", slot->dow);
-    slot->dow = dow;
-    ESP_LOGV(TAG, "New slot dow %i", slot->dow);
+    if (!ofp_planning_slot_set_without_duplicates(plan, slot, dow, slot->hour, slot->minute, slot->order_id))
+    {
+        ESP_LOGW(TAG, "Preventing duplicate when modifying dow");
+        return false;
+    }
+
     ofp_planning_slot_store(plan->id, slot);
 
     return true;
@@ -1510,13 +1543,16 @@ bool ofp_planning_slot_set_hour(int planning_id, int slot_id, int hour)
 
     if (slot->dow == OFP_DOW_SUNDAY && (slot->hour == 0 || hour == 0) && slot->minute == 0)
     {
-        ESP_LOGV(TAG, "Invalid hour modification");
+        ESP_LOGV(TAG, "Protecting first slot");
         return false;
     }
 
-    ESP_LOGV(TAG, "Old slot hour %i", slot->hour);
-    slot->hour = hour;
-    ESP_LOGV(TAG, "New slot hour %i", slot->hour);
+    if (!ofp_planning_slot_set_without_duplicates(plan, slot, slot->dow, hour, slot->minute, slot->order_id))
+    {
+        ESP_LOGW(TAG, "Preventing duplicate when modifying hour");
+        return false;
+    }
+
     ofp_planning_slot_store(plan->id, slot);
 
     return true;
@@ -1550,13 +1586,16 @@ bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute)
 
     if (slot->dow == OFP_DOW_SUNDAY && slot->hour == 0 && (slot->minute == 0 || minute == 0))
     {
-        ESP_LOGV(TAG, "Invalid minute modification");
+        ESP_LOGV(TAG, "Protecting first slot");
         return false;
     }
 
-    ESP_LOGV(TAG, "Old slot minute %i", slot->minute);
-    slot->minute = minute;
-    ESP_LOGV(TAG, "New slot minute %i", slot->minute);
+    if (!ofp_planning_slot_set_without_duplicates(plan, slot, slot->dow, slot->hour, minute, slot->order_id))
+    {
+        ESP_LOGW(TAG, "Preventing duplicate when modifying minute");
+        return false;
+    }
+
     ofp_planning_slot_store(plan->id, slot);
 
     return true;
