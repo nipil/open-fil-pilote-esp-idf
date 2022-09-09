@@ -1306,10 +1306,11 @@ bool ofp_planning_list_add_new_planning(char *description)
     }
 
     int slot_id = ofp_planning_get_next_slot_id(plan);
-    struct ofp_planning_slot *slot = ofp_planning_slot_init(slot_id, OFP_DOW_SUNDAY, 0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES); // TODO: ID
+    struct ofp_planning_slot *slot = ofp_planning_slot_init(slot_id, OFP_DOW_SUNDAY, 0, 0, DEFAULT_FIXED_ORDER_FOR_ZONES);
     if (slot == NULL)
     {
-        ESP_LOGW(TAG, "Could not initialize new slot for planning %i", plan->id);
+        ESP_LOGW(TAG, "Could not initialize new slot for planning %i, removing new planning", plan->id);
+        ofp_planning_list_remove_planning(plan->id);
         return false;
     }
 
@@ -1317,8 +1318,9 @@ bool ofp_planning_list_add_new_planning(char *description)
 
     if (!ofp_planning_add_slot(plan, slot))
     {
-        ESP_LOGW(TAG, "Could not add slot %ih%i to planning %i, skipping slot", slot->hour, slot->minute, plan->id);
+        ESP_LOGW(TAG, "Could not add slot %i to planning %i, removing new planning and slot", slot->id, plan->id);
         ofp_planning_slot_free(slot);
+        ofp_planning_list_remove_planning(plan->id);
         return false;
     }
 
