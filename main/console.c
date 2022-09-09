@@ -298,7 +298,7 @@ static struct // argument order defined by struct ordering
 static int nvs_clear_cmd(int argc, char **argv)
 {
     printf("\r\n");
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     int nerrors = arg_parse(argc, argv, (void **)&nvs_clear_args);
     if (nerrors != 0)
     {
@@ -337,7 +337,7 @@ static struct // argument order defined by struct ordering
 static int nvs_delete_cmd(int argc, char **argv)
 {
     printf("\r\n");
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     int nerrors = arg_parse(argc, argv, (void **)&nvs_delete_args);
     if (nerrors != 0)
     {
