@@ -1466,6 +1466,12 @@ bool ofp_planning_slot_set_dow(int planning_id, int slot_id, int dow)
         return true;
     }
 
+    if ((slot->dow == OFP_DOW_SUNDAY || dow == OFP_DOW_SUNDAY) && slot->hour == 0 && slot->minute == 0)
+    {
+        ESP_LOGV(TAG, "Invalid dow modification");
+        return false;
+    }
+
     ESP_LOGV(TAG, "Old slot dow %i", slot->dow);
     slot->dow = dow;
     ESP_LOGV(TAG, "New slot dow %i", slot->dow);
@@ -1500,6 +1506,12 @@ bool ofp_planning_slot_set_hour(int planning_id, int slot_id, int hour)
         return true;
     }
 
+    if (slot->dow == OFP_DOW_SUNDAY && (slot->hour == 0 || hour == 0) && slot->minute == 0)
+    {
+        ESP_LOGV(TAG, "Invalid hour modification");
+        return false;
+    }
+
     ESP_LOGV(TAG, "Old slot hour %i", slot->hour);
     slot->hour = hour;
     ESP_LOGV(TAG, "New slot hour %i", slot->hour);
@@ -1532,6 +1544,12 @@ bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute)
     {
         ESP_LOGV(TAG, "minute not changed");
         return true;
+    }
+
+    if (slot->dow == OFP_DOW_SUNDAY && slot->hour == 0 && (slot->minute == 0 || minute == 0))
+    {
+        ESP_LOGV(TAG, "Invalid minute modification");
+        return false;
     }
 
     ESP_LOGV(TAG, "Old slot minute %i", slot->minute);
