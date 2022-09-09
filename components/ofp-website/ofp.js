@@ -411,6 +411,7 @@ async function loadPlanningList() {
     } else {
         // clear content
         document.getElementById('planningSlots').innerHTML = `En l'absence de cr&eacute;neaux, l'ordre par d&eacute;faut (confort) est utilis&eacute;.`;
+        document.getElementById('planningSlotAddDiv').style.display = 'none';
     }
 }
 
@@ -544,6 +545,7 @@ async function loadPlanningSlots(planningId) {
 
     // clear content
     document.getElementById('planningSlots').textContent = '';
+    document.getElementById('planningSlotAddDiv').style.display = '';
 
     // NOTE: json2html requires jquery to insert event handlers
     $('#planningSlots').json2html(slots, template);
