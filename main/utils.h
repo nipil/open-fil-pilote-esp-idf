@@ -3,6 +3,7 @@
 
 #include <time.h>
 #include <regex.h>
+#include <mbedtls/md.h>
 
 #include <cJSON.h>
 
@@ -186,5 +187,8 @@ bool parse_int(const char *str, int *target);
 /* wait functions */
 void wait_ms(uint32_t ms);
 void wait_sec(uint32_t sec);
+
+/* crypto functions */
+bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len);
 
 #endif /* UTILS_H */

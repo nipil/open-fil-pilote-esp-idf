@@ -634,3 +634,65 @@ enum json_helper_result cjson_get_child_string(cJSON *node, const char *key, cha
     ESP_LOGV(TAG, "value %s", *target);
     return JSON_HELPER_RESULT_SUCCESS;
 }
+
+bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len)
+{
+    ESP_LOGD(TAG, "hmac_md md_type %i salt %p salt_len %i data %p data_len %i output %p", md_type, salt, salt_len, data, data_len, output);
+
+    if (salt == NULL || data == NULL || output == NULL)
+        return false;
+
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);
+    if (md_info == NULL)
+    {
+        ESP_LOGD(TAG, "mbedtls_md_info_from_type failed");
+        return false;
+    }
+
+    mbedtls_md_context_t ctx;
+
+    mbedtls_md_init(&ctx);
+
+    int res = mbedtls_md_setup(&ctx, md_info, 1 /* hmac */);
+    if (res != 0) // MBEDTLS_ERR_MD_BAD_INPUT_DATA, MBEDTLS_ERR_MD_ALLOC_FAILED
+    {
+        ESP_LOGD(TAG, "mbedtls_md_setup %i", res);
+        return false;
+    }
+
+    ESP_LOGV(TAG, "salt");
+    ESP_LOG_BUFFER_HEXDUMP(TAG, salt, salt_len, ESP_LOG_VERBOSE);
+    mbedtls_md_hmac_starts(&ctx, (const unsigned char *)salt, salt_len);
+    if (res != 0) // MBEDTLS_ERR_MD_BAD_INPUT_DATA
+    {
+        ESP_LOGD(TAG, "mbedtls_md_hmac_starts %i", res);
+        return false;
+    }
+
+    // MBEDTLS_MD_MAX_BLOCK_SIZE
+
+    ESP_LOGV(TAG, "data");
+    ESP_LOG_BUFFER_HEXDUMP(TAG, data, data_len, ESP_LOG_VERBOSE);
+    mbedtls_md_hmac_update(&ctx, (const unsigned char *)data, data_len);
+    if (res != 0) // MBEDTLS_ERR_MD_BAD_INPUT_DATA
+    {
+        ESP_LOGD(TAG, "mbedtls_md_hmac_update %i", res);
+        return false;
+    }
+
+    mbedtls_md_hmac_finish(&ctx, output);
+    if (res != 0) // MBEDTLS_ERR_MD_BAD_INPUT_DATA
+    {
+        ESP_LOGD(TAG, "mbedtls_md_hmac_finish %i", res);
+        free(output);
+        return false;
+    }
+    mbedtls_md_free(&ctx);
+    *output_len = mbedtls_md_get_size(md_info);
+
+    ESP_LOGV(TAG, "hash");
+    ESP_LOG_BUFFER_HEXDUMP(TAG, output, *output_len, ESP_LOG_VERBOSE);
+
+    return true;
+}
+
