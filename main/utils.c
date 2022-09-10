@@ -818,7 +818,7 @@ char *password_create(char *cleartext)
     if (n < 0 || n >= INT32_MAX_DECIMAL_LENGTH + 1)
     {
         ESP_LOGD(TAG, "snprintf password_hash_func_id error");
-        goto password_create_cleanup;
+        goto password_create_error_cleanup;
     }
     output += n;
 
@@ -828,7 +828,7 @@ char *password_create(char *cleartext)
     if (n < 0 || n >= INT32_MAX_DECIMAL_LENGTH + 1)
     {
         ESP_LOGD(TAG, "snprintf iterations error");
-        goto password_create_cleanup;
+        goto password_create_error_cleanup;
     }
     output += n;
 
@@ -840,7 +840,7 @@ char *password_create(char *cleartext)
     if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
         ESP_LOGD(TAG, "base64_salt error");
-        goto password_create_cleanup;
+        goto password_create_error_cleanup;
     }
     output += s;
 
@@ -851,14 +851,14 @@ char *password_create(char *cleartext)
     if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
         ESP_LOGD(TAG, "base64_hash error");
-        goto password_create_cleanup;
+        goto password_create_error_cleanup;
     }
     output += s;
 
     ESP_LOGV(TAG, "password_string %s", output_buf);
     return output_buf;
 
-password_create_cleanup:
+password_create_error_cleanup:
     free(output_buf);
     return NULL;
 }
