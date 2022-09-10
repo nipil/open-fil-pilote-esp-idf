@@ -750,7 +750,8 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t s
     // work is finished
     *output_len = hash_len;
     ESP_LOGD(TAG, "hmac_md_iterations finished output_len %i", *output_len);
-    return dst;
+
+    return true;
 }
 
 /*
