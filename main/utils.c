@@ -698,10 +698,61 @@ bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_l
     mbedtls_md_free(&ctx);
     *output_len = mbedtls_md_get_size(md_info);
 
+    ESP_LOGV(TAG, "hash_len %i", *output_len);
     ESP_LOGV(TAG, "hash");
     ESP_LOG_BUFFER_HEXDUMP(TAG, output, *output_len, ESP_LOG_VERBOSE);
 
     return true;
+}
+
+bool hmac_md_iterations(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len, unsigned int iterations)
+{
+    ESP_LOGD(TAG, "hmac_md_iterations md_type %i salt %p salt_len %i data %p data_len %i output %p iterations %i", md_type, salt, salt_len, data, data_len, output, iterations);
+
+    if (iterations == 0)
+    {
+        ESP_LOGD(TAG, "invalid iterations %i", iterations);
+        return false;
+    }
+
+    int hash_len;
+    unsigned char dst_buf[MBEDTLS_MD_MAX_SIZE];
+    ESP_LOGV(TAG, "dst_buf %p", dst_buf);
+
+    // if single iteration, hash directly to output
+    unsigned char *dst = (iterations == 1) ? output : dst_buf;
+
+    // first iteration transforms from  variable-length input to a fixed-length output stored into dst
+    if (!hmac_md(md_type, salt, salt_len, data, data_len, dst, &hash_len))
+    {
+        ESP_LOGD(TAG, "first hmac_md failed");
+        return false;
+    }
+
+    // other iterations rehash the hash (using the salt too) by swapping src and dst each time
+    unsigned char src_buf[MBEDTLS_MD_MAX_SIZE];
+    ESP_LOGV(TAG, "src_buf %p", src_buf);
+    unsigned char *src = src_buf, *tmp;
+    while (--iterations > 0)
+    {
+        // swap
+        tmp = src;
+        src = dst;
+        dst = (iterations == 1) ? output : tmp; // change target on last iteration
+        ESP_LOGV(TAG, "src %p dst %p", src, dst);
+
+        // re-hash
+        if (!hmac_md(md_type, salt, salt_len, src, hash_len, dst, &hash_len))
+        {
+            ESP_LOGD(TAG, "other hmac_md failed");
+            return false;
+        }
+    }
+
+    // work is finished
+    *output_len = hash_len;
+    ESP_LOGD(TAG, "hmac_md_iterations finished output_len %i", *output_len);
+    return dst;
 }
 
 /*

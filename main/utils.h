@@ -190,6 +190,7 @@ void wait_sec(uint32_t sec);
 
 /* crypto functions */
 bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len);
+bool hmac_md_iterations(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len, unsigned int iterations);
 char *password_create(char *cleartext);
 
 #endif /* UTILS_H */
