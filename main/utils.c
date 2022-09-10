@@ -763,10 +763,14 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t s
  */
 char *password_string_create(char *cleartext)
 {
+    char *result = NULL;
+
+    char *output_buf = NULL;
+
     ESP_LOGD(TAG, "password_create %p", cleartext);
 
     if (cleartext == NULL)
-        return NULL;
+        goto cleanup;
 
     size_t cleartext_len = strlen(cleartext);
     ESP_LOGV(TAG, "cleartext_len=%d %s", cleartext_len, cleartext);
@@ -803,11 +807,11 @@ char *password_string_create(char *cleartext)
         + 1;                       // \0
     ESP_LOGV(TAG, "output_buf_len %i", output_buf_len);
 
-    char *output_buf = calloc(output_buf_len, sizeof(char));
+    output_buf = calloc(output_buf_len, sizeof(char));
     if (output_buf == NULL)
     {
         ESP_LOGD(TAG, "calloc error");
-        return NULL;
+        goto cleanup;
     }
 
     char *output = output_buf;
@@ -816,7 +820,7 @@ char *password_string_create(char *cleartext)
     if (n < 0 || n >= INT32_MAX_DECIMAL_LENGTH + 1)
     {
         ESP_LOGD(TAG, "snprintf password_hash_func_id error");
-        goto password_create_error_cleanup;
+        goto cleanup;
     }
     output += n;
 
@@ -826,7 +830,7 @@ char *password_string_create(char *cleartext)
     if (n < 0 || n >= INT32_MAX_DECIMAL_LENGTH + 1)
     {
         ESP_LOGD(TAG, "snprintf iterations error");
-        goto password_create_error_cleanup;
+        goto cleanup;
     }
     output += n;
 
@@ -838,7 +842,7 @@ char *password_string_create(char *cleartext)
     if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
         ESP_LOGD(TAG, "base64_salt error");
-        goto password_create_error_cleanup;
+        goto cleanup;
     }
     output += s;
 
@@ -849,15 +853,14 @@ char *password_string_create(char *cleartext)
     if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
         ESP_LOGD(TAG, "base64_hash error");
-        goto password_create_error_cleanup;
+        goto cleanup;
     }
     output += s;
 
     ESP_LOGV(TAG, "password_string %s", output_buf);
     return output_buf;
 
-password_create_error_cleanup:
+cleanup:
     free(output_buf);
-    return NULL;
+    return result;
 }
-
