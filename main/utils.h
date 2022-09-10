@@ -189,8 +189,7 @@ void wait_ms(uint32_t ms);
 void wait_sec(uint32_t sec);
 
 /* crypto functions */
-bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len);
-bool hmac_md_iterations(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len, unsigned int iterations);
-char *password_create(char *cleartext);
+bool hmac_md(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len);
+bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len, unsigned int iterations);
 
 #endif /* UTILS_H */

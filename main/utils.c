@@ -644,7 +644,7 @@ enum json_helper_result cjson_get_child_string(cJSON *node, const char *key, cha
     return JSON_HELPER_RESULT_SUCCESS;
 }
 
-bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len)
+bool hmac_md(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len)
 {
     ESP_LOGD(TAG, "hmac_md md_type %i salt %p salt_len %i data %p data_len %i output %p", md_type, salt, salt_len, data, data_len, output);
 
@@ -671,18 +671,16 @@ bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_l
 
     ESP_LOGV(TAG, "salt");
     ESP_LOG_BUFFER_HEXDUMP(TAG, salt, salt_len, ESP_LOG_VERBOSE);
-    mbedtls_md_hmac_starts(&ctx, (const unsigned char *)salt, salt_len);
+    mbedtls_md_hmac_starts(&ctx, (const uint8_t *)salt, salt_len);
     if (res != 0) // MBEDTLS_ERR_MD_BAD_INPUT_DATA
     {
         ESP_LOGD(TAG, "mbedtls_md_hmac_starts %i", res);
         return false;
     }
 
-    // MBEDTLS_MD_MAX_BLOCK_SIZE
-
     ESP_LOGV(TAG, "data");
     ESP_LOG_BUFFER_HEXDUMP(TAG, data, data_len, ESP_LOG_VERBOSE);
-    mbedtls_md_hmac_update(&ctx, (const unsigned char *)data, data_len);
+    mbedtls_md_hmac_update(&ctx, (const uint8_t *)data, data_len);
     if (res != 0) // MBEDTLS_ERR_MD_BAD_INPUT_DATA
     {
         ESP_LOGD(TAG, "mbedtls_md_hmac_update %i", res);
@@ -706,7 +704,7 @@ bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_l
     return true;
 }
 
-bool hmac_md_iterations(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_len, const unsigned char *data, size_t data_len, unsigned char *output, int *output_len, unsigned int iterations)
+bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len, size_t iterations)
 {
     ESP_LOGD(TAG, "hmac_md_iterations md_type %i salt %p salt_len %i data %p data_len %i output %p iterations %i", md_type, salt, salt_len, data, data_len, output, iterations);
 
@@ -716,12 +714,12 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const unsigned char *salt, si
         return false;
     }
 
-    int hash_len;
-    unsigned char dst_buf[MBEDTLS_MD_MAX_SIZE];
+    uint8_t hash_len;
+    uint8_t dst_buf[MBEDTLS_MD_MAX_SIZE];
     ESP_LOGV(TAG, "dst_buf %p", dst_buf);
 
     // if single iteration, hash directly to output
-    unsigned char *dst = (iterations == 1) ? output : dst_buf;
+    uint8_t *dst = (iterations == 1) ? output : dst_buf;
 
     // first iteration transforms from  variable-length input to a fixed-length output stored into dst
     if (!hmac_md(md_type, salt, salt_len, data, data_len, dst, &hash_len))
@@ -731,9 +729,9 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const unsigned char *salt, si
     }
 
     // other iterations rehash the hash (using the salt too) by swapping src and dst each time
-    unsigned char src_buf[MBEDTLS_MD_MAX_SIZE];
+    uint8_t src_buf[MBEDTLS_MD_MAX_SIZE];
     ESP_LOGV(TAG, "src_buf %p", src_buf);
-    unsigned char *src = src_buf, *tmp;
+    uint8_t *src = src_buf, *tmp;
     while (--iterations > 0)
     {
         // swap
