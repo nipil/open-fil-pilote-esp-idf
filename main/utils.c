@@ -761,7 +761,7 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t s
  *
  * Returned value (if not NULL) should be FREED BY CALLER
  */
-char *password_create(char *cleartext)
+char *password_string_create(char *cleartext)
 {
     ESP_LOGD(TAG, "password_create %p", cleartext);
 
