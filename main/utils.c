@@ -943,7 +943,7 @@ bool password_string_verify(char *cleartext, char *hashed)
     ESP_LOGV(TAG, "base64_decode salt res %i written %i", res, s);
     if (res != 0 || s != salt_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
     {
-        ESP_LOGD(TAG, "base64_decode salt error %i", res);
+        ESP_LOGD(TAG, "base64_decode salt error");
         goto cleanup;
     }
     ESP_LOG_BUFFER_HEXDUMP(TAG, salt, salt_len, ESP_LOG_VERBOSE);
@@ -952,7 +952,7 @@ bool password_string_verify(char *cleartext, char *hashed)
     ESP_LOGV(TAG, "base64_decode hash res %i written %i", res, s);
     if (res != 0 || s != hash_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
     {
-        ESP_LOGD(TAG, "base64_decode hash error %i", res);
+        ESP_LOGD(TAG, "base64_decode hash error");
         goto cleanup;
     }
     ESP_LOG_BUFFER_HEXDUMP(TAG, hash, hash_len, ESP_LOG_VERBOSE);
