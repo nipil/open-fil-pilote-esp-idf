@@ -768,20 +768,20 @@ char *password_string_create(char *cleartext)
     if (cleartext == NULL)
         return NULL;
 
-    int cleartext_len = strlen(cleartext);
+    size_t cleartext_len = strlen(cleartext);
     ESP_LOGV(TAG, "cleartext_len=%d %s", cleartext_len, cleartext);
 
     mbedtls_md_type_t md_type = PASSWORD_HASH_FUNCTION;
 
-    unsigned char salt[PASSWORD_SALT_LENGTH];
+    uint8_t salt[PASSWORD_SALT_LENGTH];
     esp_fill_random(salt, sizeof(salt));
 
-    int hash_len;
-    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-    if (!hmac_md_iterations(md_type, salt, sizeof(salt), (const unsigned char *)cleartext, cleartext_len, hash, &hash_len, PASSWORD_HASH_ITERATIONS))
+    uint8_t hash_len;
+    uint8_t hash[MBEDTLS_MD_MAX_SIZE];
+    if (!hmac_md_iterations(md_type, salt, sizeof(salt), (const uint8_t *)cleartext, cleartext_len, hash, &hash_len, PASSWORD_HASH_ITERATIONS))
     {
         ESP_LOGD(TAG, "hmac_md failed");
-        return NULL;
+        goto cleanup;
     }
 
     size_t base64_salt_len;
@@ -833,8 +833,8 @@ char *password_string_create(char *cleartext)
     *output++ = ':';
 
     size_t s;
-    int res = mbedtls_base64_encode((unsigned char *)output, base64_salt_len, &s, salt, sizeof(salt));
-    ESP_LOGV(TAG, "base64_salt res %i written %i", res, s);
+    int res = mbedtls_base64_encode((uint8_t *)output, base64_salt_len, &s, salt, sizeof(salt));
+    ESP_LOGV(TAG, "base64_encode salt res %i written %i", res, s);
     if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
         ESP_LOGD(TAG, "base64_salt error");
@@ -844,8 +844,8 @@ char *password_string_create(char *cleartext)
 
     *output++ = ':';
 
-    res = mbedtls_base64_encode((unsigned char *)output, base64_hash_len, &s, hash, hash_len);
-    ESP_LOGV(TAG, "base64_hash res %i written %i", res, s);
+    res = mbedtls_base64_encode((uint8_t *)output, base64_hash_len, &s, hash, hash_len);
+    ESP_LOGV(TAG, "base64_encode hash res %i written %i", res, s);
     if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
         ESP_LOGD(TAG, "base64_hash error");
