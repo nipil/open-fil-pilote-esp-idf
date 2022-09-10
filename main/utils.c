@@ -3,13 +3,21 @@
 #include <regex.h>
 #include <string.h>
 #include <esp_log.h>
+#include <esp_random.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+#include <mbedtls/base64.h>
 
 #include "str.h"
 #include "utils.h"
 
 static const char *TAG = "utils";
+
+/* defines */
+
+#define PASSWORD_SALT_LENGTH 16 // max 16 bytes
+#define PASSWORD_HASH_FUNCTION MBEDTLS_MD_SHA512
+#define INT32_MAX_DECIMAL_LENGTH 10
 
 /* converts time to localtime using timezone */
 void time_to_localtime(time_t *val, struct tm *timeinfo)
@@ -694,5 +702,95 @@ bool hmac_md(mbedtls_md_type_t md_type, const unsigned char *salt, size_t salt_l
     ESP_LOG_BUFFER_HEXDUMP(TAG, output, *output_len, ESP_LOG_VERBOSE);
 
     return true;
+}
+
+/*
+ * Create a password string to be stored and used to verify password
+ *
+ * Format: int(mbedtls_md_type_t):base64(salt):base64(hash)
+ *
+ * Returned value (if not NULL) should be FREED BY CALLER
+ */
+char *password_create(char *cleartext)
+{
+    ESP_LOGD(TAG, "password_create %p", cleartext);
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
+
+    if (cleartext == NULL)
+        return NULL;
+
+    int cleartext_len = strlen(cleartext);
+    ESP_LOGV(TAG, "cleartext_len=%d %s", cleartext_len, cleartext);
+
+    mbedtls_md_type_t md_type = PASSWORD_HASH_FUNCTION;
+
+    unsigned char salt[PASSWORD_SALT_LENGTH];
+    esp_fill_random(salt, sizeof(salt));
+
+    int hash_len;
+    unsigned char hash[MBEDTLS_MD_MAX_SIZE];
+    if (!hmac_md(md_type, salt, sizeof(salt), (const unsigned char *)cleartext, cleartext_len, hash, &hash_len))
+    {
+        ESP_LOGD(TAG, "hmac_md failed");
+        return NULL;
+    }
+
+    size_t base64_salt_len;
+    mbedtls_base64_encode(NULL, 0, &base64_salt_len, salt, sizeof(salt));
+    ESP_LOGV(TAG, "base64_salt_len %i", base64_salt_len);
+
+    size_t base64_hash_len;
+    mbedtls_base64_encode(NULL, 0, &base64_hash_len, hash, hash_len);
+    ESP_LOGV(TAG, "base64_hash_len %i", base64_hash_len);
+
+    size_t output_buf_len = INT32_MAX_DECIMAL_LENGTH /* int32 */ + 1 /* : */ + base64_salt_len + 1 /* : */ + base64_hash_len + 1 /* \0 */;
+    ESP_LOGV(TAG, "output_buf_len %i", output_buf_len);
+
+    char *output_buf = calloc(output_buf_len, sizeof(char));
+    if (output_buf == NULL)
+    {
+        ESP_LOGD(TAG, "calloc error");
+        return NULL;
+    }
+
+    char *output = output_buf;
+
+    int n = snprintf(output, INT32_MAX_DECIMAL_LENGTH + 1, "%i", PASSWORD_HASH_FUNCTION);
+    if (n < 0 || n >= INT32_MAX_DECIMAL_LENGTH + 1)
+    {
+        ESP_LOGD(TAG, "snprintf int32 error");
+        goto password_create_cleanup;
+    }
+    output += n;
+
+    *output++ = ':';
+
+    size_t s;
+    int res = mbedtls_base64_encode((unsigned char *)output, base64_salt_len, &s, salt, sizeof(salt));
+    ESP_LOGV(TAG, "base64_salt res %i written %i", res, s);
+    if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
+    {
+        ESP_LOGD(TAG, "base64_salt error");
+        goto password_create_cleanup;
+    }
+    output += s;
+
+    *output++ = ':';
+
+    res = mbedtls_base64_encode((unsigned char *)output, base64_hash_len, &s, hash, hash_len);
+    ESP_LOGV(TAG, "base64_hash res %i written %i", res, s);
+    if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
+    {
+        ESP_LOGD(TAG, "base64_hash error");
+        goto password_create_cleanup;
+    }
+    output += s;
+
+    ESP_LOGV(TAG, "password_string %s", output_buf);
+    return output_buf;
+
+password_create_cleanup:
+    free(output_buf);
+    return NULL;
 }
 
