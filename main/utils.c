@@ -691,7 +691,6 @@ bool hmac_md(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, co
     if (res != 0) // MBEDTLS_ERR_MD_BAD_INPUT_DATA
     {
         ESP_LOGD(TAG, "mbedtls_md_hmac_finish %i", res);
-        free(output);
         return false;
     }
     mbedtls_md_free(&ctx);
