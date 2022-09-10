@@ -210,7 +210,9 @@ struct re_result *re_match(const char *re_str, const char *str)
 /* frees the results from re_match */
 void re_free(struct re_result *r)
 {
-    assert(r != NULL);
+    if (r == NULL) // behave as free() would
+        return;
+
     if (!r) // if asserts are disabled
         return;
     if (!r->strings)
@@ -397,8 +399,7 @@ struct ofp_form_data *form_data_parse(const char *data)
         if (res == NULL || res->count != 3) // manually set capture count from param_re string
         {
             ESP_LOGD(TAG, "Skipping invalid part '%s' from application/x-www-form-urlencoded data '%s'", param_raw_string, data);
-            if (res != NULL) // if it has unexpected number of captures
-                re_free(res);
+            re_free(res);
             continue;
         }
 

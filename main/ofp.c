@@ -421,8 +421,7 @@ static bool ofp_zone_load_mode(const char *hw_id, struct ofp_zone *zone)
     }
 
     // cleanup
-    if (res != NULL)
-        re_free(res);
+    re_free(res);
     free(buf);
 
     return result;
