@@ -17,6 +17,7 @@ static const char *TAG = "utils";
 
 #define PASSWORD_SALT_LENGTH 16 // max 16 bytes
 #define PASSWORD_HASH_FUNCTION MBEDTLS_MD_SHA512
+#define PASSWORD_HASH_ITERATIONS 4
 #define INT32_MAX_DECIMAL_LENGTH 10
 
 /* converts time to localtime using timezone */
@@ -758,14 +759,13 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const unsigned char *salt, si
 /*
  * Create a password string to be stored and used to verify password
  *
- * Format: int(mbedtls_md_type_t):base64(salt):base64(hash)
+ * Format: int(mbedtls_md_type_t):int(iterations):base64(salt):base64(hash)
  *
  * Returned value (if not NULL) should be FREED BY CALLER
  */
 char *password_create(char *cleartext)
 {
     ESP_LOGD(TAG, "password_create %p", cleartext);
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
 
     if (cleartext == NULL)
         return NULL;
@@ -780,7 +780,7 @@ char *password_create(char *cleartext)
 
     int hash_len;
     unsigned char hash[MBEDTLS_MD_MAX_SIZE];
-    if (!hmac_md(md_type, salt, sizeof(salt), (const unsigned char *)cleartext, cleartext_len, hash, &hash_len))
+    if (!hmac_md_iterations(md_type, salt, sizeof(salt), (const unsigned char *)cleartext, cleartext_len, hash, &hash_len, PASSWORD_HASH_ITERATIONS))
     {
         ESP_LOGD(TAG, "hmac_md failed");
         return NULL;
@@ -794,7 +794,15 @@ char *password_create(char *cleartext)
     mbedtls_base64_encode(NULL, 0, &base64_hash_len, hash, hash_len);
     ESP_LOGV(TAG, "base64_hash_len %i", base64_hash_len);
 
-    size_t output_buf_len = INT32_MAX_DECIMAL_LENGTH /* int32 */ + 1 /* : */ + base64_salt_len + 1 /* : */ + base64_hash_len + 1 /* \0 */;
+    size_t output_buf_len =
+        INT32_MAX_DECIMAL_LENGTH   // algorithm id
+        + 1                        // :
+        + INT32_MAX_DECIMAL_LENGTH // iterations
+        + 1                        // :
+        + base64_salt_len - 1      // base64 without \0
+        + 1                        // :
+        + base64_hash_len - 1      // base64 without \0
+        + 1;                       // \0
     ESP_LOGV(TAG, "output_buf_len %i", output_buf_len);
 
     char *output_buf = calloc(output_buf_len, sizeof(char));
@@ -809,7 +817,17 @@ char *password_create(char *cleartext)
     int n = snprintf(output, INT32_MAX_DECIMAL_LENGTH + 1, "%i", PASSWORD_HASH_FUNCTION);
     if (n < 0 || n >= INT32_MAX_DECIMAL_LENGTH + 1)
     {
-        ESP_LOGD(TAG, "snprintf int32 error");
+        ESP_LOGD(TAG, "snprintf password_hash_func_id error");
+        goto password_create_cleanup;
+    }
+    output += n;
+
+    *output++ = ':';
+
+    n = snprintf(output, INT32_MAX_DECIMAL_LENGTH + 1, "%i", PASSWORD_HASH_ITERATIONS);
+    if (n < 0 || n >= INT32_MAX_DECIMAL_LENGTH + 1)
+    {
+        ESP_LOGD(TAG, "snprintf iterations error");
         goto password_create_cleanup;
     }
     output += n;
