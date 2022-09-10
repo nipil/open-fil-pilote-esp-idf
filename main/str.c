@@ -5,6 +5,7 @@
 
 const char *parse_int_re_str = "^(-|\\+)?([[:digit:]]+)$";
 const char *parse_zone_mode_re_str = "^:((fixed):([[:alnum:]]+)|(planning):([[:digit:]]+))$";
+const char *parse_stored_password_re_str = "^([[:digit:]]+):([[:digit:]]+):([[:alnum:]+/=]+):([[:alnum:]+/=]+)$"; // int:int:base64:base64
 
 const char *default_nvs_partition_name = NVS_DEFAULT_PART_NAME;
 

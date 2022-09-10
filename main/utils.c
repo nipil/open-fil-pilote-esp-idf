@@ -864,3 +864,113 @@ cleanup:
     free(output_buf);
     return result;
 }
+
+bool password_string_verify(char *cleartext, char *hashed)
+{
+    bool result = false;
+
+    struct re_result *re = NULL;
+    uint8_t *salt = NULL;
+    uint8_t *hash = NULL;
+
+    if (cleartext == NULL || hashed == NULL)
+    {
+        ESP_LOGW(TAG, "invalid input");
+        goto cleanup;
+    }
+
+    size_t cleartext_len = strlen(cleartext);
+    ESP_LOGV(TAG, "cleartext_len %d %s", cleartext_len, cleartext);
+
+    re = re_match(parse_stored_password_re_str, hashed);
+    ESP_LOGV(TAG, "re_match %p", re);
+    if (re == NULL)
+    {
+        ESP_LOGW(TAG, "password hash does not match regex %s", parse_stored_password_re_str);
+        goto cleanup;
+    }
+
+    mbedtls_md_type_t md_type = re_get_int(re, 1);
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);
+    if (md_info == NULL)
+    {
+        ESP_LOGD(TAG, "Unknown message digest type %i", md_type);
+        goto cleanup;
+    }
+
+    int iterations = re_get_int(re, 2);
+    if (iterations < 1)
+    {
+        ESP_LOGD(TAG, "Incorrect number of iterations %i", iterations);
+        goto cleanup;
+    }
+
+    char *base64_salt = re_get_string(re, 3);
+    char *base64_hash = re_get_string(re, 4);
+    size_t base64_salt_len = strlen(base64_salt);
+    size_t base64_hash_len = strlen(base64_hash);
+    ESP_LOGV(TAG, "md_type %i iterations %i b64_salt %s b64_salt_len %i b64_hash %s b64_hash_len %i", md_type, iterations, base64_salt, base64_salt_len, base64_hash, base64_hash_len);
+
+    size_t salt_len;
+    mbedtls_base64_decode(NULL, 0, &salt_len, (uint8_t *)base64_salt, base64_salt_len);
+    ESP_LOGV(TAG, "salt_len %i", salt_len);
+    if (salt_len == 0)
+    {
+        ESP_LOGD(TAG, "Salt is empty");
+        goto cleanup;
+    }
+
+    size_t hash_len;
+    mbedtls_base64_decode(NULL, 0, &hash_len, (uint8_t *)base64_hash, base64_hash_len);
+    ESP_LOGV(TAG, "hash_len %i", hash_len);
+    if (hash_len != mbedtls_md_get_size(md_info))
+    {
+        ESP_LOGD(TAG, "Incorrect hash length %i", hash_len);
+        goto cleanup;
+    }
+
+    salt = calloc(salt_len, sizeof(uint8_t));
+    hash = calloc(hash_len, sizeof(uint8_t));
+    if (salt == NULL || hash == NULL)
+    {
+        ESP_LOGD(TAG, "Cannot allocate memory for salt/hash");
+        goto cleanup;
+    }
+
+    size_t s;
+    int res = mbedtls_base64_decode(salt, salt_len, &s, (uint8_t *)base64_salt, base64_salt_len);
+    ESP_LOGV(TAG, "base64_decode salt res %i written %i", res, s);
+    if (res != 0 || s != salt_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+    {
+        ESP_LOGD(TAG, "base64_decode salt error %i", res);
+        goto cleanup;
+    }
+    ESP_LOG_BUFFER_HEXDUMP(TAG, salt, salt_len, ESP_LOG_VERBOSE);
+
+    res = mbedtls_base64_decode(hash, hash_len, &s, (uint8_t *)base64_hash, base64_hash_len);
+    ESP_LOGV(TAG, "base64_decode hash res %i written %i", res, s);
+    if (res != 0 || s != hash_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+    {
+        ESP_LOGD(TAG, "base64_decode hash error %i", res);
+        goto cleanup;
+    }
+    ESP_LOG_BUFFER_HEXDUMP(TAG, hash, hash_len, ESP_LOG_VERBOSE);
+
+    uint8_t tmp[MBEDTLS_MD_MAX_SIZE], tmp_len;
+    if (!hmac_md_iterations(md_type, salt, salt_len, (const uint8_t *)cleartext, cleartext_len, tmp, &tmp_len, iterations) || tmp_len != hash_len)
+    {
+        ESP_LOGD(TAG, "hmac_md failed");
+        goto cleanup;
+    }
+
+    res = memcmp(hash, tmp, hash_len);
+    ESP_LOGV(TAG, "memcmp %i", res);
+
+    result = (res == 0);
+
+cleanup:
+    free(hash);
+    free(salt);
+    re_free(re);
+    return result;
+}
