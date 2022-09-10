@@ -839,7 +839,7 @@ char *password_string_create(char *cleartext)
     size_t s;
     int res = mbedtls_base64_encode((uint8_t *)output, base64_salt_len, &s, salt, sizeof(salt));
     ESP_LOGV(TAG, "base64_encode salt res %i written %i", res, s);
-    if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
+    if (res != 0 || s + 1 != base64_salt_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
         ESP_LOGD(TAG, "base64_salt error");
         goto cleanup;
@@ -850,7 +850,7 @@ char *password_string_create(char *cleartext)
 
     res = mbedtls_base64_encode((uint8_t *)output, base64_hash_len, &s, hash, hash_len);
     ESP_LOGV(TAG, "base64_encode hash res %i written %i", res, s);
-    if (res != 0) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
+    if (res != 0 || s + 1 != base64_hash_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
         ESP_LOGD(TAG, "base64_hash error");
         goto cleanup;
