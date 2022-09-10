@@ -589,7 +589,7 @@ async function accountCreate(userId, cleartextPassword) {
     console.log('accountCreate', userId, cleartextPassword);
     userId = userId.trim();
     if (userId.length === 0) return null;
-    cleartextPassword = userId.trim();
+    cleartextPassword = cleartextPassword.trim();
     if (cleartextPassword.length === 0) return null;
     await postUrlJson('/ofp-api/v1/accounts', { id: userId, password: cleartextPassword }).catch(logError);
     await loadAccounts().catch(logError);
