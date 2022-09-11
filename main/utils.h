@@ -82,6 +82,18 @@ struct re_result
     char **strings;
 };
 
+// crypto structures
+
+struct password_data
+{
+    mbedtls_md_type_t md_type;
+    size_t iterations;
+    uint8_t *salt;
+    size_t salt_len;
+    uint8_t *hash;
+    size_t hash_len;
+};
+
 // time conversions
 void time_to_localtime(time_t *val, struct tm *timeinfo);
 void localtime_to_string(struct tm *timeinfo, char *buf, int buf_len);
@@ -191,7 +203,13 @@ void wait_sec(uint32_t sec);
 /* crypto functions */
 bool hmac_md(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len);
 bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len, unsigned int iterations);
-char *password_string_create(char *cleartext);
-bool password_string_verify(char *cleartext, char *hashed);
+
+void password_struct_log(struct password_data *pwd, esp_log_level_t log_level);
+bool password_struct_init(struct password_data *pwd);
+bool password_struct_free(struct password_data *pwd);
+bool password_struct_setup(struct password_data *pwd, char *cleartext);
+bool password_struct_verify(struct password_data *pwd, char *cleartext);
+char *password_struct_to_string(struct password_data *pwd);
+bool password_struct_from_string(struct password_data *pwd, char *str);
 
 #endif /* UTILS_H */

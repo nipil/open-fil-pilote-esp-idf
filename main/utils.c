@@ -762,39 +762,21 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t s
  *
  * Returned value (if not NULL) should be FREED BY CALLER
  */
-char *password_string_create(char *cleartext)
+char *password_struct_to_string(struct password_data *pwd)
 {
-    char *result = NULL;
+    ESP_LOGD(TAG, "password_struct_to_string %p", pwd);
 
     char *output_buf = NULL;
 
-    ESP_LOGD(TAG, "password_create %p", cleartext);
-
-    if (cleartext == NULL)
+    if (pwd == NULL)
         goto cleanup;
-
-    size_t cleartext_len = strlen(cleartext);
-    ESP_LOGV(TAG, "cleartext_len=%d %s", cleartext_len, cleartext);
-
-    mbedtls_md_type_t md_type = PASSWORD_HASH_FUNCTION;
-
-    uint8_t salt[PASSWORD_SALT_LENGTH];
-    esp_fill_random(salt, sizeof(salt));
-
-    uint8_t hash_len;
-    uint8_t hash[MBEDTLS_MD_MAX_SIZE];
-    if (!hmac_md_iterations(md_type, salt, sizeof(salt), (const uint8_t *)cleartext, cleartext_len, hash, &hash_len, PASSWORD_HASH_ITERATIONS))
-    {
-        ESP_LOGD(TAG, "hmac_md failed");
-        goto cleanup;
-    }
 
     size_t base64_salt_len;
-    mbedtls_base64_encode(NULL, 0, &base64_salt_len, salt, sizeof(salt));
+    mbedtls_base64_encode(NULL, 0, &base64_salt_len, pwd->salt, pwd->salt_len);
     ESP_LOGV(TAG, "base64_salt_len %i", base64_salt_len);
 
     size_t base64_hash_len;
-    mbedtls_base64_encode(NULL, 0, &base64_hash_len, hash, hash_len);
+    mbedtls_base64_encode(NULL, 0, &base64_hash_len, pwd->hash, pwd->hash_len);
     ESP_LOGV(TAG, "base64_hash_len %i", base64_hash_len);
 
     size_t output_buf_len =
@@ -838,7 +820,7 @@ char *password_string_create(char *cleartext)
     *output++ = ':';
 
     size_t s;
-    int res = mbedtls_base64_encode((uint8_t *)output, base64_salt_len, &s, salt, sizeof(salt));
+    int res = mbedtls_base64_encode((uint8_t *)output, base64_salt_len, &s, pwd->salt, pwd->salt_len);
     ESP_LOGV(TAG, "base64_encode salt res %i written %i", res, s);
     if (res != 0 || s + 1 != base64_salt_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
@@ -849,7 +831,7 @@ char *password_string_create(char *cleartext)
 
     *output++ = ':';
 
-    res = mbedtls_base64_encode((uint8_t *)output, base64_hash_len, &s, hash, hash_len);
+    res = mbedtls_base64_encode((uint8_t *)output, base64_hash_len, &s, pwd->hash, pwd->hash_len);
     ESP_LOGV(TAG, "base64_encode hash res %i written %i", res, s);
     if (res != 0 || s + 1 != base64_hash_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL
     {
@@ -863,27 +845,25 @@ char *password_string_create(char *cleartext)
 
 cleanup:
     free(output_buf);
-    return result;
+    return NULL;
 }
 
-bool password_string_verify(char *cleartext, char *hashed)
+bool password_struct_from_string(struct password_data *pwd, char *str)
 {
-    bool result = false;
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+    ESP_LOGD(TAG, "password_struct_from_string %p %p", pwd, str);
 
     struct re_result *re = NULL;
-    uint8_t *salt = NULL;
-    uint8_t *hash = NULL;
+    struct password_data tmp;
 
-    if (cleartext == NULL || hashed == NULL)
-    {
-        ESP_LOGW(TAG, "invalid input");
+    password_struct_init(&tmp);
+
+    if (pwd == NULL || str == NULL)
         goto cleanup;
-    }
 
-    size_t cleartext_len = strlen(cleartext);
-    ESP_LOGV(TAG, "cleartext_len %d %s", cleartext_len, cleartext);
+    ESP_LOGV(TAG, "password_str %s", str);
 
-    re = re_match(parse_stored_password_re_str, hashed);
+    re = re_match(parse_stored_password_re_str, str);
     ESP_LOGV(TAG, "re_match %p", re);
     if (re == NULL)
     {
@@ -891,18 +871,18 @@ bool password_string_verify(char *cleartext, char *hashed)
         goto cleanup;
     }
 
-    mbedtls_md_type_t md_type = re_get_int(re, 1);
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(md_type);
+    tmp.md_type = re_get_int(re, 1);
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(tmp.md_type);
     if (md_info == NULL)
     {
-        ESP_LOGD(TAG, "Unknown message digest type %i", md_type);
+        ESP_LOGD(TAG, "Unknown message digest type %i", tmp.md_type);
         goto cleanup;
     }
 
-    int iterations = re_get_int(re, 2);
-    if (iterations < 1)
+    tmp.iterations = re_get_int(re, 2);
+    if (tmp.iterations < 1)
     {
-        ESP_LOGD(TAG, "Incorrect number of iterations %i", iterations);
+        ESP_LOGD(TAG, "Incorrect number of iterations %i", tmp.iterations);
         goto cleanup;
     }
 
@@ -910,68 +890,176 @@ bool password_string_verify(char *cleartext, char *hashed)
     char *base64_hash = re_get_string(re, 4);
     size_t base64_salt_len = strlen(base64_salt);
     size_t base64_hash_len = strlen(base64_hash);
-    ESP_LOGV(TAG, "md_type %i iterations %i b64_salt %s b64_salt_len %i b64_hash %s b64_hash_len %i", md_type, iterations, base64_salt, base64_salt_len, base64_hash, base64_hash_len);
+    ESP_LOGV(TAG, "md_type %i iterations %i b64_salt %s b64_salt_len %i b64_hash %s b64_hash_len %i", tmp.md_type, tmp.iterations, base64_salt, base64_salt_len, base64_hash, base64_hash_len);
 
-    size_t salt_len;
-    mbedtls_base64_decode(NULL, 0, &salt_len, (uint8_t *)base64_salt, base64_salt_len);
-    ESP_LOGV(TAG, "salt_len %i", salt_len);
-    if (salt_len == 0)
+    mbedtls_base64_decode(NULL, 0, &tmp.salt_len, (uint8_t *)base64_salt, base64_salt_len);
+    ESP_LOGV(TAG, "salt_len %i", tmp.salt_len);
+    if (tmp.salt_len == 0)
     {
         ESP_LOGD(TAG, "Salt is empty");
         goto cleanup;
     }
 
-    size_t hash_len;
-    mbedtls_base64_decode(NULL, 0, &hash_len, (uint8_t *)base64_hash, base64_hash_len);
-    ESP_LOGV(TAG, "hash_len %i", hash_len);
-    if (hash_len != mbedtls_md_get_size(md_info))
+    mbedtls_base64_decode(NULL, 0, &tmp.hash_len, (uint8_t *)base64_hash, base64_hash_len);
+    ESP_LOGV(TAG, "hash_len %i", tmp.hash_len);
+    if (tmp.hash_len != mbedtls_md_get_size(md_info))
     {
-        ESP_LOGD(TAG, "Incorrect hash length %i", hash_len);
+        ESP_LOGD(TAG, "Incorrect hash length %i", tmp.hash_len);
         goto cleanup;
     }
 
-    salt = calloc(salt_len, sizeof(uint8_t));
-    hash = calloc(hash_len, sizeof(uint8_t));
-    if (salt == NULL || hash == NULL)
+    tmp.salt = calloc(tmp.salt_len, sizeof(uint8_t));
+    tmp.hash = calloc(tmp.hash_len, sizeof(uint8_t));
+    if (tmp.salt == NULL || tmp.hash == NULL)
     {
         ESP_LOGD(TAG, "Cannot allocate memory for salt/hash");
         goto cleanup;
     }
 
     size_t s;
-    int res = mbedtls_base64_decode(salt, salt_len, &s, (uint8_t *)base64_salt, base64_salt_len);
+    int res = mbedtls_base64_decode(tmp.salt, tmp.salt_len, &s, (uint8_t *)base64_salt, base64_salt_len);
     ESP_LOGV(TAG, "base64_decode salt res %i written %i", res, s);
-    if (res != 0 || s != salt_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+    if (res != 0 || s != tmp.salt_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
     {
         ESP_LOGD(TAG, "base64_decode salt error");
         goto cleanup;
     }
-    ESP_LOG_BUFFER_HEXDUMP(TAG, salt, salt_len, ESP_LOG_VERBOSE);
+    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp.salt, tmp.salt_len, ESP_LOG_VERBOSE);
 
-    res = mbedtls_base64_decode(hash, hash_len, &s, (uint8_t *)base64_hash, base64_hash_len);
+    res = mbedtls_base64_decode(tmp.hash, tmp.hash_len, &s, (uint8_t *)base64_hash, base64_hash_len);
     ESP_LOGV(TAG, "base64_decode hash res %i written %i", res, s);
-    if (res != 0 || s != hash_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+    if (res != 0 || s != tmp.hash_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
     {
         ESP_LOGD(TAG, "base64_decode hash error");
         goto cleanup;
     }
-    ESP_LOG_BUFFER_HEXDUMP(TAG, hash, hash_len, ESP_LOG_VERBOSE);
+    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp.hash, tmp.hash_len, ESP_LOG_VERBOSE);
 
-    uint8_t tmp[MBEDTLS_MD_MAX_SIZE], tmp_len;
-    if (!hmac_md_iterations(md_type, salt, salt_len, (const uint8_t *)cleartext, cleartext_len, tmp, &tmp_len, iterations) || tmp_len != hash_len)
-    {
-        ESP_LOGD(TAG, "hmac_md failed");
-        goto cleanup;
-    }
+    re_free(re);
 
-    res = memcmp(hash, tmp, hash_len);
-    ESP_LOGV(TAG, "memcmp %i", res);
-
-    result = (res == 0);
+    memcpy(pwd, &tmp, sizeof(struct password_data));
+    return true;
 
 cleanup:
-    free(hash);
-    free(salt);
+    password_struct_free(&tmp);
     re_free(re);
-    return result;
+    return false;
+}
+
+void password_struct_log(struct password_data *pwd, esp_log_level_t log_level)
+{
+    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password type: %i", pwd->md_type);
+    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password iterations: %i", pwd->iterations);
+    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password salt_len: %i", pwd->salt_len);
+    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password salt: %p", pwd->salt);
+    if (pwd->salt != NULL)
+        ESP_LOG_BUFFER_HEXDUMP(TAG, pwd->salt, pwd->salt_len, log_level);
+    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password hash_len: %u", pwd->hash_len);
+    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password hash: %p", pwd->hash);
+    if (pwd->hash != NULL)
+        ESP_LOG_BUFFER_HEXDUMP(TAG, pwd->hash, pwd->hash_len, log_level);
+}
+
+bool password_struct_init(struct password_data *pwd)
+{
+    ESP_LOGD(TAG, "password_struct_init %p", pwd);
+    if (pwd == NULL)
+        return false;
+
+    pwd->md_type = MBEDTLS_MD_NONE;
+    pwd->iterations = 0;
+    pwd->salt_len = 0;
+    pwd->salt = NULL;
+    pwd->hash_len = 0;
+    pwd->hash = NULL;
+    return true;
+}
+
+bool password_struct_free(struct password_data *pwd)
+{
+    ESP_LOGD(TAG, "password_struct_free %p", pwd);
+    if (pwd == NULL)
+        return false;
+    if (pwd->salt != NULL)
+    {
+        free(pwd->salt);
+        pwd->salt = NULL;
+    }
+    if (pwd->hash != NULL)
+    {
+        free(pwd->hash);
+        pwd->hash = NULL;
+    }
+    return true;
+}
+
+bool password_struct_setup(struct password_data *pwd, char *cleartext)
+{
+    ESP_LOGD(TAG, "password_struct_setup %p %p", pwd, cleartext);
+
+    if (pwd == NULL || cleartext == NULL)
+        return false;
+
+    size_t cleartext_len = strlen(cleartext);
+    ESP_LOGV(TAG, "cleartext %i %s", cleartext_len, cleartext);
+
+    struct password_data tmp;
+    password_struct_init(&tmp);
+
+    tmp.md_type = PASSWORD_HASH_FUNCTION;
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(tmp.md_type);
+    if (md_info == NULL)
+        goto cleanup;
+
+    tmp.hash_len = mbedtls_md_get_size(md_info);
+
+    tmp.iterations = PASSWORD_HASH_ITERATIONS;
+    if (tmp.iterations == 0)
+        goto cleanup;
+
+    tmp.salt_len = PASSWORD_SALT_LENGTH;
+    if (tmp.salt_len == 0)
+        goto cleanup;
+
+    tmp.salt = malloc(tmp.salt_len);
+    if (tmp.salt == NULL)
+        goto cleanup;
+
+    esp_fill_random(tmp.salt, tmp.salt_len);
+
+    tmp.hash = malloc(tmp.hash_len);
+    if (tmp.hash == NULL)
+        goto cleanup;
+
+    uint8_t out_len;
+    if (!hmac_md_iterations(tmp.md_type, tmp.salt, tmp.salt_len, (const uint8_t *)cleartext, cleartext_len, tmp.hash, &out_len, tmp.iterations) || out_len != tmp.hash_len)
+        goto cleanup;
+
+    memcpy(pwd, &tmp, sizeof(struct password_data));
+    return true;
+
+cleanup:
+    password_struct_free(&tmp);
+    return false;
+}
+
+bool password_struct_verify(struct password_data *pwd, char *cleartext)
+{
+    ESP_LOGD(TAG, "password_struct_verify %p %p", pwd, cleartext);
+
+    if (pwd == NULL || cleartext == NULL)
+        goto cleanup;
+
+    size_t cleartext_len = strlen(cleartext);
+    ESP_LOGV(TAG, "cleartext %i %s", cleartext_len, cleartext);
+
+    uint8_t tmp[MBEDTLS_MD_MAX_SIZE], tmp_len;
+    if (!hmac_md_iterations(pwd->md_type, pwd->salt, pwd->salt_len, (const uint8_t *)cleartext, cleartext_len, tmp, &tmp_len, pwd->iterations) || tmp_len != pwd->hash_len)
+        goto cleanup;
+
+    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp, tmp_len, ESP_LOG_DEBUG);
+    return (memcmp(pwd->hash, tmp, pwd->hash_len) == 0);
+
+cleanup:
+    return false;
 }
