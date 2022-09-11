@@ -614,11 +614,11 @@ static void register_zones(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
-// 'plannings' command prints in-memory zone configuration
+// 'plannings' command prints in-memory configuration
 static int show_plannings(int argc, char **argv)
 {
     printf("\r\n");
-    extern struct ofp_planning_list *plan_list_global;
+    struct ofp_planning_list *plan_list_global = ofp_planning_list_get();
     if (plan_list_global == NULL)
     {
         printf("No planning list available\r\n");

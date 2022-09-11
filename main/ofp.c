@@ -36,7 +36,7 @@ static struct ofp_account *accounts_global[OFP_MAX_ACCOUNT_COUNT];
 static struct ofp_hw *hw_global = NULL;
 
 /* global planning instance, get it using ofp_planning_list_get() */
-struct ofp_planning_list *plan_list_global = NULL;
+static struct ofp_planning_list *plan_list_global = NULL;
 
 /* where the registered hardware are stored */
 static struct ofp_hw_list hw_list = {.hw_count = 0, .hw = {NULL}};
