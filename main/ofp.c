@@ -29,6 +29,9 @@ static struct ofp_override override_global = {
     .order_id = DEFAULT_FIXED_ORDER_FOR_ZONES,
 };
 
+/* global accounts instance */
+static struct ofp_account *accounts_global[OFP_MAX_ACCOUNT_COUNT];
+
 /* global hardware instance, get it using ofp_hw_get() */
 static struct ofp_hw *hw_global = NULL;
 
@@ -1596,6 +1599,199 @@ bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute)
     }
 
     ofp_planning_slot_store(plan->id, slot);
+
+    return true;
+}
+
+/* account functions */
+
+static bool ofp_account_store(struct ofp_account *account)
+{
+    // TODO: convert password to string and write to storage
+    return false;
+}
+
+static bool ofp_account_remove(struct ofp_account *account)
+{
+    // TODO: get password spec from storage and load into account
+    return false;
+}
+
+static bool ofp_account_init(struct ofp_account *account, char *username)
+{
+    ESP_LOGD(TAG, "ofp_account_init account %p username %p %s", account, username, username ? username : null_str);
+
+    if (account == NULL || username == NULL)
+        return false;
+
+    size_t n = strlen(username);
+    if (n == 0 || n + 1 > sizeof(account->id))
+        return false;
+
+    // TODO: check username regex
+
+    strcpy(account->id, username);
+
+    password_struct_init(&account->pass_data);
+    password_struct_log(&account->pass_data, ESP_LOG_VERBOSE);
+
+    return true;
+}
+
+static bool ofp_account_set_password(struct ofp_account *account, char *cleartext)
+{
+    ESP_LOGD(TAG, "ofp_account_init account %p cleartext %p %s", account, cleartext, cleartext ? cleartext : null_str);
+
+    if (account == NULL || cleartext == NULL)
+        return false;
+
+    // TODO: check cleartext regex
+
+    password_struct_free(&account->pass_data);
+
+    if (!password_struct_setup(&account->pass_data, cleartext))
+        return false;
+
+    return true;
+}
+
+/* account list functions */
+
+static bool ofp_account_list_add_account(struct ofp_account *account)
+{
+    ESP_LOGD(TAG, "ofp_account_list_add_account account %p", account);
+
+    if (account == NULL)
+        return false;
+
+    for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
+    {
+        if (accounts_global[i] != NULL)
+            continue;
+
+        accounts_global[i] = account;
+        ESP_LOGV(TAG, "add account %p at %i", account, i);
+        return true;
+    }
+
+    return false;
+}
+
+static struct ofp_account *ofp_account_list_find_account_by_id(char *username)
+{
+    ESP_LOGD(TAG, "ofp_account_list_find_account_by_id username %p %s", username, username ? username : null_str);
+
+    if (username == NULL)
+        return false;
+
+    for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
+    {
+        struct ofp_account *account = accounts_global[i];
+        if (account == NULL)
+            continue;
+
+        if (strcmp(account->id, username) != 0)
+            continue;
+
+        return account;
+    }
+
+    return NULL;
+}
+
+void ofp_account_list_init(void)
+{
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+    ESP_LOGD(TAG, "ofp_account_list_init");
+
+    for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
+        accounts_global[i] = NULL;
+
+    // TODO: load everything from account namespace
+}
+
+bool ofp_account_list_create_new_account(char *username, char *password)
+{
+    ESP_LOGD(TAG, "ofp_account_list_create_new_account username %p %s password %p %s", username, username ? username : null_str, password, password ? password : null_str);
+
+    // cleanup variables
+    struct ofp_account *account = NULL;
+
+    if (username == NULL || password == NULL)
+        goto cleanup_account;
+
+    account = malloc(sizeof(struct ofp_account));
+    ESP_LOGV(TAG, "account %p", account);
+
+    if (account == NULL)
+        goto cleanup_account;
+
+    if (!ofp_account_init(account, username))
+        goto cleanup_account;
+
+    if (!password_struct_setup(&account->pass_data, password))
+        goto cleanup_account;
+
+    if (!ofp_account_list_add_account(account))
+        goto cleanup_password;
+
+    // TODO: store account
+
+    return true;
+
+cleanup_password:
+    password_struct_free(&account->pass_data);
+cleanup_account:
+    free(account);
+    return false;
+}
+
+bool ofp_account_list_remove_existing_account(char *username)
+{
+    ESP_LOGD(TAG, "ofp_account_list_remove_existing_account username %p %s", username, username ? username : null_str);
+
+    if (username == NULL)
+        return false;
+
+    for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
+    {
+        struct ofp_account *account = accounts_global[i];
+        if (account == NULL)
+            continue;
+
+        ESP_LOGV(TAG, "index %i account %p id %s", i, account, account->id);
+
+        if (strcmp(account->id, username) != 0)
+            continue;
+
+        // remove from storage
+        // TODO: purge account
+
+        // remove from memory
+        ESP_LOGV(TAG, "remove account %p at %i", account, i);
+        accounts_global[i] = NULL;
+        password_struct_free(&account->pass_data);
+        free(account);
+
+        return true;
+    }
+
+    return false;
+}
+
+bool ofp_account_list_reset_password_account(char *username, char *new_password)
+{
+    ESP_LOGD(TAG, "ofp_account_list_reset_password_account username %p %s new_password %p %s", username, username ? username : null_str, new_password, new_password ? new_password : null_str);
+
+    if (username == NULL || new_password == NULL)
+        return false;
+
+    struct ofp_account *account = ofp_account_list_find_account_by_id(username);
+    if (account == NULL)
+        return false;
+
+    if (!ofp_account_set_password(account, new_password))
+        return false;
 
     return true;
 }

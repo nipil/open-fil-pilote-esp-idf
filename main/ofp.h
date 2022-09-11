@@ -2,8 +2,10 @@
 #define OFP_H
 
 #include <time.h>
+#include <utils.h>
 
 /* limits */
+#define OFP_MAX_ACCOUNT_COUNT 16
 #define OFP_MAX_ZONE_COUNT 64
 #define OFP_MAX_PLANNING_COUNT 32
 #define OFP_MAX_PLANNING_SLOT_COUNT 64
@@ -189,6 +191,14 @@ struct ofp_planning_list
     struct ofp_planning *plannings[OFP_MAX_PLANNING_COUNT];
 };
 
+/* accounts */
+
+struct ofp_account
+{
+    char id[OFP_MAX_LEN_ID];
+    struct password_data pass_data;
+};
+
 /* day of week */
 bool ofp_day_of_week_is_valid(enum ofp_day_of_week dow);
 
@@ -248,5 +258,11 @@ bool ofp_planning_slot_set_dow(int planning_id, int slot_id, enum ofp_day_of_wee
 bool ofp_planning_slot_set_hour(int planning_id, int slot_id, int hour);
 bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute);
 bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id order_id);
+
+/* account functions */
+void ofp_account_list_init(void);
+bool ofp_account_list_create_new_account(char *username, char *password);
+bool ofp_account_list_remove_existing_account(char *username);
+bool ofp_account_list_reset_password_account(char *username, char *new_password);
 
 #endif /* OFP_H */
