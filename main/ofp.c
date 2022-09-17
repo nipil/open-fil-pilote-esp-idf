@@ -1607,14 +1607,37 @@ bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute)
 
 static bool ofp_account_store(struct ofp_account *account)
 {
-    // TODO: convert password to string and write to storage
-    return false;
+    bool result = false;
+    char *str = NULL;
+
+    ESP_LOGD(TAG, "ofp_account_store account %p", account);
+
+    if (account == NULL)
+        goto cleanup;
+
+    // convert password to string and write to storage
+    str = password_struct_to_string(&account->pass_data); // must be freed
+    if (str == NULL)
+        goto cleanup;
+    ESP_LOGV(TAG, "password_string %s", str);
+    kv_ns_set_str_atomic(kv_get_ns_account(), account->id, str);
+    result = true;
+
+cleanup:
+    free(str);
+    return result;
 }
 
 static bool ofp_account_remove(struct ofp_account *account)
 {
-    // TODO: get password spec from storage and load into account
-    return false;
+    ESP_LOGD(TAG, "ofp_account_remove account %p", account);
+
+    if (account == NULL)
+        return false;
+
+    kv_ns_delete_atomic(kv_get_ns_account(), account->id);
+
+    return true;
 }
 
 static bool ofp_account_init(struct ofp_account *account, char *username)
@@ -1628,7 +1651,11 @@ static bool ofp_account_init(struct ofp_account *account, char *username)
     if (n == 0 || n + 1 > sizeof(account->id))
         return false;
 
-    // TODO: check username regex
+    // validate username
+    struct re_result *res = re_match(parse_alnum_re_str, username);
+    if (res == NULL)
+        return false;
+    re_free(res);
 
     strcpy(account->id, username);
 
@@ -1645,17 +1672,27 @@ static bool ofp_account_set_password(struct ofp_account *account, char *cleartex
     if (account == NULL || cleartext == NULL)
         return false;
 
-    // TODO: check cleartext regex
+    // validate cleartext
+    struct re_result *res = re_match(parse_alnum_re_str, cleartext);
+    if (res == NULL)
+        return false;
+    re_free(res);
 
     password_struct_free(&account->pass_data);
 
     if (!password_struct_setup(&account->pass_data, cleartext))
         return false;
 
+    password_struct_log(&account->pass_data, ESP_LOG_VERBOSE);
     return true;
 }
 
 /* account list functions */
+
+struct ofp_account **ofp_account_list_get(void)
+{
+    return accounts_global;
+}
 
 static bool ofp_account_list_add_account(struct ofp_account *account)
 {
@@ -1729,13 +1766,14 @@ bool ofp_account_list_create_new_account(char *username, char *password)
     if (!ofp_account_init(account, username))
         goto cleanup_account;
 
-    if (!password_struct_setup(&account->pass_data, password))
+    if (!ofp_account_set_password(account, password))
         goto cleanup_account;
 
     if (!ofp_account_list_add_account(account))
         goto cleanup_password;
 
-    // TODO: store account
+    if (!ofp_account_store(account))
+        goto cleanup_password;
 
     return true;
 
@@ -1765,7 +1803,11 @@ bool ofp_account_list_remove_existing_account(char *username)
             continue;
 
         // remove from storage
-        // TODO: purge account
+        if (!ofp_account_remove(account))
+        {
+            ESP_LOGW(TAG, "Could not remove account %s from flash storage", account->id);
+            return false;
+        }
 
         // remove from memory
         ESP_LOGV(TAG, "remove account %p at %i", account, i);
@@ -1791,6 +1833,9 @@ bool ofp_account_list_reset_password_account(char *username, char *new_password)
         return false;
 
     if (!ofp_account_set_password(account, new_password))
+        return false;
+
+    if (!ofp_account_store(account))
         return false;
 
     return true;

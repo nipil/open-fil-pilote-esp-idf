@@ -80,6 +80,9 @@ void app_main()
     // use default partition for NVS content
     kv_init(NULL);
 
+    // initialize accounts
+    ofp_account_list_init();
+
     // compensate uptime according to clock leap from SNTP
     uptime_sync_start();
 

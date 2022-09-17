@@ -260,6 +260,7 @@ bool ofp_planning_slot_set_minute(int planning_id, int slot_id, int minute);
 bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id order_id);
 
 /* account functions */
+struct ofp_account **ofp_account_list_get(void);
 void ofp_account_list_init(void);
 bool ofp_account_list_create_new_account(char *username, char *password);
 bool ofp_account_list_remove_existing_account(char *username);

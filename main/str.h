@@ -1,6 +1,7 @@
 #ifndef STR_H
 #define STR_H
 
+const char *parse_alnum_re_str;
 const char *parse_int_re_str;
 const char *parse_zone_mode_re_str;
 const char *parse_stored_password_re_str;

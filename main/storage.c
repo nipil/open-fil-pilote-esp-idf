@@ -65,6 +65,7 @@ const char *kv_type_str_from_nvs_type(nvs_type_t type)
 
 static const char ns_ofp[] = "ofp";
 static const char ns_ofp_pl[] = "ofp_pl";
+static const char ns_ofp_ac[] = "ofp_ac";
 
 static char ns_ofp_hw[NVS_NS_NAME_MAX_SIZE] = {0};
 static char ns_ofp_zn[NVS_NS_NAME_MAX_SIZE] = {0};
@@ -135,6 +136,11 @@ const char *kv_get_ns_plan(void)
 const char *kv_get_ns_ofp(void)
 {
     return ns_ofp;
+}
+
+const char *kv_get_ns_account(void)
+{
+    return ns_ofp_ac;
 }
 
 /* NVS backend management */

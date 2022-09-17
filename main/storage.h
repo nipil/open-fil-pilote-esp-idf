@@ -28,6 +28,8 @@ const char *kv_get_ns_slots(void);
 
 const char *kv_get_ns_plan(void);
 
+const char *kv_get_ns_account(void);
+
 bool kv_is_part_len_valid(const char *part_name);
 bool kv_is_ns_len_valid(const char *ns_name);
 bool kv_is_key_len_valid(const char *key_name);

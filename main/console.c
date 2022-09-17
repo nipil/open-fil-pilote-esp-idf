@@ -662,6 +662,52 @@ static void register_plannings(void)
     ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
 }
 
+// 'show_accounts' command prints in-memory configuration
+static int show_accounts(int argc, char **argv)
+{
+    printf("\r\n");
+    struct ofp_account **account_list_global = ofp_account_list_get();
+    if (account_list_global == NULL)
+    {
+        printf("No account list available\r\n");
+        return -1;
+    }
+
+    for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
+    {
+        struct ofp_account *account = account_list_global[i];
+        if (account == NULL)
+            continue;
+        struct password_data *p = &account->pass_data;
+        printf("account index %i id %s type %i iter %i\r\n", i, account->id, p->md_type, p->iterations);
+        printf("\tsalt len %i data ", p->salt_len);
+        for (int j = 0; j < p->salt_len; j++)
+        {
+            printf("%02x", p->salt[j]);
+        }
+        printf("\r\n");
+        printf("\thash len %i data ", p->hash_len);
+        for (int j = 0; j < p->hash_len; j++)
+        {
+            printf("%02x", p->hash[j]);
+        }
+        printf("\r\n");
+    }
+
+    return 0;
+}
+
+static void register_accounts(void)
+{
+    const esp_console_cmd_t cmd = {
+        .command = "accounts",
+        .help = "Show accounts configuration",
+        .hint = NULL,
+        .func = &show_accounts,
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&cmd));
+}
+
 void console_init(void)
 {
     // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
@@ -690,6 +736,7 @@ void console_init(void)
     register_nvs_clear();
     register_nvs_delete();
     register_plannings();
+    register_accounts();
 
     esp_console_dev_uart_config_t hw_config = ESP_CONSOLE_DEV_UART_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_console_new_repl_uart(&hw_config, &repl_config, &repl));
