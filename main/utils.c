@@ -212,9 +212,6 @@ void re_free(struct re_result *r)
 {
     if (r == NULL) // behave as free() would
         return;
-
-    if (!r) // if asserts are disabled
-        return;
     if (!r->strings)
         return;
     for (int i = 0; i < r->count; i++)
