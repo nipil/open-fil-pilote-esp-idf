@@ -1660,6 +1660,10 @@ static bool ofp_account_init(struct ofp_account *account, const char *username)
     if (account == NULL || username == NULL)
         return false;
 
+    // init children first
+    password_init(&account->pass_data);
+    password_log(&account->pass_data, ESP_LOG_VERBOSE);
+
     size_t n = strlen(username);
     if (n == 0 || n + 1 > sizeof(account->id))
         return false;
@@ -1671,9 +1675,6 @@ static bool ofp_account_init(struct ofp_account *account, const char *username)
     re_free(res);
 
     strcpy(account->id, username);
-
-    password_init(&account->pass_data);
-    password_log(&account->pass_data, ESP_LOG_VERBOSE);
 
     return true;
 }
