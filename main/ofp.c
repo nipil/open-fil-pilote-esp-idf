@@ -1715,6 +1715,12 @@ static bool ofp_account_list_add_account(struct ofp_account *account)
     if (account == NULL)
         return false;
 
+    // check for duplicate
+    struct ofp_account *dup = ofp_account_list_find_account_by_id(account->id);
+    if (dup != NULL)
+        return false;
+
+    // add to list
     for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
     {
         if (accounts_global[i] != NULL)
