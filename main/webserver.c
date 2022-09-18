@@ -386,6 +386,7 @@ void webserver_start(void)
 
     httpd_ssl_config_t conf = HTTPD_SSL_CONFIG_DEFAULT();
 
+#ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_ENCRYPTION
     // This need to be null-terminated
     extern const unsigned char cacert_pem_start[] asm("_binary_cacert_pem_start");
     extern const unsigned char cacert_pem_end[] asm("_binary_cacert_pem_end");
@@ -397,6 +398,10 @@ void webserver_start(void)
     extern const unsigned char prvtkey_pem_end[] asm("_binary_prvtkey_pem_end");
     conf.prvtkey_pem = prvtkey_pem_start;
     conf.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
+#else
+    conf.port_insecure = CONFIG_OFP_UI_WEBSERVER_INSECURE_PORT;
+    conf.transport_mode = HTTPD_SSL_TRANSPORT_INSECURE;
+#endif
 
     // dedicated webserver control port, for easier coexistance with other servers
     conf.httpd.ctrl_port = CONFIG_OFP_UI_WEBSERVER_CONTROL_PORT;

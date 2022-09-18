@@ -12,6 +12,15 @@ menu "Open Fil Pilote"
         help
             You may disable authentication, for example if you have another means to filter access
             For example, you are using a reverse-proxy, a firewall... or both !
+            If authentication is disabled, anyone and everyone with access can change everything.
+
+    config OFP_UI_WEBSERVER_REQUIRES_ENCRYPTION
+        bool "Use TLS/SSL to encrypt webserver connections"
+        default "y"
+        help
+            You may disable encryption, for example if you have another means to protect your access
+            For example, you are using a reverse-proxy, a firewall... or both !
+            If encryption is disabled, the webserver listens on tcp port "OFP_UI_WEBSERVER_INSECURE_PORT" (see advanced configuration)
 
     config OFP_MDNS_INSTANCE_NAME
         string "Machine hostname (short)"
@@ -34,6 +43,12 @@ menu "Open Fil Pilote"
             This can be either an IP or a fully-qualified domain name
 
     menu "Advanded options"
+
+        config OFP_UI_WEBSERVER_INSECURE_PORT
+            int "TCP port for HTTP to listen to when encryption is disabled"
+            default 8080
+            help
+                Must be different from 80 to avoid conflicts, as Wifi Manager already uses this port
 
         config OFP_UI_WEBSERVER_CONTROL_PORT
             int "UDP control port for the UI HTTPD server"
