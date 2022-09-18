@@ -678,7 +678,7 @@ static int show_accounts(int argc, char **argv)
         struct ofp_account *account = account_list_global[i];
         if (account == NULL)
             continue;
-        struct password_data *p = &account->pass_data;
+        struct password_data *p = account->pass_data;
         printf("account index %i id %s type %i iter %i\r\n", i, account->id, p->md_type, p->iterations);
         printf("\tsalt len %i data ", p->salt_len);
         for (int j = 0; j < p->salt_len; j++)

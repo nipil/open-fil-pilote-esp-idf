@@ -845,18 +845,22 @@ cleanup:
     return NULL;
 }
 
-bool password_from_string(struct password_data *pwd, char *str)
+struct password_data *password_from_string(const char *str)
 {
     // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
-    ESP_LOGD(TAG, "password_from_string %p %p", pwd, str);
+    ESP_LOGD(TAG, "password_from_string %p", str);
 
     struct re_result *re = NULL;
-    struct password_data tmp;
+    struct password_data *tmp = NULL;
 
-    password_init(&tmp);
-
-    if (pwd == NULL || str == NULL)
+    if (str == NULL)
         goto cleanup;
+
+    tmp = calloc(1, sizeof(struct password_data));
+    if (tmp == NULL)
+        goto cleanup;
+
+    tmp->md_type = MBEDTLS_MD_NONE;
 
     ESP_LOGV(TAG, "password_str %s", str);
 
@@ -868,18 +872,18 @@ bool password_from_string(struct password_data *pwd, char *str)
         goto cleanup;
     }
 
-    tmp.md_type = re_get_int(re, 1);
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(tmp.md_type);
+    tmp->md_type = re_get_int(re, 1);
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(tmp->md_type);
     if (md_info == NULL)
     {
-        ESP_LOGD(TAG, "Unknown message digest type %i", tmp.md_type);
+        ESP_LOGD(TAG, "Unknown message digest type %i", tmp->md_type);
         goto cleanup;
     }
 
-    tmp.iterations = re_get_int(re, 2);
-    if (tmp.iterations < 1)
+    tmp->iterations = re_get_int(re, 2);
+    if (tmp->iterations < 1)
     {
-        ESP_LOGD(TAG, "Incorrect number of iterations %i", tmp.iterations);
+        ESP_LOGD(TAG, "Incorrect number of iterations %i", tmp->iterations);
         goto cleanup;
     }
 
@@ -887,60 +891,58 @@ bool password_from_string(struct password_data *pwd, char *str)
     char *base64_hash = re_get_string(re, 4);
     size_t base64_salt_len = strlen(base64_salt);
     size_t base64_hash_len = strlen(base64_hash);
-    ESP_LOGV(TAG, "md_type %i iterations %i b64_salt %s b64_salt_len %i b64_hash %s b64_hash_len %i", tmp.md_type, tmp.iterations, base64_salt, base64_salt_len, base64_hash, base64_hash_len);
+    ESP_LOGV(TAG, "md_type %i iterations %i b64_salt %s b64_salt_len %i b64_hash %s b64_hash_len %i", tmp->md_type, tmp->iterations, base64_salt, base64_salt_len, base64_hash, base64_hash_len);
 
-    mbedtls_base64_decode(NULL, 0, &tmp.salt_len, (uint8_t *)base64_salt, base64_salt_len);
-    ESP_LOGV(TAG, "salt_len %i", tmp.salt_len);
-    if (tmp.salt_len == 0)
+    mbedtls_base64_decode(NULL, 0, &tmp->salt_len, (uint8_t *)base64_salt, base64_salt_len);
+    ESP_LOGV(TAG, "salt_len %i", tmp->salt_len);
+    if (tmp->salt_len == 0)
     {
         ESP_LOGD(TAG, "Salt is empty");
         goto cleanup;
     }
 
-    mbedtls_base64_decode(NULL, 0, &tmp.hash_len, (uint8_t *)base64_hash, base64_hash_len);
-    ESP_LOGV(TAG, "hash_len %i", tmp.hash_len);
-    if (tmp.hash_len != mbedtls_md_get_size(md_info))
+    mbedtls_base64_decode(NULL, 0, &tmp->hash_len, (uint8_t *)base64_hash, base64_hash_len);
+    ESP_LOGV(TAG, "hash_len %i", tmp->hash_len);
+    if (tmp->hash_len != mbedtls_md_get_size(md_info))
     {
-        ESP_LOGD(TAG, "Incorrect hash length %i", tmp.hash_len);
+        ESP_LOGD(TAG, "Incorrect hash length %i", tmp->hash_len);
         goto cleanup;
     }
 
-    tmp.salt = calloc(tmp.salt_len, sizeof(uint8_t));
-    tmp.hash = calloc(tmp.hash_len, sizeof(uint8_t));
-    if (tmp.salt == NULL || tmp.hash == NULL)
+    tmp->salt = calloc(tmp->salt_len, sizeof(uint8_t));
+    tmp->hash = calloc(tmp->hash_len, sizeof(uint8_t));
+    if (tmp->salt == NULL || tmp->hash == NULL)
     {
         ESP_LOGD(TAG, "Cannot allocate memory for salt/hash");
         goto cleanup;
     }
 
     size_t s;
-    int res = mbedtls_base64_decode(tmp.salt, tmp.salt_len, &s, (uint8_t *)base64_salt, base64_salt_len);
+    int res = mbedtls_base64_decode(tmp->salt, tmp->salt_len, &s, (uint8_t *)base64_salt, base64_salt_len);
     ESP_LOGV(TAG, "base64_decode salt res %i written %i", res, s);
-    if (res != 0 || s != tmp.salt_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+    if (res != 0 || s != tmp->salt_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
     {
         ESP_LOGD(TAG, "base64_decode salt error");
         goto cleanup;
     }
-    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp.salt, tmp.salt_len, ESP_LOG_VERBOSE);
+    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp->salt, tmp->salt_len, ESP_LOG_VERBOSE);
 
-    res = mbedtls_base64_decode(tmp.hash, tmp.hash_len, &s, (uint8_t *)base64_hash, base64_hash_len);
+    res = mbedtls_base64_decode(tmp->hash, tmp->hash_len, &s, (uint8_t *)base64_hash, base64_hash_len);
     ESP_LOGV(TAG, "base64_decode hash res %i written %i", res, s);
-    if (res != 0 || s != tmp.hash_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
+    if (res != 0 || s != tmp->hash_len) // MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL, MBEDTLS_ERR_BASE64_INVALID_CHARACTER
     {
         ESP_LOGD(TAG, "base64_decode hash error");
         goto cleanup;
     }
-    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp.hash, tmp.hash_len, ESP_LOG_VERBOSE);
+    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp->hash, tmp->hash_len, ESP_LOG_VERBOSE);
 
     re_free(re);
-
-    memcpy(pwd, &tmp, sizeof(struct password_data));
-    return true;
+    return tmp;
 
 cleanup:
-    password_free(&tmp);
+    password_free(tmp);
     re_free(re);
-    return false;
+    return NULL;
 }
 
 void password_log(struct password_data *pwd, esp_log_level_t log_level)
@@ -957,87 +959,73 @@ void password_log(struct password_data *pwd, esp_log_level_t log_level)
         ESP_LOG_BUFFER_HEXDUMP(TAG, pwd->hash, pwd->hash_len, log_level);
 }
 
-bool password_init(struct password_data *pwd)
-{
-    ESP_LOGD(TAG, "password_init %p", pwd);
-    if (pwd == NULL)
-        return false;
-
-    pwd->md_type = MBEDTLS_MD_NONE;
-    pwd->iterations = 0;
-    pwd->salt_len = 0;
-    pwd->salt = NULL;
-    pwd->hash_len = 0;
-    pwd->hash = NULL;
-    return true;
-}
-
 bool password_free(struct password_data *pwd)
 {
     ESP_LOGD(TAG, "password_free %p", pwd);
     if (pwd == NULL)
         return false;
+
     if (pwd->salt != NULL)
-    {
         free(pwd->salt);
-        pwd->salt = NULL;
-    }
+
     if (pwd->hash != NULL)
-    {
         free(pwd->hash);
-        pwd->hash = NULL;
-    }
+
+    free(pwd);
+
     return true;
 }
 
-bool password_setup(struct password_data *pwd, const char *cleartext)
+struct password_data *password_init(const char *cleartext)
 {
-    ESP_LOGD(TAG, "password_setup %p %p", pwd, cleartext);
+    ESP_LOGD(TAG, "password_init %p", cleartext);
 
-    if (pwd == NULL || cleartext == NULL)
-        return false;
+    struct password_data *tmp = NULL;
+
+    if (cleartext == NULL)
+        goto cleanup;
+
+    tmp = calloc(1, sizeof(struct password_data));
+    if (tmp == NULL)
+        goto cleanup;
 
     size_t cleartext_len = strlen(cleartext);
     ESP_LOGV(TAG, "cleartext %i %s", cleartext_len, cleartext);
 
-    struct password_data tmp;
-    password_init(&tmp);
-
-    tmp.md_type = PASSWORD_HASH_FUNCTION;
-    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(tmp.md_type);
+    tmp->md_type = PASSWORD_HASH_FUNCTION;
+    const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(tmp->md_type);
     if (md_info == NULL)
         goto cleanup;
 
-    tmp.hash_len = mbedtls_md_get_size(md_info);
+    tmp->hash_len = mbedtls_md_get_size(md_info);
 
-    tmp.iterations = PASSWORD_HASH_ITERATIONS;
-    if (tmp.iterations == 0)
+    tmp->iterations = PASSWORD_HASH_ITERATIONS;
+    if (tmp->iterations == 0)
         goto cleanup;
 
-    tmp.salt_len = PASSWORD_SALT_LENGTH;
-    if (tmp.salt_len == 0)
+    tmp->salt_len = PASSWORD_SALT_LENGTH;
+    if (tmp->salt_len == 0)
         goto cleanup;
 
-    tmp.salt = malloc(tmp.salt_len);
-    if (tmp.salt == NULL)
+    tmp->salt = malloc(tmp->salt_len);
+    if (tmp->salt == NULL)
         goto cleanup;
 
-    esp_fill_random(tmp.salt, tmp.salt_len);
+    esp_fill_random(tmp->salt, tmp->salt_len);
 
-    tmp.hash = malloc(tmp.hash_len);
-    if (tmp.hash == NULL)
+    tmp->hash = malloc(tmp->hash_len);
+    if (tmp->hash == NULL)
         goto cleanup;
 
     uint8_t out_len;
-    if (!hmac_md_iterations(tmp.md_type, tmp.salt, tmp.salt_len, (const uint8_t *)cleartext, cleartext_len, tmp.hash, &out_len, tmp.iterations) || out_len != tmp.hash_len)
+    if (!hmac_md_iterations(tmp->md_type, tmp->salt, tmp->salt_len, (const uint8_t *)cleartext, cleartext_len, tmp->hash, &out_len, tmp->iterations) || out_len != tmp->hash_len)
         goto cleanup;
 
-    memcpy(pwd, &tmp, sizeof(struct password_data));
-    return true;
+    return tmp;
 
 cleanup:
-    password_free(&tmp);
-    return false;
+    password_free(tmp);
+    return NULL;
 }
 
 bool password_verify(struct password_data *pwd, const char *cleartext)

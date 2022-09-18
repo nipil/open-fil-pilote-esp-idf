@@ -1616,7 +1616,7 @@ static bool ofp_account_store(struct ofp_account *account)
         goto cleanup;
 
     // convert password to string and write to storage
-    str = password_to_string(&account->pass_data); // must be freed
+    str = password_to_string(account->pass_data); // must be freed
     if (str == NULL)
         goto cleanup;
     ESP_LOGV(TAG, "password_string %s", str);
@@ -1647,36 +1647,45 @@ static bool ofp_account_free(struct ofp_account *account)
     if (account == NULL)
         return false;
 
-    password_free(&account->pass_data);
+    password_free(account->pass_data);
     free(account);
 
     return true;
 }
 
-static bool ofp_account_init(struct ofp_account *account, const char *username)
+static struct ofp_account *ofp_account_init(const char *username)
 {
-    ESP_LOGD(TAG, "ofp_account_init account %p username %p %s", account, username, username ? username : null_str);
+    ESP_LOGD(TAG, "ofp_account_init username %p %s", username, username ? username : null_str);
 
-    if (account == NULL || username == NULL)
-        return false;
+    struct ofp_account *tmp = NULL;
+    struct re_result *res = NULL;
 
-    // init children first
-    password_init(&account->pass_data);
-    password_log(&account->pass_data, ESP_LOG_VERBOSE);
+    if (username == NULL)
+        goto cleanup;
 
     size_t n = strlen(username);
-    if (n == 0 || n + 1 > sizeof(account->id))
-        return false;
+    if (n == 0 || n + 1 > sizeof(tmp->id))
+        goto cleanup;
 
     // validate username
-    struct re_result *res = re_match(parse_alnum_re_str, username);
+    res = re_match(parse_alnum_re_str, username);
     if (res == NULL)
-        return false;
+        goto cleanup;
     re_free(res);
 
-    strcpy(account->id, username);
+    tmp = calloc(1, sizeof(struct ofp_account));
+    if (tmp == NULL)
+        goto cleanup;
 
-    return true;
+    // pass_data is already NULL
+
+    strcpy(tmp->id, username);
+    return tmp;
+
+cleanup:
+    re_free(res);
+    ofp_account_free(tmp);
+    return NULL;
 }
 
 static bool ofp_account_set_password(struct ofp_account *account, const char *cleartext)
@@ -1692,12 +1701,13 @@ static bool ofp_account_set_password(struct ofp_account *account, const char *cl
         return false;
     re_free(res);
 
-    // just replace password
-    password_free(&account->pass_data);
-    if (!password_setup(&account->pass_data, cleartext))
+    // replace password
+    password_free(account->pass_data);
+    account->pass_data = password_init(cleartext);
+    if (account->pass_data == NULL)
         return false;
-    password_log(&account->pass_data, ESP_LOG_VERBOSE);
 
+    password_log(account->pass_data, ESP_LOG_VERBOSE);
     return true;
 }
 
@@ -1794,14 +1804,12 @@ void ofp_account_list_init(void)
         ESP_LOGV(TAG, "user %s pass %s", info.key, pwdstr);
 
         // account
-        account = malloc(sizeof(struct ofp_account));
+        account = ofp_account_init(info.key);
         if (account == NULL)
             goto cleanup_loop;
 
-        if (!ofp_account_init(account, info.key))
-            goto cleanup_loop;
-
-        if (!password_from_string(&account->pass_data, pwdstr))
+        account->pass_data = password_from_string(pwdstr);
+        if (account->pass_data == NULL)
             goto cleanup_loop;
 
         // account loaded
@@ -1812,7 +1820,7 @@ void ofp_account_list_init(void)
             goto cleanup_loop;
 
         ESP_LOGV(TAG, "account %s loaded", info.key);
-        password_log(&account->pass_data, ESP_LOG_VERBOSE);
+        password_log(account->pass_data, ESP_LOG_VERBOSE);
 
         continue;
 
@@ -1831,26 +1839,23 @@ void ofp_account_list_init(void)
     ESP_LOGV(TAG, "all accounts loaded");
 }
 
-bool ofp_account_list_create_new_account(const char *username, const char *password)
+bool ofp_account_list_create_new_account(const char *username, const char *cleartext)
 {
-    ESP_LOGD(TAG, "ofp_account_list_create_new_account username %p %s password %p %s", username, username ? username : null_str, password, password ? password : null_str);
+    ESP_LOGD(TAG, "ofp_account_list_create_new_account username %p %s password %p %s", username, username ? username : null_str, cleartext, cleartext ? cleartext : null_str);
 
     // cleanup variables
     struct ofp_account *account = NULL;
 
-    if (username == NULL || password == NULL)
+    if (username == NULL || cleartext == NULL)
         goto cleanup;
 
-    account = malloc(sizeof(struct ofp_account));
+    account = ofp_account_init(username);
     ESP_LOGV(TAG, "account %p", account);
 
     if (account == NULL)
         goto cleanup;
 
-    if (!ofp_account_init(account, username))
-        goto cleanup;
-
-    if (!ofp_account_set_password(account, password))
+    if (!ofp_account_set_password(account, cleartext))
         goto cleanup;
 
     if (!ofp_account_list_add_account(account))
@@ -1901,18 +1906,18 @@ bool ofp_account_list_remove_existing_account(const char *username)
     return false;
 }
 
-bool ofp_account_list_reset_password_account(const char *username, const char *new_password)
+bool ofp_account_list_reset_password_account(const char *username, const char *new_cleartext)
 {
-    ESP_LOGD(TAG, "ofp_account_list_reset_password_account username %p %s new_password %p %s", username, username ? username : null_str, new_password, new_password ? new_password : null_str);
+    ESP_LOGD(TAG, "ofp_account_list_reset_password_account username %p %s new_cleartext %p %s", username, username ? username : null_str, new_cleartext, new_cleartext ? new_cleartext : null_str);
 
-    if (username == NULL || new_password == NULL)
+    if (username == NULL || new_cleartext == NULL)
         return false;
 
     struct ofp_account *account = ofp_account_list_find_account_by_id(username);
     if (account == NULL)
         return false;
 
-    if (!ofp_account_set_password(account, new_password))
+    if (!ofp_account_set_password(account, new_cleartext))
         return false;
 
     if (!ofp_account_store(account))

@@ -205,11 +205,10 @@ bool hmac_md(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, co
 bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len, unsigned int iterations);
 
 void password_log(struct password_data *pwd, esp_log_level_t log_level);
-bool password_init(struct password_data *pwd);
+struct password_data *password_init(const char *cleartext);
 bool password_free(struct password_data *pwd);
-bool password_setup(struct password_data *pwd, const char *cleartext);
 bool password_verify(struct password_data *pwd, const char *cleartext);
 char *password_to_string(struct password_data *pwd);
-bool password_from_string(struct password_data *pwd, char *str);
+struct password_data *password_from_string(const char *str);
 
 #endif /* UTILS_H */

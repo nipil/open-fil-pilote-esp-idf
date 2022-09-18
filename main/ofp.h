@@ -196,7 +196,7 @@ struct ofp_planning_list
 struct ofp_account
 {
     char id[OFP_MAX_LEN_ID];
-    struct password_data pass_data;
+    struct password_data *pass_data;
 };
 
 /* day of week */
@@ -263,8 +263,8 @@ bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id
 struct ofp_account **ofp_account_list_get(void);
 struct ofp_account *ofp_account_list_find_account_by_id(const char *username);
 void ofp_account_list_init(void);
-bool ofp_account_list_create_new_account(const char *username, const char *password);
+bool ofp_account_list_create_new_account(const char *username, const char *cleartext);
 bool ofp_account_list_remove_existing_account(const char *username);
-bool ofp_account_list_reset_password_account(const char *username, const char *new_password);
+bool ofp_account_list_reset_password_account(const char *username, const char *new_cleartext);
 
 #endif /* OFP_H */
