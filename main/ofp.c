@@ -1758,7 +1758,7 @@ struct ofp_account *ofp_account_list_find_account_by_id(const char *username)
 
 void ofp_account_list_init(void)
 {
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     ESP_LOGD(TAG, "ofp_account_list_init");
 
     for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
@@ -1804,9 +1804,13 @@ void ofp_account_list_init(void)
         if (!password_from_string(&account->pass_data, pwdstr))
             goto cleanup_loop;
 
+        // account loaded
         free(pwdstr);
 
-        // account loaded
+        // add to account list
+        if (!ofp_account_list_add_account(account))
+            goto cleanup_loop;
+
         ESP_LOGV(TAG, "account %s loaded", info.key);
         password_log(&account->pass_data, ESP_LOG_VERBOSE);
 
@@ -1818,12 +1822,13 @@ void ofp_account_list_init(void)
     }
     nvs_release_iterator(it_plan);
 
-    ESP_LOGV(TAG, "all accounts loaded");
-
     // create admin account if it does not exists
+    ESP_LOGV(TAG, "checking admin account");
     struct ofp_account *admin = ofp_account_list_find_account_by_id(admin_str);
     if (admin == NULL && !ofp_account_list_create_new_account(admin_str, admin_str))
         ESP_LOGE(TAG, "Failed to create admin account, you will not be able to log in at all, but the system will continue to work with the current configuration.");
+
+    ESP_LOGV(TAG, "all accounts loaded");
 }
 
 bool ofp_account_list_create_new_account(const char *username, const char *password)
