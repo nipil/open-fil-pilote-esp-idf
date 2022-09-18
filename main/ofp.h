@@ -261,9 +261,10 @@ bool ofp_planning_slot_set_order(int planning_id, int slot_id, enum ofp_order_id
 
 /* account functions */
 struct ofp_account **ofp_account_list_get(void);
+struct ofp_account *ofp_account_list_find_account_by_id(const char *username);
 void ofp_account_list_init(void);
-bool ofp_account_list_create_new_account(char *username, char *password);
-bool ofp_account_list_remove_existing_account(char *username);
-bool ofp_account_list_reset_password_account(char *username, char *new_password);
+bool ofp_account_list_create_new_account(const char *username, const char *password);
+bool ofp_account_list_remove_existing_account(const char *username);
+bool ofp_account_list_reset_password_account(const char *username, const char *new_password);
 
 #endif /* OFP_H */

@@ -1653,7 +1653,7 @@ static bool ofp_account_free(struct ofp_account *account)
     return true;
 }
 
-static bool ofp_account_init(struct ofp_account *account, char *username)
+static bool ofp_account_init(struct ofp_account *account, const char *username)
 {
     ESP_LOGD(TAG, "ofp_account_init account %p username %p %s", account, username, username ? username : null_str);
 
@@ -1678,7 +1678,7 @@ static bool ofp_account_init(struct ofp_account *account, char *username)
     return true;
 }
 
-static bool ofp_account_set_password(struct ofp_account *account, char *cleartext)
+static bool ofp_account_set_password(struct ofp_account *account, const char *cleartext)
 {
     ESP_LOGD(TAG, "ofp_account_init account %p cleartext %p %s", account, cleartext, cleartext ? cleartext : null_str);
 
@@ -1727,7 +1727,7 @@ static bool ofp_account_list_add_account(struct ofp_account *account)
     return false;
 }
 
-static struct ofp_account *ofp_account_list_find_account_by_id(char *username)
+struct ofp_account *ofp_account_list_find_account_by_id(const char *username)
 {
     ESP_LOGD(TAG, "ofp_account_list_find_account_by_id username %p %s", username, username ? username : null_str);
 
@@ -1760,7 +1760,7 @@ void ofp_account_list_init(void)
     // TODO: load everything from account namespace
 }
 
-bool ofp_account_list_create_new_account(char *username, char *password)
+bool ofp_account_list_create_new_account(const char *username, const char *password)
 {
     ESP_LOGD(TAG, "ofp_account_list_create_new_account username %p %s password %p %s", username, username ? username : null_str, password, password ? password : null_str);
 
@@ -1795,7 +1795,7 @@ cleanup:
     return false;
 }
 
-bool ofp_account_list_remove_existing_account(char *username)
+bool ofp_account_list_remove_existing_account(const char *username)
 {
     ESP_LOGD(TAG, "ofp_account_list_remove_existing_account username %p %s", username, username ? username : null_str);
 
@@ -1830,7 +1830,7 @@ bool ofp_account_list_remove_existing_account(char *username)
     return false;
 }
 
-bool ofp_account_list_reset_password_account(char *username, char *new_password)
+bool ofp_account_list_reset_password_account(const char *username, const char *new_password)
 {
     ESP_LOGD(TAG, "ofp_account_list_reset_password_account username %p %s new_password %p %s", username, username ? username : null_str, new_password, new_password ? new_password : null_str);
 
