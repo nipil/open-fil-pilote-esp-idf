@@ -279,8 +279,52 @@ static esp_err_t authentication_reject(httpd_req_t *req)
 
 /***************************************************************************/
 
+static bool is_source_ip_authorized(httpd_req_t *req)
+{
+    ESP_LOGD(TAG, "is_source_ip_authorized");
+
+    const char *ip_filter = CONFIG_OFP_UI_SOURCE_IP_FILTER;
+    if (strlen(ip_filter) == 0)
+        return true;
+    ESP_LOGD(TAG, "Authorized source ip is %s", ip_filter);
+
+    int sockfd = httpd_req_to_sockfd(req);
+    char ip_str[INET6_ADDRSTRLEN];
+    struct sockaddr_in6 addr;
+
+    socklen_t addr_size = sizeof(addr);
+    int n = getpeername(sockfd, (struct sockaddr *)&addr, &addr_size);
+    if (n < 0)
+    {
+        ESP_LOGW(TAG, "getpeername error %i while getting client IP, denying by default", n);
+        return false;
+    }
+
+#if LWIP_IPV6
+    const char *s = inet_ntop(AF_INET6, &addr.sin6_addr, ip_str, sizeof(ip_str));
+#else  /* LWIP_IPV6 */
+    const char *s = inet_ntop(AF_INET, &addr.sin6_addr.un.u32_addr[3], ip_str, sizeof(ip_str));
+#endif /* LWIP_IPV6 */
+    if (s == NULL)
+    {
+        ESP_LOGW(TAG, "Could not get formatted client IP, denying by default");
+        return false;
+    }
+
+    bool ret = (strcmp(ip_str, ip_filter) == 0);
+    ESP_LOGD(TAG, "Request comes from source IP %s, result : %i", ip_str, ret);
+
+    return ret;
+}
+
+/***************************************************************************/
+
 static esp_err_t https_handler_generic(httpd_req_t *req)
 {
+    // check source ip filter
+    if (!is_source_ip_authorized(req))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Source IP not allowed");
+
 #ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
     // check credentials
     if (!is_authentication_valid(req))

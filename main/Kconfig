@@ -66,6 +66,14 @@ menu "Open Fil Pilote"
                 in single atomic operations (e.g. form data decoding, json decoding, etc...)
                 This value defines the reusable buffer size for multiple block operations (uploads)
 
+        config OFP_UI_SOURCE_IP_FILTER
+            string "Only allow acces to this specific IP"
+            default ""
+            help
+                If not empty, only this source IP will be allowed to connect (WebUI and API)
+                If LWIP_IPV6 is enabled, and you connect from an IPv4 address, use this syntax ::FFFF:192.168.3.102
+                If LWIP_IPV6 is disabled, and you connect from an IPv4 address, use this syntax 192.168.1.22
+
     endmenu
 
 endmenu
