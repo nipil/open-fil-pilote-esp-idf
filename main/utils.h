@@ -204,12 +204,12 @@ void wait_sec(uint32_t sec);
 bool hmac_md(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len);
 bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len, unsigned int iterations);
 
-void password_struct_log(struct password_data *pwd, esp_log_level_t log_level);
-bool password_struct_init(struct password_data *pwd);
-bool password_struct_free(struct password_data *pwd);
-bool password_struct_setup(struct password_data *pwd, char *cleartext);
-bool password_struct_verify(struct password_data *pwd, char *cleartext);
-char *password_struct_to_string(struct password_data *pwd);
-bool password_struct_from_string(struct password_data *pwd, char *str);
+void password_log(struct password_data *pwd, esp_log_level_t log_level);
+bool password_init(struct password_data *pwd);
+bool password_free(struct password_data *pwd);
+bool password_setup(struct password_data *pwd, char *cleartext);
+bool password_verify(struct password_data *pwd, char *cleartext);
+char *password_to_string(struct password_data *pwd);
+bool password_from_string(struct password_data *pwd, char *str);
 
 #endif /* UTILS_H */

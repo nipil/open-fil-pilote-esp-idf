@@ -759,9 +759,9 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t s
  *
  * Returned value (if not NULL) should be FREED BY CALLER
  */
-char *password_struct_to_string(struct password_data *pwd)
+char *password_to_string(struct password_data *pwd)
 {
-    ESP_LOGD(TAG, "password_struct_to_string %p", pwd);
+    ESP_LOGD(TAG, "password_to_string %p", pwd);
 
     char *output_buf = NULL;
 
@@ -845,15 +845,15 @@ cleanup:
     return NULL;
 }
 
-bool password_struct_from_string(struct password_data *pwd, char *str)
+bool password_from_string(struct password_data *pwd, char *str)
 {
     // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
-    ESP_LOGD(TAG, "password_struct_from_string %p %p", pwd, str);
+    ESP_LOGD(TAG, "password_from_string %p %p", pwd, str);
 
     struct re_result *re = NULL;
     struct password_data tmp;
 
-    password_struct_init(&tmp);
+    password_init(&tmp);
 
     if (pwd == NULL || str == NULL)
         goto cleanup;
@@ -938,12 +938,12 @@ bool password_struct_from_string(struct password_data *pwd, char *str)
     return true;
 
 cleanup:
-    password_struct_free(&tmp);
+    password_free(&tmp);
     re_free(re);
     return false;
 }
 
-void password_struct_log(struct password_data *pwd, esp_log_level_t log_level)
+void password_log(struct password_data *pwd, esp_log_level_t log_level)
 {
     ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password type: %i", pwd->md_type);
     ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password iterations: %i", pwd->iterations);
@@ -957,9 +957,9 @@ void password_struct_log(struct password_data *pwd, esp_log_level_t log_level)
         ESP_LOG_BUFFER_HEXDUMP(TAG, pwd->hash, pwd->hash_len, log_level);
 }
 
-bool password_struct_init(struct password_data *pwd)
+bool password_init(struct password_data *pwd)
 {
-    ESP_LOGD(TAG, "password_struct_init %p", pwd);
+    ESP_LOGD(TAG, "password_init %p", pwd);
     if (pwd == NULL)
         return false;
 
@@ -972,9 +972,9 @@ bool password_struct_init(struct password_data *pwd)
     return true;
 }
 
-bool password_struct_free(struct password_data *pwd)
+bool password_free(struct password_data *pwd)
 {
-    ESP_LOGD(TAG, "password_struct_free %p", pwd);
+    ESP_LOGD(TAG, "password_free %p", pwd);
     if (pwd == NULL)
         return false;
     if (pwd->salt != NULL)
@@ -990,9 +990,9 @@ bool password_struct_free(struct password_data *pwd)
     return true;
 }
 
-bool password_struct_setup(struct password_data *pwd, char *cleartext)
+bool password_setup(struct password_data *pwd, char *cleartext)
 {
-    ESP_LOGD(TAG, "password_struct_setup %p %p", pwd, cleartext);
+    ESP_LOGD(TAG, "password_setup %p %p", pwd, cleartext);
 
     if (pwd == NULL || cleartext == NULL)
         return false;
@@ -1001,7 +1001,7 @@ bool password_struct_setup(struct password_data *pwd, char *cleartext)
     ESP_LOGV(TAG, "cleartext %i %s", cleartext_len, cleartext);
 
     struct password_data tmp;
-    password_struct_init(&tmp);
+    password_init(&tmp);
 
     tmp.md_type = PASSWORD_HASH_FUNCTION;
     const mbedtls_md_info_t *md_info = mbedtls_md_info_from_type(tmp.md_type);
@@ -1036,13 +1036,13 @@ bool password_struct_setup(struct password_data *pwd, char *cleartext)
     return true;
 
 cleanup:
-    password_struct_free(&tmp);
+    password_free(&tmp);
     return false;
 }
 
-bool password_struct_verify(struct password_data *pwd, char *cleartext)
+bool password_verify(struct password_data *pwd, char *cleartext)
 {
-    ESP_LOGD(TAG, "password_struct_verify %p %p", pwd, cleartext);
+    ESP_LOGD(TAG, "password_verify %p %p", pwd, cleartext);
 
     if (pwd == NULL || cleartext == NULL)
         goto cleanup;

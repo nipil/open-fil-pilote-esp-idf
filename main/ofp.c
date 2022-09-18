@@ -1616,7 +1616,7 @@ static bool ofp_account_store(struct ofp_account *account)
         goto cleanup;
 
     // convert password to string and write to storage
-    str = password_struct_to_string(&account->pass_data); // must be freed
+    str = password_to_string(&account->pass_data); // must be freed
     if (str == NULL)
         goto cleanup;
     ESP_LOGV(TAG, "password_string %s", str);
@@ -1647,7 +1647,7 @@ static bool ofp_account_free(struct ofp_account *account)
     if (account == NULL)
         return false;
 
-    password_struct_free(&account->pass_data);
+    password_free(&account->pass_data);
     free(account);
 
     return true;
@@ -1672,8 +1672,8 @@ static bool ofp_account_init(struct ofp_account *account, char *username)
 
     strcpy(account->id, username);
 
-    password_struct_init(&account->pass_data);
-    password_struct_log(&account->pass_data, ESP_LOG_VERBOSE);
+    password_init(&account->pass_data);
+    password_log(&account->pass_data, ESP_LOG_VERBOSE);
 
     return true;
 }
@@ -1692,10 +1692,10 @@ static bool ofp_account_set_password(struct ofp_account *account, char *cleartex
     re_free(res);
 
     // just replace password
-    password_struct_free(&account->pass_data);
-    if (!password_struct_setup(&account->pass_data, cleartext))
+    password_free(&account->pass_data);
+    if (!password_setup(&account->pass_data, cleartext))
         return false;
-    password_struct_log(&account->pass_data, ESP_LOG_VERBOSE);
+    password_log(&account->pass_data, ESP_LOG_VERBOSE);
 
     return true;
 }
