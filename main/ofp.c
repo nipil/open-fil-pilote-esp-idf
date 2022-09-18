@@ -1640,6 +1640,19 @@ static bool ofp_account_remove(struct ofp_account *account)
     return true;
 }
 
+static bool ofp_account_free(struct ofp_account *account)
+{
+    ESP_LOGD(TAG, "ofp_account_free account %p", account);
+
+    if (account == NULL)
+        return false;
+
+    password_struct_free(&account->pass_data);
+    free(account);
+
+    return true;
+}
+
 static bool ofp_account_init(struct ofp_account *account, char *username)
 {
     ESP_LOGD(TAG, "ofp_account_init account %p username %p %s", account, username, username ? username : null_str);
@@ -1678,12 +1691,12 @@ static bool ofp_account_set_password(struct ofp_account *account, char *cleartex
         return false;
     re_free(res);
 
+    // just replace password
     password_struct_free(&account->pass_data);
-
     if (!password_struct_setup(&account->pass_data, cleartext))
         return false;
-
     password_struct_log(&account->pass_data, ESP_LOG_VERBOSE);
+
     return true;
 }
 
@@ -1755,32 +1768,30 @@ bool ofp_account_list_create_new_account(char *username, char *password)
     struct ofp_account *account = NULL;
 
     if (username == NULL || password == NULL)
-        goto cleanup_account;
+        goto cleanup;
 
     account = malloc(sizeof(struct ofp_account));
     ESP_LOGV(TAG, "account %p", account);
 
     if (account == NULL)
-        goto cleanup_account;
+        goto cleanup;
 
     if (!ofp_account_init(account, username))
-        goto cleanup_account;
+        goto cleanup;
 
     if (!ofp_account_set_password(account, password))
-        goto cleanup_account;
+        goto cleanup;
 
     if (!ofp_account_list_add_account(account))
-        goto cleanup_password;
+        goto cleanup;
 
     if (!ofp_account_store(account))
-        goto cleanup_password;
+        goto cleanup;
 
     return true;
 
-cleanup_password:
-    password_struct_free(&account->pass_data);
-cleanup_account:
-    free(account);
+cleanup:
+    ofp_account_free(account);
     return false;
 }
 
@@ -1812,9 +1823,7 @@ bool ofp_account_list_remove_existing_account(char *username)
         // remove from memory
         ESP_LOGV(TAG, "remove account %p at %i", account, i);
         accounts_global[i] = NULL;
-        password_struct_free(&account->pass_data);
-        free(account);
-
+        ofp_account_free(account);
         return true;
     }
 
