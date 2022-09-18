@@ -990,7 +990,7 @@ bool password_free(struct password_data *pwd)
     return true;
 }
 
-bool password_setup(struct password_data *pwd, char *cleartext)
+bool password_setup(struct password_data *pwd, const char *cleartext)
 {
     ESP_LOGD(TAG, "password_setup %p %p", pwd, cleartext);
 
@@ -1040,7 +1040,7 @@ cleanup:
     return false;
 }
 
-bool password_verify(struct password_data *pwd, char *cleartext)
+bool password_verify(struct password_data *pwd, const char *cleartext)
 {
     ESP_LOGD(TAG, "password_verify %p %p", pwd, cleartext);
 

@@ -207,8 +207,8 @@ bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t s
 void password_log(struct password_data *pwd, esp_log_level_t log_level);
 bool password_init(struct password_data *pwd);
 bool password_free(struct password_data *pwd);
-bool password_setup(struct password_data *pwd, char *cleartext);
-bool password_verify(struct password_data *pwd, char *cleartext);
+bool password_setup(struct password_data *pwd, const char *cleartext);
+bool password_verify(struct password_data *pwd, const char *cleartext);
 char *password_to_string(struct password_data *pwd);
 bool password_from_string(struct password_data *pwd, char *str);
 
