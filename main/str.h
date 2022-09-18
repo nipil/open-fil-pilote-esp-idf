@@ -9,6 +9,7 @@ const char *parse_stored_password_re_str;
 const char *default_nvs_partition_name;
 
 const char *null_str;
+const char *admin_str;
 
 const char *http_get;
 const char *http_post;

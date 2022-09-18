@@ -11,6 +11,7 @@ const char *parse_stored_password_re_str = "^([[:digit:]]+):([[:digit:]]+):([[:a
 const char *default_nvs_partition_name = NVS_DEFAULT_PART_NAME;
 
 const char *null_str = "NULL";
+const char *admin_str = "admin";
 
 const char *http_get = "GET";
 const char *http_post = "POST";

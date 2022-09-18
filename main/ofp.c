@@ -1758,7 +1758,66 @@ void ofp_account_list_init(void)
     for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
         accounts_global[i] = NULL;
 
-    // TODO: load everything from account namespace
+    // load accounts
+    nvs_iterator_t it_plan = nvs_entry_find(default_nvs_partition_name, kv_get_ns_account(), NVS_TYPE_STR);
+    for (; it_plan != NULL; it_plan = nvs_entry_next(it_plan))
+    {
+        nvs_entry_info_t info;
+        nvs_entry_info(it_plan, &info);
+
+        // cleanup variables
+        struct ofp_account *account = NULL;
+        char *pwdstr = NULL;
+
+        // check username
+        struct re_result *res = re_match(parse_alnum_re_str, info.key);
+        re_free(res);
+        if (res == NULL)
+        {
+            ESP_LOGW(TAG, "Ignoring invalid username %s", info.key);
+            continue;
+        }
+
+        // password string
+        pwdstr = kv_ns_get_str_atomic(kv_get_ns_account(), info.key);
+        if (pwdstr == NULL)
+        {
+            ESP_LOGW(TAG, "Could not read password for user %s", info.key);
+            goto cleanup_loop;
+        }
+        ESP_LOGV(TAG, "user %s pass %s", info.key, pwdstr);
+
+        // account
+        account = malloc(sizeof(struct ofp_account));
+        if (account == NULL)
+            goto cleanup_loop;
+
+        if (!ofp_account_init(account, info.key))
+            goto cleanup_loop;
+
+        if (!password_from_string(&account->pass_data, pwdstr))
+            goto cleanup_loop;
+
+        free(pwdstr);
+
+        // account loaded
+        ESP_LOGV(TAG, "account %s loaded", info.key);
+        password_log(&account->pass_data, ESP_LOG_VERBOSE);
+
+        continue;
+
+    cleanup_loop:
+        ofp_account_free(account);
+        free(pwdstr);
+    }
+    nvs_release_iterator(it_plan);
+
+    ESP_LOGV(TAG, "all accounts loaded");
+
+    // create admin account if it does not exists
+    struct ofp_account *admin = ofp_account_list_find_account_by_id(admin_str);
+    if (admin == NULL && !ofp_account_list_create_new_account(admin_str, admin_str))
+        ESP_LOGE(TAG, "Failed to create admin account, you will not be able to log in at all, but the system will continue to work with the current configuration.");
 }
 
 bool ofp_account_list_create_new_account(const char *username, const char *password)
