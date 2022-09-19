@@ -15,7 +15,7 @@ static const char *str_zone_count = "zone_count";
 
 /* forward definitions */
 static bool hw_esp32_zone_set_init(struct ofp_hw *hw);
-static bool hw_esp32_zone_set_apply(struct ofp_hw *hw);
+static bool hw_esp32_zone_set_apply(struct ofp_hw *hw, struct tm *timeinfo);
 
 /* hardware properties */
 static struct ofp_hw hw_esp32 = {
@@ -106,7 +106,7 @@ static bool hw_esp32_zone_set_init(struct ofp_hw *hw)
 }
 
 /* apply dynamic state to hardware */
-static bool hw_esp32_zone_set_apply(struct ofp_hw *hw)
+static bool hw_esp32_zone_set_apply(struct ofp_hw *hw, struct tm *timeinfo)
 {
     ESP_LOGD(TAG, "hw_esp32_zone_set_apply %p", hw);
     assert(hw != NULL);

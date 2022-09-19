@@ -100,7 +100,8 @@ struct ofp_zone_set
 /* polymorphism */
 
 struct ofp_hw; // forward declaration
-typedef bool (*ofp_hw_func)(struct ofp_hw *hw);
+typedef bool (*ofp_hw_init_func)(struct ofp_hw *hw);
+typedef bool (*ofp_hw_apply_func)(struct ofp_hw *hw, struct tm *timeinfo);
 
 struct ofp_hw_hooks
 {
@@ -119,8 +120,8 @@ struct ofp_hw_hooks
      * - updating zone current state
      * As these will be done by the caller after initialization is successful
      */
-    ofp_hw_func init;
-    ofp_hw_func apply;
+    ofp_hw_init_func init;
+    ofp_hw_apply_func apply;
 };
 
 /* hardware */

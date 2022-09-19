@@ -16,7 +16,7 @@ static const int zones_per_extension_board = 4;
 
 /* forward definitions */
 static bool hw_m1e1_zone_set_init(struct ofp_hw *hw);
-static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw);
+static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw, struct tm *timeinfo);
 
 /* hardware properties */
 static struct ofp_hw hw_m1e1 = {
@@ -94,7 +94,7 @@ static bool hw_m1e1_zone_set_init(struct ofp_hw *hw)
 }
 
 /* apply dynamic state to hardware */
-static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw)
+static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw, struct tm *timeinfo)
 {
     ESP_LOGD(TAG, "hw_m1e1_zone_set_apply %p", hw);
     assert(hw != NULL);

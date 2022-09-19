@@ -131,7 +131,7 @@ void app_main()
         // compute orders
         ofp_zone_update_current_orders(current_hw, &ti);
         // apply orders
-        current_hw->hw_hooks.apply(current_hw);
+        current_hw->hw_hooks.apply(current_hw, &ti);
 
         // sleep
         vTaskDelay(pdMS_TO_TICKS(MAIN_LOOP_WAIT_MILLISECONDS));
