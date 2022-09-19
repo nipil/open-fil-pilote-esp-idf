@@ -38,10 +38,6 @@ esp_err_t serve_api_get_hardware(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // restrict access
-    if (!ofp_session_user_is_admin(req))
-        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
-
     // fetch current hardware id from storage, returns NULL if not found
     char *current_hw_id = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_hardware_type); // must be free'd after use
 
