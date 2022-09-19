@@ -99,5 +99,7 @@ static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw)
     ESP_LOGD(TAG, "hw_m1e1_zone_set_apply %p", hw);
     assert(hw != NULL);
 
+    // TODO: hardware output
+
     return false;
 }
