@@ -199,6 +199,14 @@ struct ofp_account
     struct password_data *pass_data;
 };
 
+/* session context */
+
+struct ofp_session_context
+{
+    char user_id[OFP_MAX_LEN_ID];
+    bool user_is_admin;
+};
+
 /* day of week */
 bool ofp_day_of_week_is_valid(enum ofp_day_of_week dow);
 

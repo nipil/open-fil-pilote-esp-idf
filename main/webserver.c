@@ -331,6 +331,14 @@ static bool is_authentication_valid(httpd_req_t *req)
 
     result = password_verify(account->pass_data, cleartext);
 
+    // set flag for admin rights
+    struct ofp_session_context *o = req->sess_ctx;
+    if (o != NULL)
+    {
+        o->user_is_admin = (strcmp(username, admin_str) == 0);
+        strcpy(o->user_id, username);
+    }
+
 cleanup:
     free(b64d);
     re_free(res);
@@ -398,6 +406,13 @@ static bool is_source_ip_authorized(httpd_req_t *req)
 
 static esp_err_t https_handler_generic(httpd_req_t *req)
 {
+    // initialize request properties if needed
+    if (req->sess_ctx == NULL)
+    {
+        req->sess_ctx = calloc(1, sizeof(struct ofp_session_context));
+        ESP_LOGV(TAG, "alloc sess_ctx %p", req->sess_ctx);
+    }
+
     // check source ip filter
     if (!is_source_ip_authorized(req))
         return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Source IP not allowed");
