@@ -73,6 +73,10 @@ esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
+    // restrict access
+    if (!ofp_session_user_is_admin(req))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
+
     // dump some dev stats before rebooting
     uint32_t min = esp_get_minimum_free_heap_size();
     ESP_LOGI(TAG, "Minimum heap that has ever been available: %u", min);
@@ -90,6 +94,10 @@ esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
     ESP_LOGD(TAG, "serve_api_post_upgrade version=%i", version);
     if (version != 1)
         return httpd_resp_send_404(req);
+
+    // restrict access
+    if (!ofp_session_user_is_admin(req))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
     /*
     sample file upload from Chrome, same with Edge
