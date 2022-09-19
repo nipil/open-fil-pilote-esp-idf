@@ -24,7 +24,6 @@ esp_err_t serve_api_get_accounts(httpd_req_t *req, struct re_result *captures)
     cJSON *root = cJSON_CreateObject();
     cJSON *accounts = cJSON_AddArrayToObject(root, json_key_accounts);
 
-    struct ofp_session_context *o = req->sess_ctx;
     for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
     {
         struct ofp_account *account = account_list[i];
@@ -32,7 +31,7 @@ esp_err_t serve_api_get_accounts(httpd_req_t *req, struct re_result *captures)
             continue;
 
         // restrict access to allowed data
-        if (o == NULL || (!o->user_is_admin && (strcmp(o->user_id, account->id) != 0)))
+        if (!ofp_session_user_is_admin_or_self(req, account->id))
             continue;
 
         cJSON *jacc = cJSON_CreateObject();
