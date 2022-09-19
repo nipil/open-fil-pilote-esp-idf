@@ -618,8 +618,26 @@ async function accountPasswordReset(userId) {
     await patchUrlJson(`/ofp-api/v1/accounts/${userId}`, { password: password }).catch(logError);
 }
 
+function accountCheckAdmin(accounts) {
+    let userIsAdmin = false;
+    for (const account of accounts) {
+        if (account.id !== "admin")
+            continue;
+        userIsAdmin = true;
+        break;
+    }
+
+    if (!userIsAdmin) {
+        document.getElementById('accountCreationDiv').style.display = 'none';
+        document.getElementById('headingFirmwareDiv').style.display = 'none';
+        document.getElementById('headingHardwareDiv').style.display = 'none';
+    }
+}
+
 async function loadAccounts() {
     let { accounts } = await apiGetAccountsJson();
+
+    accountCheckAdmin(accounts);
 
     let template = {
         '<>': 'tr', 'html': [
