@@ -17,8 +17,35 @@ esp_err_t serve_api_get_accounts(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
-    return httpd_resp_sendstr(req, "{ \"accounts\": [ { \"id\": \"admin\", \"type\": \"admin\" }, { \"id\": \"test\", \"type\": \"user\"} ] }");
+    struct ofp_account **account_list = ofp_account_list_get();
+    if (account_list == NULL)
+        goto cleanup;
+
+    cJSON *root = cJSON_CreateObject();
+    cJSON *accounts = cJSON_AddArrayToObject(root, json_key_accounts);
+
+    struct ofp_session_context *o = req->sess_ctx;
+    for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
+    {
+        struct ofp_account *account = account_list[i];
+        if (account == NULL)
+            continue;
+
+        // restrict access to allowed data
+        if (o == NULL || (!o->user_is_admin && (strcmp(o->user_id, account->id) != 0)))
+            continue;
+
+        cJSON *jacc = cJSON_CreateObject();
+        cJSON_AddItemToArray(accounts, jacc);
+        cJSON_AddStringToObject(jacc, json_key_id, account->id);
+    }
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
+    return result;
+
+cleanup:
+    return httpd_resp_send_500(req);
 }
 
 esp_err_t serve_api_post_accounts(httpd_req_t *req, struct re_result *captures)
