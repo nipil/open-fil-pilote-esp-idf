@@ -37,6 +37,7 @@ struct ofp_form_data *webserver_form_data_from_req(httpd_req_t *req);
 esp_err_t serve_static_ofp_wait_html(httpd_req_t *req);
 
 /* session context */
+bool ofp_session_user_is_admin(httpd_req_t *req);
 bool ofp_session_user_is_admin_or_self(httpd_req_t *req, const char *user_id);
 
 #endif /* WEBSERVER_H */
