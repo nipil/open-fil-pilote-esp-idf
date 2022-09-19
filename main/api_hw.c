@@ -137,8 +137,6 @@ esp_err_t serve_api_get_hardware_id_parameters(httpd_req_t *req, struct re_resul
     }
     kv_close(h);
 
-    httpd_resp_set_hdr(req, str_cache_control, str_private_max_age_600);
-
     esp_err_t result = serve_json(req, root);
     cJSON_Delete(root);
     return result;
