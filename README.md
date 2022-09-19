@@ -32,4 +32,3 @@ Configurer l'analyseur de code de l'éditeur via la commande de palette "ESP-IDP
 - certificate fallback if custom certs fail
 - custom partition
 - firmware update
-- more responsive http server
