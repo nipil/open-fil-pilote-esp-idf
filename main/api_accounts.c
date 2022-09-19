@@ -54,9 +54,59 @@ esp_err_t serve_api_post_accounts(httpd_req_t *req, struct re_result *captures)
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    // restrict access
+    if (!ofp_session_user_is_admin(req))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
-    return httpd_resp_send_500(req);
+    // read
+    char *buf = webserver_get_request_data_atomic(req);
+    if (buf == NULL)
+    {
+        ESP_LOGW(TAG, "Failed getting request data");
+        return ESP_FAIL;
+    }
+
+    // parse
+    cJSON *root = cJSON_Parse(buf);
+
+    // cleanup
+    free(buf);
+
+    // parse error
+    if (root == NULL)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
+
+    // id is required
+    char *username = NULL;
+    if (cjson_get_child_string(root, json_key_id, &username) != JSON_HELPER_RESULT_SUCCESS)
+    {
+        ESP_LOGD(TAG, "Invalid id");
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid id");
+    }
+
+    // password is required
+    char *cleartext = NULL;
+    if (cjson_get_child_string(root, json_key_password, &cleartext) != JSON_HELPER_RESULT_SUCCESS)
+    {
+        ESP_LOGD(TAG, "Invalid password");
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid password");
+    }
+
+    ESP_LOGV(TAG, "id %s password %s", username, cleartext);
+    if (!ofp_account_list_create_new_account(username, cleartext))
+    {
+        ESP_LOGW(TAG, "Could not create new account '%s'", username);
+        cJSON_Delete(root);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not create new account");
+    }
+
+    // cleanup
+    cJSON_Delete(root);
+
+    ESP_LOGV(TAG, "Account %s created", username);
+    return httpd_resp_sendstr(req, "Account created");
 }
 
 esp_err_t serve_api_delete_accounts_id(httpd_req_t *req, struct re_result *captures)
