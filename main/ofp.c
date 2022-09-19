@@ -1707,7 +1707,7 @@ static bool ofp_account_set_password(struct ofp_account *account, const char *cl
     if (account->pass_data == NULL)
         return false;
 
-    password_log(account->pass_data, ESP_LOG_VERBOSE);
+    password_log(account->pass_data, TAG, ESP_LOG_VERBOSE);
     return true;
 }
 
@@ -1820,7 +1820,7 @@ void ofp_account_list_init(void)
             goto cleanup_loop;
 
         ESP_LOGV(TAG, "account %s loaded", info.key);
-        password_log(account->pass_data, ESP_LOG_VERBOSE);
+        password_log(account->pass_data, TAG, ESP_LOG_VERBOSE);
 
         continue;
 

@@ -204,7 +204,7 @@ void wait_sec(uint32_t sec);
 bool hmac_md(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len);
 bool hmac_md_iterations(mbedtls_md_type_t md_type, const uint8_t *salt, size_t salt_len, const uint8_t *data, size_t data_len, uint8_t *output, uint8_t *output_len, unsigned int iterations);
 
-void password_log(struct password_data *pwd, esp_log_level_t log_level);
+void password_log(struct password_data *pwd, const char *tag, esp_log_level_t log_level);
 struct password_data *password_init(const char *cleartext);
 bool password_free(struct password_data *pwd);
 bool password_verify(struct password_data *pwd, const char *cleartext);

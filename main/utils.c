@@ -945,18 +945,18 @@ cleanup:
     return NULL;
 }
 
-void password_log(struct password_data *pwd, esp_log_level_t log_level)
+void password_log(struct password_data *pwd, const char *tag, esp_log_level_t log_level)
 {
-    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password type: %i", pwd->md_type);
-    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password iterations: %i", pwd->iterations);
-    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password salt_len: %i", pwd->salt_len);
-    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password salt: %p", pwd->salt);
+    ESP_LOG_LEVEL_LOCAL(log_level, tag, "password type: %i", pwd->md_type);
+    ESP_LOG_LEVEL_LOCAL(log_level, tag, "password iterations: %i", pwd->iterations);
+    ESP_LOG_LEVEL_LOCAL(log_level, tag, "password salt_len: %i", pwd->salt_len);
+    ESP_LOG_LEVEL_LOCAL(log_level, tag, "password salt: %p", pwd->salt);
     if (pwd->salt != NULL)
-        ESP_LOG_BUFFER_HEXDUMP(TAG, pwd->salt, pwd->salt_len, log_level);
-    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password hash_len: %u", pwd->hash_len);
-    ESP_LOG_LEVEL_LOCAL(log_level, TAG, "password hash: %p", pwd->hash);
+        ESP_LOG_BUFFER_HEXDUMP(tag, pwd->salt, pwd->salt_len, log_level);
+    ESP_LOG_LEVEL_LOCAL(log_level, tag, "password hash_len: %u", pwd->hash_len);
+    ESP_LOG_LEVEL_LOCAL(log_level, tag, "password hash: %p", pwd->hash);
     if (pwd->hash != NULL)
-        ESP_LOG_BUFFER_HEXDUMP(TAG, pwd->hash, pwd->hash_len, log_level);
+        ESP_LOG_BUFFER_HEXDUMP(tag, pwd->hash, pwd->hash_len, log_level);
 }
 
 bool password_free(struct password_data *pwd)
