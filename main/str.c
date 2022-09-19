@@ -7,6 +7,8 @@ const char *parse_alnum_re_str = "^([[:alnum:]]+)$";
 const char *parse_int_re_str = "^(-|\\+)?([[:digit:]]+)$";
 const char *parse_zone_mode_re_str = "^:((fixed):([[:alnum:]]+)|(planning):([[:digit:]]+))$";
 const char *parse_stored_password_re_str = "^([[:digit:]]+):([[:digit:]]+):([[:alnum:]+/=]+):([[:alnum:]+/=]+)$"; // int:int:base64:base64
+const char *parse_authorization_401_re_str = "^Basic ([[:alnum:]+/=]+)$";
+const char *parse_credentials_401_re_str = "^([[:alnum:]]+):([[:alnum:]]+)$";
 
 const char *default_nvs_partition_name = NVS_DEFAULT_PART_NAME;
 
@@ -80,5 +82,8 @@ const char *route_api_planning_id_slots = "^/ofp-api/v([[:digit:]]+)/plannings/(
 const char *route_api_planning_id_slots_id = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)/slots/([[:digit:]]+)$";
 
 const char *http_302_hdr = "302 Found";
+const char *http_401_hdr = "401 Unauthorized";
 
 const char *http_location_hdr = "Location";
+const char *http_authorization_hdr = "Authorization";
+const char *http_www_authenticate_hdr = "WWW-Authenticate";

@@ -5,6 +5,8 @@ const char *parse_alnum_re_str;
 const char *parse_int_re_str;
 const char *parse_zone_mode_re_str;
 const char *parse_stored_password_re_str;
+const char *parse_authorization_401_re_str;
+const char *parse_credentials_401_re_str;
 
 const char *default_nvs_partition_name;
 
@@ -78,7 +80,10 @@ const char *route_api_planning_id_slots;
 const char *route_api_planning_id_slots_id;
 
 const char *http_302_hdr;
+const char *http_401_hdr;
 
 const char *http_location_hdr;
+const char *http_authorization_hdr;
+const char *http_www_authenticate_hdr;
 
 #endif /* STR_H */

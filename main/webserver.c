@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <esp_log.h>
 #include <esp_https_server.h>
-
-#include "httpd_basic_auth.h"
+#include <mbedtls/base64.h>
 
 #include "str.h"
 #include "webserver.h"
@@ -260,22 +259,100 @@ static esp_err_t https_handler_delete(httpd_req_t *req)
 
 /***************************************************************************/
 
-#ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_AUTHENTICATION
-
 static bool is_authentication_valid(httpd_req_t *req)
 {
-    // TODO: check actual accounts
-    return httpd_basic_auth(req, "admin", "admin") == ESP_OK;
+    ESP_LOGV(TAG, "is_authentication_valid");
+
+    bool result = false;
+
+    // cleanup variables
+    char *auth_head = NULL;
+    struct re_result *res = NULL;
+    uint8_t *b64d = NULL;
+
+    size_t auth_head_len = 1 + httpd_req_get_hdr_value_len(req, http_authorization_hdr);
+    if (auth_head_len <= 1 + 7)
+        goto cleanup;
+
+    auth_head = malloc(auth_head_len);
+    if (auth_head == NULL)
+        goto cleanup;
+
+    esp_err_t ret = httpd_req_get_hdr_value_str(req, http_authorization_hdr, auth_head, auth_head_len);
+    if (ret != ESP_OK)
+        goto cleanup;
+
+    ESP_LOGV(TAG, "Header: %s", auth_head);
+
+    res = re_match(parse_authorization_401_re_str, auth_head);
+    if (res == NULL)
+        goto cleanup;
+
+    free(auth_head);
+    auth_head = NULL;
+
+    char *b64e = re_get_string(res, 1);
+    size_t olen, ilen = strlen(b64e);
+    int r = mbedtls_base64_decode(NULL, 0, &olen, (uint8_t *)b64e, ilen);
+    ESP_LOGV(TAG, "r %i olen %i", r, olen);
+    if (r != MBEDTLS_ERR_BASE64_BUFFER_TOO_SMALL)
+        goto cleanup;
+
+    b64d = malloc(olen + 1);
+    if (b64d == NULL)
+        goto cleanup;
+
+    r = mbedtls_base64_decode(b64d, olen + 1, &olen, (uint8_t *)b64e, ilen);
+    if (r != 0)
+        goto cleanup;
+
+    re_free(res);
+    res = NULL;
+    b64e = NULL;
+
+    b64d[olen] = '\0';
+    ESP_LOGV(TAG, "Decoded: %s", b64d);
+
+    res = re_match(parse_credentials_401_re_str, (char *)b64d);
+    if (res == NULL)
+        goto cleanup;
+
+    free(b64d);
+    b64d = NULL;
+
+    char *username = re_get_string(res, 1);
+    char *cleartext = re_get_string(res, 2);
+    ESP_LOGV(TAG, "username %s password %s", username, cleartext);
+
+    struct ofp_account *account = ofp_account_list_find_account_by_id(username);
+    ESP_LOGV(TAG, "account %p", account);
+    if (account == NULL)
+        goto cleanup;
+
+    result = password_verify(account->pass_data, cleartext);
+
+cleanup:
+    free(b64d);
+    re_free(res);
+    free(auth_head);
+
+    return result;
 }
 
 static esp_err_t authentication_reject(httpd_req_t *req)
 {
-    httpd_basic_auth_resp_send_401(req);
-    httpd_resp_sendstr(req, "Not Authorized");
-    return ESP_FAIL;
-}
+    ESP_LOGD(TAG, "authentication_reject");
 
-#endif
+    esp_err_t ret = httpd_resp_set_hdr(req, http_www_authenticate_hdr, "Basic realm=\"OpenFilPilote\"");
+    ESP_LOGV(TAG, "httpd_resp_set_hdr %i", ret);
+    if (ret != ESP_OK)
+        return ret;
+
+    ret = httpd_resp_send_err(req, HTTPD_401_UNAUTHORIZED, "Not Authorized");
+    ESP_LOGV(TAG, "httpd_resp_send_err %i", ret);
+
+    return ret;
+}
 
 /***************************************************************************/
 
