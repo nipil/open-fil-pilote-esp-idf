@@ -298,6 +298,57 @@ static bool ofp_hw_param_load_value(const char *hw_id, struct ofp_hw_param *para
     }
 }
 
+bool ofp_order_to_half_waves(enum ofp_order_id order_id, bool *positive_half, bool *negative_half, struct tm *timeinfo)
+{
+    assert(positive_half != NULL);
+    assert(negative_half != NULL);
+
+    /*
+        cozy = none
+        economy = P+N
+        Nofreeze = N
+        offload = P
+        cosyminus1 = economy for 3 seconds every 5 minutes, cozy otherwise
+        cosyminus1 = economy for 7 seconds every 5 minutes, cozy otherwise
+    */
+
+    switch (order_id)
+    {
+    case HW_OFP_ORDER_ID_STANDARD_NOFREEZE:
+        *positive_half = false;
+        *negative_half = true;
+        return true;
+
+    case HW_OFP_ORDER_ID_STANDARD_OFFLOAD:
+        *positive_half = true;
+        *negative_half = false;
+        return true;
+
+    case HW_OFP_ORDER_ID_STANDARD_ECONOMY:
+        *positive_half = true;
+        *negative_half = true;
+        return true;
+
+    case HW_OFP_ORDER_ID_STANDARD_COZY:
+        *positive_half = false;
+        *negative_half = false;
+        return true;
+
+    case HW_OFP_ORDER_ID_EXTENDED_COZYMINUS1:
+        *positive_half = (timeinfo->tm_min % 5 == 0 && timeinfo->tm_sec < 3);
+        *negative_half = *positive_half;
+        return true;
+
+    case HW_OFP_ORDER_ID_EXTENDED_COZYMINUS2:
+        *positive_half = (timeinfo->tm_min % 5 == 0 && timeinfo->tm_sec < 7);
+        *negative_half = *positive_half;
+        return true;
+
+    default:
+        return false;
+    }
+}
+
 bool ofp_zone_set_id(struct ofp_zone *zone, const char *id)
 {
     assert(zone != NULL);

@@ -237,6 +237,9 @@ struct ofp_hw *ofp_hw_list_find_hw_by_id(char *hw_id);
 struct ofp_hw_param *ofp_hw_param_find_by_id(struct ofp_hw *hw, const char *param_id);
 bool ofp_hw_param_set_value_string(struct ofp_hw_param *param, const char *str);
 
+/* order to opto driver */
+bool ofp_order_to_half_waves(enum ofp_order_id order_id, bool *positive_half, bool *negative_half, struct tm *timeinfo);
+
 /* zone accessors */
 bool ofp_zone_set_id(struct ofp_zone *zone, const char *id);
 bool ofp_zone_set_description(struct ofp_zone *zone, const char *description);
