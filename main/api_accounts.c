@@ -95,7 +95,48 @@ esp_err_t serve_api_patch_accounts_id(httpd_req_t *req, struct re_result *captur
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    // restrict access to allowed data
+    if (!ofp_session_user_is_admin_or_self(req, id))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
-    return httpd_resp_send_500(req);
+    // read
+    char *buf = webserver_get_request_data_atomic(req);
+    if (buf == NULL)
+    {
+        ESP_LOGW(TAG, "Failed getting request data");
+        return ESP_FAIL;
+    }
+
+    // parse
+    cJSON *root = cJSON_Parse(buf);
+
+    // cleanup
+    free(buf);
+
+    // parse error
+    if (root == NULL)
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Failed parsing JSON body");
+
+    // password is optional
+    char *new_cleartext = NULL;
+    if (cjson_get_child_string(root, json_key_password, &new_cleartext) == JSON_HELPER_RESULT_INVALID)
+    {
+        cJSON_Delete(root);
+        ESP_LOGD(TAG, "Invalid password");
+        return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid password");
+    }
+    if (new_cleartext != NULL && !ofp_account_list_reset_password_account(id, new_cleartext))
+    {
+        cJSON_Delete(root);
+        ESP_LOGW(TAG, "Could not change password for account %s", id);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not change password");
+    }
+
+    // not providing any matching element is not an error
+
+    // cleanup
+    cJSON_Delete(root);
+
+    ESP_LOGW(TAG, "Password for account '%s' was changed", id);
+    return httpd_resp_sendstr(req, "Password changed");
 }

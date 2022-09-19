@@ -27,6 +27,7 @@ const char *json_key_current = "current";
 const char *json_key_description = "description";
 const char *json_key_id = "id";
 const char *json_key_accounts = "accounts";
+const char *json_key_password = "password";
 const char *json_key_parameters = "parameters";
 const char *json_key_supported = "supported";
 const char *json_key_type = "type";

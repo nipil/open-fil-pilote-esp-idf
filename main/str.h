@@ -25,6 +25,7 @@ const char *json_key_current;
 const char *json_key_description;
 const char *json_key_id;
 const char *json_key_accounts;
+const char *json_key_password;
 const char *json_key_parameters;
 const char *json_key_supported;
 const char *json_key_type;
