@@ -28,6 +28,25 @@ typedef esp_err_t (*api_serve_func)(httpd_req_t *req, struct re_result *captures
 
 /***************************************************************************/
 
+static void ofp_session_init_if_needed(httpd_req_t *req)
+{
+    if (req->sess_ctx != NULL)
+        return;
+
+    req->sess_ctx = calloc(1, sizeof(struct ofp_session_context));
+    ESP_LOGV(TAG, "alloc sess_ctx %p", req->sess_ctx);
+}
+
+static void ofp_session_set_user_info(httpd_req_t *req, const char *username)
+{
+    struct ofp_session_context *o = req->sess_ctx;
+    if (o != NULL)
+    {
+        o->user_is_admin = (strcmp(username, admin_str) == 0);
+        strcpy(o->user_id, username);
+    }
+}
+
 /* disable web serving */
 void webserver_disable(void)
 {
@@ -332,12 +351,7 @@ static bool is_authentication_valid(httpd_req_t *req)
     result = password_verify(account->pass_data, cleartext);
 
     // set flag for admin rights
-    struct ofp_session_context *o = req->sess_ctx;
-    if (o != NULL)
-    {
-        o->user_is_admin = (strcmp(username, admin_str) == 0);
-        strcpy(o->user_id, username);
-    }
+    ofp_session_set_user_info(req, username);
 
 cleanup:
     free(b64d);
@@ -407,11 +421,7 @@ static bool is_source_ip_authorized(httpd_req_t *req)
 static esp_err_t https_handler_generic(httpd_req_t *req)
 {
     // initialize request properties if needed
-    if (req->sess_ctx == NULL)
-    {
-        req->sess_ctx = calloc(1, sizeof(struct ofp_session_context));
-        ESP_LOGV(TAG, "alloc sess_ctx %p", req->sess_ctx);
-    }
+    ofp_session_init_if_needed(req);
 
     // check source ip filter
     if (!is_source_ip_authorized(req))
