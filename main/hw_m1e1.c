@@ -99,7 +99,34 @@ static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw, struct tm *timeinfo)
     ESP_LOGD(TAG, "hw_m1e1_zone_set_apply %p", hw);
     assert(hw != NULL);
 
-    // TODO: hardware output
+    // push zone current state last to first
+    for (int i = hw->zone_set.count - 1; i >= 0; i--)
+    {
+        struct ofp_zone *zone = &hw->zone_set.zones[i];
+
+        bool pos, neg;
+        if (!ofp_order_to_half_waves(zone->current, &pos, &neg, timeinfo))
+            continue;
+
+        ESP_LOGV(TAG, "index %i name %s min %i sec %i current %i pos %i neg %i", i, zone->id, timeinfo->tm_min, timeinfo->tm_sec, zone->current, pos, neg);
+
+        /*
+            From highest-numbered board (furthest from M board) to lowest-numbered board (nearest to M board)
+            From highest-numbered fil-pilote (FPx) to lowest-numbered fil-pilote (FPx)
+            First push N then P
+
+            And for each board
+            595 P0 = FP1P
+            595 P1 = FP1N
+            595 P2 = FP2P
+            595 P3 = FP2N
+            595 P4 = FP3P
+            595 P5 = FP3N
+            595 P6 = FP4P
+            595 P7 = FP4N
+        */
+    }
+
 
     return false;
 }
