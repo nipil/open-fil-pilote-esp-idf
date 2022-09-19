@@ -68,10 +68,26 @@ esp_err_t serve_api_delete_accounts_id(httpd_req_t *req, struct re_result *captu
     if (version != 1)
         return httpd_resp_send_404(req);
 
-    // TODO: not yet implemented
+    // restrict access to allowed data
+    struct ofp_session_context *o = req->sess_ctx;
+    if (o == NULL || (!o->user_is_admin && (strcmp(o->user_id, id) != 0)))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
-    return httpd_resp_send_500(req);
+    // prevent deleting admin account
+    if (strcmp(id, admin_str) == 0)
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Cannot remove admin account");
+
+    // remove account
+    if (!ofp_account_list_remove_existing_account(id))
+    {
+        ESP_LOGW(TAG, "Could not remove account %s", id);
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not remove account");
+    }
+
+    ESP_LOGW(TAG, "Account '%s' removed", id);
+    return httpd_resp_sendstr(req, "Account deleted");
 }
+
 esp_err_t serve_api_patch_accounts_id(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);
