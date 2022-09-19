@@ -69,8 +69,7 @@ esp_err_t serve_api_delete_accounts_id(httpd_req_t *req, struct re_result *captu
         return httpd_resp_send_404(req);
 
     // restrict access to allowed data
-    struct ofp_session_context *o = req->sess_ctx;
-    if (o == NULL || (!o->user_is_admin && (strcmp(o->user_id, id) != 0)))
+    if (!ofp_session_user_is_admin_or_self(req, id))
         return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
     // prevent deleting admin account

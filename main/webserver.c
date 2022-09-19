@@ -47,6 +47,23 @@ static void ofp_session_set_user_info(httpd_req_t *req, const char *username)
     }
 }
 
+bool ofp_session_user_is_admin_or_self(httpd_req_t *req, const char *user_id)
+{
+    struct ofp_session_context *o = req->sess_ctx;
+    if (o == NULL)
+        return false;
+
+    if (o->user_is_admin)
+        return true;
+
+    if (strcmp(o->user_id, user_id) == 0)
+        return true;
+
+    return false;
+}
+
+/***************************************************************************/
+
 /* disable web serving */
 void webserver_disable(void)
 {
