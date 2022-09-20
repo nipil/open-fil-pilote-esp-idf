@@ -638,7 +638,6 @@ async function loadAccounts() {
     let template = {
         '<>': 'tr', 'html': [
             { '<>': 'th', 'html': '${id}' },
-            { '<>': 'td', 'html': '${type}' },
             {
                 '<>': 'td', 'html': [
                     {
@@ -667,7 +666,7 @@ async function loadAccounts() {
     };
 
     let el = document.getElementById('accountListTable');
-    el.innerHTML = '<tr><th>Nom</th><th>Type</th><th>MdP</th><th>Suppr.</th></tr>';
+    el.innerHTML = '<tr><th>Nom</th><th>MdP</th><th>Suppr.</th></tr>';
 
     // NOTE: json2html requires jquery to insert event handlers
     $('#accountListTable').json2html(accounts, template);
