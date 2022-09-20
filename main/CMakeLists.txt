@@ -17,6 +17,7 @@ idf_component_register(
         "storage.c"
         "str.c"
         "console.c"
+        "s2p_595.c"
     INCLUDE_DIRS
         "."
 )
