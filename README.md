@@ -27,7 +27,6 @@ Configurer l'analyseur de code de l'éditeur via la commande de palette "ESP-IDP
 
 # roadmap
 
-- apply orders to hardware
 - add partial reload buttons
 - certificate update API
 - certificate fallback if custom certs fail
