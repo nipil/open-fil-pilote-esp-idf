@@ -4,6 +4,7 @@
 #include <time.h>
 #include <regex.h>
 #include <mbedtls/md.h>
+#include <esp_log.h>
 
 #include <cJSON.h>
 

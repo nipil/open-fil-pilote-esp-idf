@@ -1,6 +1,7 @@
 #ifndef OFP_H
 #define OFP_H
 
+#include <stdbool.h>
 #include <time.h>
 #include <utils.h>
 
