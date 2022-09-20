@@ -4,11 +4,33 @@
 
 #include "str.h"
 #include "hw_m1e1.h"
+#include "s2p_595.h"
 
 static const char TAG[] = "m1e1";
 
 /* defines */
+
+// using VP pin for CFG button
+#define M1_PIN_CONFIG 36
+
+// pins for MUX
+#define M1_PIN_595_IN 16
+#define M1_PIN_595_SC 17
+#define M1_PIN_595_LC 18
+#define M1_PIN_595_RST 21
+#define M1_PIN_595_OE 23
+
 #define HW_M1E1_ZONE_ID_FORMAT "E%02iZ%02i"
+
+/* mux */
+
+struct s2p_595 global_s2p_595 = {
+    .pin_serial_in = M1_PIN_595_IN,
+    .pin_shift_clock = M1_PIN_595_SC,
+    .pin_latch_clock = M1_PIN_595_LC,
+    .pin_reset = M1_PIN_595_RST,
+    .pin_output_enable = M1_PIN_595_OE,
+};
 
 /* consts */
 static const char *str_e1_count = "e1_count";
@@ -88,9 +110,11 @@ static bool hw_m1e1_zone_set_init(struct ofp_hw *hw)
         }
     }
 
-    // TODO: hardware initialization
+    // initialize hardware
+    s2p_595_setup(&global_s2p_595);
+    ofp_pin_setup_input_no_pull(M1_PIN_CONFIG);
 
-    return true; // DEBUG: return true until we implement the hardware stuff
+    return true;
 }
 
 /* apply dynamic state to hardware */
