@@ -280,4 +280,10 @@ bool ofp_account_list_create_new_account(const char *username, const char *clear
 bool ofp_account_list_remove_existing_account(const char *username);
 bool ofp_account_list_reset_password_account(const char *username, const char *new_cleartext);
 
+/* gpio functions */
+void ofp_pin_setup_output_no_pull(uint8_t pin);
+void ofp_pin_setup_input_no_pull(uint8_t pin);
+void ofp_pin_set_value_wait_1us(uint8_t pin, uint8_t value);
+uint8_t ofp_pin_get_value(uint8_t pin);
+
 #endif /* OFP_H */

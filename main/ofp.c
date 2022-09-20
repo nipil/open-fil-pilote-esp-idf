@@ -1,5 +1,6 @@
 #include <string.h>
-
+#include <driver/gpio.h>
+#include <rom/ets_sys.h>
 #include <esp_log.h>
 
 #include "str.h"
@@ -1975,4 +1976,41 @@ bool ofp_account_list_reset_password_account(const char *username, const char *n
         return false;
 
     return true;
+}
+
+/* gpio pin functions */
+
+static void ofp_pin_setup_no_pull(uint8_t pin, gpio_mode_t mode)
+{
+    gpio_config_t io_conf = {0};
+
+    io_conf.intr_type = GPIO_INTR_DISABLE;
+    io_conf.mode = mode;
+    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
+
+    io_conf.pin_bit_mask = (1ULL << pin);
+
+    gpio_config(&io_conf);
+}
+
+void ofp_pin_setup_output_no_pull(uint8_t pin)
+{
+    ofp_pin_setup_no_pull(pin, GPIO_MODE_OUTPUT);
+}
+
+void ofp_pin_setup_input_no_pull(uint8_t pin)
+{
+    ofp_pin_setup_no_pull(pin, GPIO_MODE_INPUT);
+}
+
+void ofp_pin_set_value_wait_1us(uint8_t pin, uint8_t value)
+{
+    gpio_set_level(pin, value);
+    ets_delay_us(1);
+}
+
+uint8_t ofp_pin_get_value(uint8_t pin)
+{
+    return gpio_get_level(pin);
 }
