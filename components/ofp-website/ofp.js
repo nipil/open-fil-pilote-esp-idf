@@ -53,10 +53,6 @@ function handleHttpErrors(response) {
 /*******************************************************************************/
 
 async function doUrl(url, errorMessage, options = {}) {
-    // let options = { method: 'POST' }
-    // if (body) options.body = body;
-    // if (headers) options.headers = headers;
-    // if (reload) options.cache = 'reload';
     try {
         return await fetch(url, options).then(handleHttpErrors);
     }
@@ -766,18 +762,16 @@ async function loadHardwareParameters(hardwareId) {
 /*******************************************************************************/
 
 async function ofp_init() {
-    await Promise.all([
-        loadStatus(),
-        loadZoneOverrides(),
-        loadZoneConfiguration(),
-        initPlanningCreate(),
-        loadPlanningList(),
-        initAccountCreate(),
-        loadAccounts(),
-        initFirmwareButtons(),
-        loadHardwareSupported(),
-        initHardwareParametersButtons(),
-    ]).catch(logError);
+    await loadStatus().catch(logError);
+    await loadZoneOverrides().catch(logError);
+    await loadZoneConfiguration().catch(logError);
+    await initPlanningCreate().catch(logError);
+    await loadPlanningList().catch(logError);
+    await initAccountCreate().catch(logError);
+    await loadAccounts().catch(logError);
+    await initFirmwareButtons().catch(logError);
+    await loadHardwareSupported().catch(logError);
+    await initHardwareParametersButtons().catch(logError);
 }
 
 window.onload = ofp_init
