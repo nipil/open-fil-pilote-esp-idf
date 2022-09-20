@@ -25,7 +25,7 @@
 static const char TAG[] = "main";
 
 /* defines */
-#define MAIN_LOOP_WAIT_MILLISECONDS (10000)
+#define MAIN_LOOP_WAIT_MILLISECONDS (1000)
 
 /***************************************************************************/
 
