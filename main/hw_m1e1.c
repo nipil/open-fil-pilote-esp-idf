@@ -124,6 +124,7 @@ static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw, struct tm *timeinfo)
     assert(hw != NULL);
 
     // push zone current state last to first
+    s2p_595_reset(&global_s2p_595);
     for (int i = hw->zone_set.count - 1; i >= 0; i--)
     {
         struct ofp_zone *zone = &hw->zone_set.zones[i];
@@ -149,8 +150,12 @@ static bool hw_m1e1_zone_set_apply(struct ofp_hw *hw, struct tm *timeinfo)
             595 P6 = FP4P
             595 P7 = FP4N
         */
+        s2p_595_set_input(&global_s2p_595, neg);
+        s2p_595_shift_edge(&global_s2p_595);
+        s2p_595_set_input(&global_s2p_595, pos);
+        s2p_595_shift_edge(&global_s2p_595);
     }
-
+    s2p_595_latch_edge(&global_s2p_595);
 
     return false;
 }
