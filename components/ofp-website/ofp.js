@@ -761,6 +761,8 @@ async function loadHardwareParameters(hardwareId) {
 
 /*******************************************************************************/
 
+let isIntervalInProgress = false;
+
 async function ofp_init() {
     await loadStatus().catch(logError);
     await loadZoneOverrides().catch(logError);
@@ -772,6 +774,15 @@ async function ofp_init() {
     await initFirmwareButtons().catch(logError);
     await loadHardwareSupported().catch(logError);
     await initHardwareParametersButtons().catch(logError);
+
+    // periodically refresh zone
+    setInterval(function () {
+        if (isIntervalInProgress)
+            return false;
+        isIntervalInProgress = true;
+        loadZoneConfiguration();
+        isIntervalInProgress = false;
+    }, 5000);
 }
 
 window.onload = ofp_init
