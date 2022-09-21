@@ -40,3 +40,6 @@ CONFIG_BOOTLOADER_DATA_FACTORY_RESET="nvs"
 # Change partition map to enable OTA updates
 CONFIG_PARTITION_TABLE_CUSTOM=y
 CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Rollback in case of OTA error during update
+#CONFIG_BOOTLOADER_APP_ROLLBACK_ENABLE=y
