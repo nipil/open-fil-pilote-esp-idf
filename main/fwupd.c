@@ -52,39 +52,7 @@ void ota_try()
     unsigned char *current = (unsigned char *)ota_bin_start;
     const unsigned char *end = ota_bin_end;
 
-    // first read
-    data_read = end - current;
-    if (data_read > BUFFSIZE)
-        data_read = BUFFSIZE;
-    memcpy(ota_write_data, current, data_read);
-    current += data_read;
-    ESP_LOGI(TAG, "read %i current %p end %p", data_read, current, end);
-
-    esp_err_t err = ESP_OK;
-    esp_app_desc_t new_app_info;
-
-    ESP_LOGI(TAG, "min analysis size %u", sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t));
-    if (data_read > sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t))
-    {
-        // check current version with downloading
-        memcpy(&new_app_info, &ota_write_data[sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t)], sizeof(esp_app_desc_t));
-        ESP_LOGI(TAG, "New firmware version: %s, date %s time %s", new_app_info.version, new_app_info.date, new_app_info.time);
-
-        esp_app_desc_t running_app_info;
-        if (esp_ota_get_partition_description(part_running, &running_app_info) == ESP_OK)
-        {
-            ESP_LOGI(TAG, "Running firmware version: %s, date %s time %s", running_app_info.version, running_app_info.date, running_app_info.time);
-        }
-
-        const esp_partition_t *last_invalid_app = esp_ota_get_last_invalid_partition();
-        esp_app_desc_t invalid_app_info;
-        if (esp_ota_get_partition_description(last_invalid_app, &invalid_app_info) == ESP_OK)
-        {
-            ESP_LOGI(TAG, "Last invalid firmware version: %s, date %s time %s", invalid_app_info.version, invalid_app_info.date, invalid_app_info.time);
-        }
-    }
-
-    err = esp_ota_begin(part_next, OTA_WITH_SEQUENTIAL_WRITES, &update_handle);
+    esp_err_t err = esp_ota_begin(part_next, OTA_WITH_SEQUENTIAL_WRITES, &update_handle);
     ESP_LOGI(TAG, "esp_ota_begin %i", err);
     if (err != ESP_OK)
     {
@@ -93,10 +61,59 @@ void ota_try()
     }
     ESP_LOGI(TAG, "esp_ota_begin succeeded");
 
-    int total = 0;
+    bool first = true;
 
-    do
+    int total = 0;
+    // first read
+    ESP_LOGI(TAG, "min analysis size %u", sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t));
+    while (current != end)
     {
+        data_read = end - current;
+        if (data_read > BUFFSIZE)
+            data_read = BUFFSIZE;
+        memcpy(ota_write_data, current, data_read);
+        current += data_read;
+
+        err = ESP_OK;
+        esp_app_desc_t new_app_info;
+
+        if (first && data_read > sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t))
+        {
+            first = false;
+
+            esp_image_header_t *eih = (esp_image_header_t *)ota_write_data;
+            if (eih->magic != ESP_IMAGE_HEADER_MAGIC)
+            {
+                ESP_LOGW(TAG, "image header magic mismatch: expected 0x%02x and got 0x%02x", ESP_IMAGE_HEADER_MAGIC, eih->magic);
+                // goto cleanup;
+            }
+
+            // check current version with downloading
+            memcpy(&new_app_info, &ota_write_data[sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t)], sizeof(esp_app_desc_t));
+
+            if (new_app_info.magic_word != ESP_APP_DESC_MAGIC_WORD)
+            {
+                // for the hello world on github, the magic is 0x00000000
+                ESP_LOGW(TAG, "app info header magic mismatch: expected 0x%08x and got 0x%08x", ESP_APP_DESC_MAGIC_WORD, new_app_info.magic_word);
+                // goto cleanup;
+            }
+
+            ESP_LOGI(TAG, "New firmware version: %s, date %s time %s", new_app_info.version, new_app_info.date, new_app_info.time);
+
+            esp_app_desc_t running_app_info;
+            if (esp_ota_get_partition_description(part_running, &running_app_info) == ESP_OK)
+            {
+                ESP_LOGI(TAG, "Running firmware version: %s, date %s time %s", running_app_info.version, running_app_info.date, running_app_info.time);
+            }
+
+            const esp_partition_t *last_invalid_app = esp_ota_get_last_invalid_partition();
+            esp_app_desc_t invalid_app_info;
+            if (esp_ota_get_partition_description(last_invalid_app, &invalid_app_info) == ESP_OK)
+            {
+                ESP_LOGI(TAG, "Last invalid firmware version: %s, date %s time %s", invalid_app_info.version, invalid_app_info.date, invalid_app_info.time);
+            }
+        }
+
         ESP_LOGV(TAG, "--- ota_bin_length %u written %u to_write %u", ota_bin_length, total, data_read);
         // ESP_LOG_BUFFER_HEXDUMP(TAG, ota_write_data, data_read, ESP_LOG_VERBOSE);
         err = esp_ota_write(update_handle, (const void *)ota_write_data, data_read);
@@ -107,18 +124,7 @@ void ota_try()
         }
 
         total += data_read;
-
-        // remaining data read
-        data_read = end - current;
-
-        if (data_read == 0)
-            break;
-
-        if (data_read > BUFFSIZE)
-            data_read = BUFFSIZE;
-        memcpy(ota_write_data, current, data_read);
-        current += data_read;
-    } while (current <= end);
+    }
 
     ESP_LOGV(TAG, "--- ota_bin_length %u written %u", ota_bin_length, total);
 
