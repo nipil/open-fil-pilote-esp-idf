@@ -37,5 +37,4 @@ This way, you revert everything to the default of the flashed firmware.
 
 - certificate update API
 - certificate fallback if custom certs fail
-- custom partition
 - firmware update
