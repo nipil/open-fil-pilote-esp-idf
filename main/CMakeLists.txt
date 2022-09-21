@@ -18,8 +18,11 @@ idf_component_register(
         "str.c"
         "console.c"
         "s2p_595.c"
+        "fwupd.c"
     INCLUDE_DIRS
         "."
+    EMBED_FILES
+        "../ota.bin"
 )
 
 #[[This define speeds up iterations
