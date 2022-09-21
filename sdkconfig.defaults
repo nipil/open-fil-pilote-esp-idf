@@ -16,3 +16,23 @@ CONFIG_DEFAULT_AP_PASSWORD="openfilpilote"
 # Tasks statistics (for task runtime and additional CoreID)
 CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS=y
 CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID=y
+
+# Enable factory reset by holding GPIO36 low on boot
+#
+# When triggered, adds following INFO logs on monitor
+#
+# I (114) boot: End of partition table
+# I (118) boot: Defaulting to factory image
+# > I (5123) boot: Detect a condition of the factory reset
+# > I (5123) boot: Data partitions to erase: nvs
+# > I (5123) boot_comm: ## Label            Usage Offset   Length   Cleaned
+# > I (5304) boot_comm:  0 nvs              data  00009000 00004000 [yes]
+# > I (5391) boot_comm:  1 otadata          data  0000d000 00002000 [yes]
+# > I (5391) boot_comm:  2 phy_init         data  0000f000 00001000 [no]
+# I (5394) boot: Defaulting to factory image
+#
+CONFIG_BOOTLOADER_FACTORY_RESET=y
+CONFIG_BOOTLOADER_NUM_PIN_FACTORY_RESET=36
+CONFIG_BOOTLOADER_FACTORY_RESET_PIN_LOW=y
+CONFIG_BOOTLOADER_OTA_DATA_ERASE=y
+CONFIG_BOOTLOADER_DATA_FACTORY_RESET="nvs"

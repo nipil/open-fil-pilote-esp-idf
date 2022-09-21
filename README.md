@@ -25,6 +25,14 @@ Installer l'exension ESP-IDF
 Installer le framework ESP-IDF via l'extension
 Configurer l'analyseur de code de l'éditeur via la commande de palette "ESP-IDP: Add vscode configuration folder"
 
+# factory reset
+
+Hold GPIO36 low, trigger reboot, continue to hold GPIO36 low for 5 seconds or more
+
+This formats the NVS flash partition, and sets the factory partition (where the firmware is flashed) as boot
+
+This way, you revert everything to the default of the flashed firmware.
+
 # roadmap
 
 - certificate update API
