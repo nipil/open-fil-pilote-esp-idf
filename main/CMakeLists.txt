@@ -21,8 +21,6 @@ idf_component_register(
         "fwupd.c"
     INCLUDE_DIRS
         "."
-    EMBED_FILES
-        "../ota.bin"
 )
 
 #[[This define speeds up iterations
