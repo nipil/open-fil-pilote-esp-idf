@@ -407,14 +407,14 @@ static bool is_source_ip_authorized(httpd_req_t *req)
 {
     ESP_LOGD(TAG, "is_source_ip_authorized");
 
-    const char *ip_filter = CONFIG_OFP_UI_SOURCE_IP_FILTER;
-    if (strlen(ip_filter) == 0)
-        return true;
-    ESP_LOGD(TAG, "Authorized source ip is %s", ip_filter);
-
     int sockfd = httpd_req_to_sockfd(req);
+#if LWIP_IPV6
     char ip_str[INET6_ADDRSTRLEN];
     struct sockaddr_in6 addr;
+#else  /* LWIP_IPV6 */
+    char ip_str[INET_ADDRSTRLEN];
+    struct sockaddr_in addr;
+#endif /* LWIP_IPV6 */
 
     socklen_t addr_size = sizeof(addr);
     int n = getpeername(sockfd, (struct sockaddr *)&addr, &addr_size);
@@ -427,13 +427,20 @@ static bool is_source_ip_authorized(httpd_req_t *req)
 #if LWIP_IPV6
     const char *s = inet_ntop(AF_INET6, &addr.sin6_addr, ip_str, sizeof(ip_str));
 #else  /* LWIP_IPV6 */
-    const char *s = inet_ntop(AF_INET, &addr.sin6_addr.un.u32_addr[3], ip_str, sizeof(ip_str));
+    const char *s = inet_ntop(AF_INET, &addr.sin_addr, ip_str, sizeof(ip_str));
 #endif /* LWIP_IPV6 */
     if (s == NULL)
     {
         ESP_LOGW(TAG, "Could not get formatted client IP, denying by default");
         return false;
     }
+
+    ESP_LOGD(TAG, "Request comes from: %s", s);
+
+    const char *ip_filter = CONFIG_OFP_UI_SOURCE_IP_FILTER;
+    if (strlen(ip_filter) == 0)
+        return true;
+    ESP_LOGD(TAG, "Authorized source ip is %s", ip_filter);
 
     bool ret = (strcmp(ip_str, ip_filter) == 0);
     ESP_LOGD(TAG, "Request comes from source IP %s, result : %i", ip_str, ret);
