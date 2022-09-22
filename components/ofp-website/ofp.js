@@ -691,9 +691,13 @@ async function apiGetAccountsJson() {
 
 async function uploadFirmware(file) {
     console.log("uploadFirmware", file);
-    let formData = new FormData();
-    formData.set('file', file);
-    await postUrl('/ofp-api/v1/upgrade', formData).catch(logError);
+    let options = {
+        headers: {
+            'Content-Type': 'application/octet-stream'
+        }
+    };
+    let res = await postUrl('/ofp-api/v1/upgrade', file, options).catch(logError);
+    console.log(res);
 }
 
 async function initFirmwareButtons() {
