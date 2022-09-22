@@ -39,7 +39,16 @@ Si vous utiliser un matériel prédéfini (comme les cartes M1E1) ceci est déj�
 
 # Over the air update
 
-Verify firmware prior to publishing it :
+Vous pouvez téléverser les mises à jour de microgiciel manuellement :
+
+- soit le via l'interface Web
+- soit via l'outil CURL
+
+Exemple de commande CURL, pour les utilisateurs avancés :
+
+    curl --silent --show-error --header "Content-Type: application/octet-stream" -X POST --insecure https://admin:admin@adresseip/ofp-api/v1/upgrade --data-binary @firmware.bin
+
+Si possible, vérifiez votre microgiciel avant de le téléverser :
 
     python C:\esp\esp-idf\components\esptool_py\esptool\esptool.py --chip esp32 image_info firmware.bin
 
