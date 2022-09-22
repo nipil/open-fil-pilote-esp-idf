@@ -108,9 +108,9 @@ esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
 /*
  * OTA driver for contiguous network data
  */
-static esp_err_t serve_api_post_upgrade_type_application_www_form_urlencoded(httpd_req_t *req)
+static esp_err_t serve_api_post_upgrade_raw(httpd_req_t *req)
 {
-    ESP_LOGD(TAG, "serve_api_post_upgrade_type_application_www_form_urlencoded");
+    ESP_LOGD(TAG, "serve_api_post_upgrade_raw");
 
     static char buf[CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP];
 
@@ -119,7 +119,7 @@ static esp_err_t serve_api_post_upgrade_type_application_www_form_urlencoded(htt
 
     struct fwupd_data upd;
     esp_err_t result = fwupd_begin(&upd);
-    ESP_LOGV(TAG, "fwupd_begin %i", result);
+    ESP_LOGD(TAG, "fwupd_begin %i", result);
     if (result != ESP_OK)
         goto cleanup;
 
@@ -130,7 +130,7 @@ static esp_err_t serve_api_post_upgrade_type_application_www_form_urlencoded(htt
 
         // get from network
         result = webserver_read_request_data(req, buf, len);
-        ESP_LOGV(TAG, "webserver_read_request_data %i", result);
+        ESP_LOGD(TAG, "webserver_read_request_data %i", result);
         if (result != ESP_OK)
             goto cleanup;
 
@@ -140,13 +140,13 @@ static esp_err_t serve_api_post_upgrade_type_application_www_form_urlencoded(htt
 
         // put to flash
         result = fwupd_write(&upd, buf, len);
-        ESP_LOGV(TAG, "fwupd_write %i", result);
+        ESP_LOGD(TAG, "fwupd_write %i", result);
         if (result != ESP_OK)
             goto cleanup;
     }
 
     result = fwupd_end(&upd);
-    ESP_LOGV(TAG, "fwupd_end %i", result);
+    ESP_LOGD(TAG, "fwupd_end %i", result);
     if (result != ESP_OK)
         goto cleanup;
 
@@ -167,39 +167,56 @@ esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
     if (!ofp_session_user_is_admin(req))
         return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
+    // cleanup variables
+    char *content_type_hdr_value = NULL;
+
+    ESP_LOGD(TAG, "Content-length: %u", req->content_len);
+
+    size_t content_type_hdr_buff_len = httpd_req_get_hdr_value_len(req, http_content_type_hdr) + 1;
+    ESP_LOGV(TAG, "content_type_hdr_buff_len: %u", content_type_hdr_buff_len);
+    content_type_hdr_value = malloc(content_type_hdr_buff_len);
+    if (content_type_hdr_value == NULL)
+    {
+        ESP_LOGI(TAG, "Couldn't allocate content_type_hdr_value");
+        goto cleanup;
+    }
+
+    esp_err_t err = httpd_req_get_hdr_value_str(req, http_content_type_hdr, content_type_hdr_value, content_type_hdr_buff_len);
+    ESP_LOGV(TAG, "httpd_req_get_hdr_value_str %i", err);
+    if (err != ESP_OK)
+    {
+        ESP_LOGI(TAG, "Couldn't read content_type_hdr_value (%s)", esp_err_to_name(err));
+        goto cleanup;
+    }
+
+    ESP_LOGD(TAG, "content_type_hdr_value: %s", content_type_hdr_value);
+
     /*
-    sample file upload from Chrome, same with Edge
+     * Sample upload with curl:
+     *
+     * curl --silent --show-error --header "Content-Type: application/octet-stream" -X POST --insecure https://admin:admin@openfilpilote.local/ofp-api/v1/upgrade --data-binary @ota.bin
+     */
+    if (strcmp(content_type_hdr_value, str_application_octet_stream) == 0)
+    {
+        ESP_LOGD(TAG, "Attempt CURL-like OTA upload");
+        err = serve_api_post_upgrade_raw(req);
+        ESP_LOGV(TAG, "serve_api_post_upgrade_raw: %i", err);
+        if (err != ESP_OK)
+            goto cleanup;
 
-        Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryQ63nar1W96PdzXtt
-        D (72538) api_hw: content length 2499
-        D (72568) api_hw: 0x3ffd0bd0   2d 2d 2d 2d 2d 2d 57 65  62 4b 69 74 46 6f 72 6d  |------WebKitForm|
-        D (72578) api_hw: 0x3ffd0be0   42 6f 75 6e 64 61 72 79  51 36 33 6e 61 72 31 57  |BoundaryQ63nar1W|
-        D (72588) api_hw: 0x3ffd0bf0   39 36 50 64 7a 58 74 74  0d 0a 43 6f 6e 74 65 6e  |96PdzXtt..Conten|
-        D (72598) api_hw: 0x3ffd0c00   74 2d 44 69 73 70 6f 73  69 74 69 6f 6e 3a 20 66  |t-Disposition: f|
-        D (72638) api_hw: 0x3ffd0bd0   6f 72 6d 2d 64 61 74 61  3b 20 6e 61 6d 65 3d 22  |orm-data; name="|
-        D (72648) api_hw: 0x3ffd0be0   66 69 6c 65 22 3b 20 66  69 6c 65 6e 61 6d 65 3d  |file"; filename=|
-        D (72658) api_hw: 0x3ffd0bf0   22 44 65 66 61 75 6c 74  2e 72 64 70 22 0d 0a 43  |"Default.rdp"..C|
-        D (72668) api_hw: 0x3ffd0c00   6f 6e 74 65 6e 74 2d 54  79 70 65 3a 20 61 70 70  |ontent-Type: app|
-        D (72718) api_hw: 0x3ffd0bd0   6c 69 63 61 74 69 6f 6e  2f 6f 63 74 65 74 2d 73  |lication/octet-s|
-        D (72718) api_hw: 0x3ffd0be0   74 72 65 61 6d 0d 0a 0d  0a ff fe 73 00 63 00 72  |tream......s.c.r|
-        D (72728) api_hw: 0x3ffd0bf0   00 65 00 65 00 6e 00 20  00 6d 00 6f 00 64 00 65  |.e.e.n. .m.o.d.e|
-        D (72738) api_hw: 0x3ffd0c00   00 20 00 69 00 64 00 3a  00 69 00 3a 00 32 00 0d  |. .i.d.:.i.:.2..|
-        ...
-        D (75288) api_hw: 0x3ffd0bd0   00 79 00 6e 00 61 00 6d  00 65 00 3a 00 73 00 3a  |.y.n.a.m.e.:.s.:|
-        D (75298) api_hw: 0x3ffd0be0   00 0d 00 0a 00 0d 0a 2d  2d 2d 2d 2d 2d 57 65 62  |.......------Web|
-        D (75308) api_hw: 0x3ffd0bf0   4b 69 74 46 6f 72 6d 42  6f 75 6e 64 61 72 79 51  |KitFormBoundaryQ|
-        D (75318) api_hw: 0x3ffd0c00   36 33 6e 61 72 31 57 39  36 50 64 7a 58 74 74 2d  |63nar1W96PdzXtt-|
-        D (75358) api_hw: 0x3ffd0bd0   2d 0d 0a                                          |-..|
+        // success
+        ESP_LOGI(TAG, "Firmware installation finished successfully");
+        free(content_type_hdr_value);
 
-    sample data upload with curl
+        // queue reboot
+        mgmt_queue_reboot();
+        return serve_static_ofp_wait_html(req);
+    }
 
-        Content-Type: application/x-www-form-urlencoded
-        D (924878) api_hw: content length 30
-        D (924918) api_hw: 0x3ffd0bd0   74 69 74 69 20 6c 65 20  70 69 61 66 20 65 73 74  |titi le piaf est|
-        D (924928) api_hw: 0x3ffd0be0   20 6a 61 75 6e 65 65 74  20 62 c3 aa 74 65        | jauneet b..te|
-    */
+    free(content_type_hdr_value);
+    return httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "Invalid request");
 
-    // TODO: not yet implemented
-
+cleanup:
+    free(content_type_hdr_value);
     return httpd_resp_send_500(req);
 }

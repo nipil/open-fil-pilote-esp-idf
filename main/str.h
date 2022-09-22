@@ -56,6 +56,7 @@ const char *http_content_type_json;
 const char *str_cache_control;
 const char *str_private_max_age_600;
 const char *str_private_no_store;
+const char *str_application_octet_stream;
 
 const char *route_root;
 const char *route_ofp_html;
@@ -87,5 +88,6 @@ const char *http_401_hdr;
 const char *http_location_hdr;
 const char *http_authorization_hdr;
 const char *http_www_authenticate_hdr;
+const char *http_content_type_hdr;
 
 #endif /* STR_H */

@@ -58,6 +58,7 @@ const char *http_content_type_json = HTTPD_TYPE_JSON;
 const char *str_cache_control = "Cache-Control";
 const char *str_private_max_age_600 = "private, max-age=600";
 const char *str_private_no_store = "private, no-store";
+const char *str_application_octet_stream = "application/octet-stream";
 
 const char *route_root = "/";
 const char *route_ofp_html = "/ofp.html";
@@ -89,3 +90,4 @@ const char *http_401_hdr = "401 Unauthorized";
 const char *http_location_hdr = "Location";
 const char *http_authorization_hdr = "Authorization";
 const char *http_www_authenticate_hdr = "WWW-Authenticate";
+const char *http_content_type_hdr = "Content-Type";
