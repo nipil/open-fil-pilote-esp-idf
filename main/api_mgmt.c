@@ -208,9 +208,7 @@ esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
         ESP_LOGI(TAG, "Firmware installation finished successfully");
         free(content_type_hdr_value);
 
-        // queue reboot
-        mgmt_queue_reboot();
-        return serve_static_ofp_wait_html(req);
+        return httpd_resp_sendstr(req, "firmware update successful");
     }
 
     free(content_type_hdr_value);

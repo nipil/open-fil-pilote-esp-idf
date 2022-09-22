@@ -70,4 +70,3 @@ Si possible, vérifiez votre microgiciel avant de le téléverser :
 
 - certificate update API
 - certificate fallback if custom certs fail
-- firmware update

@@ -697,12 +697,17 @@ async function uploadFirmware(file) {
         }
     };
     let res = await postUrl('/ofp-api/v1/upgrade', file, options).catch(logError);
-    console.log(res);
+    if (res.status == 200) {
+        window.location.href = '/ofp-api/v1/reboot';
+    }
 }
 
 async function initFirmwareButtons() {
     el = document.getElementById('updateUploadButton');
     el.onclick = function (e) {
+        let status = confirm('Etes vous certain de vouloir charger un nouveau microgiciel ? La centrale devra redémarrer pour prendre en compte le changement.');
+        if (status !== true)
+            return;
         let t = document.getElementById('updateTextFilePath');
         if (t.files.length != 1) return;
         uploadFirmware(t.files[0]);
