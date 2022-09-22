@@ -1042,7 +1042,7 @@ bool password_verify(struct password_data *pwd, const char *cleartext)
     if (!hmac_md_iterations(pwd->md_type, pwd->salt, pwd->salt_len, (const uint8_t *)cleartext, cleartext_len, tmp, &tmp_len, pwd->iterations) || tmp_len != pwd->hash_len)
         goto cleanup;
 
-    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp, tmp_len, ESP_LOG_DEBUG);
+    ESP_LOG_BUFFER_HEXDUMP(TAG, tmp, tmp_len, ESP_LOG_VERBOSE);
     return (memcmp(pwd->hash, tmp, pwd->hash_len) == 0);
 
 cleanup:
