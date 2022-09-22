@@ -27,9 +27,15 @@ Configurer l'analyseur de code de l'éditeur via la commande de palette "ESP-IDP
 
 # factory reset
 
-Hold GPIO36 low, trigger reboot, continue to hold GPIO36 low for 5 seconds or more
-This formats the NVS flash partition, and sets the factory partition (where the firmware is flashed) as boot
-This way, you revert everything to the default of the flashed firmware.
+L'entrée permettant le réinitialisation du matériel est la GPIO36.
+
+Pour réinitialiser le matériel à sa version usine (la version que vous téléversé via l'outil ESP-IDF)
+- Maintenir la GPIO36 à l'état bas, déclencher un redémarrage, et continuer de maintenir la GPIO36 à l'état bas pendant 6 secondes
+- Ceci déclenchera le formattage du stockage interne (préférences, les comptes, les plannings, paramètres wifi, etc...)
+- Ceci forcera le démarrage du matériel sur la partition "factory" et le microgiciel chargé sur l'ESP via l'outil ESP-IDF
+
+Si vous utilisez ce firmware avec un matériel que vous avez conçu vous-même, ou un kit de développement "nu", en temps normal l'entrée GPIO36 doit être maintenue à l'état haut (via une "pull-up resistor") pour éviter une remise usine accidentelle.
+Si vous utiliser un matériel prédéfini (comme les cartes M1E1) ceci est déjà réalisé grâce au bouton CFG/RUN qui pilote l'entrée GPIO36 de manière sécurisée. 
 
 # Over the air update
 
