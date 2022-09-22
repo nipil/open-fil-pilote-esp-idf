@@ -1,5 +1,6 @@
 #include <cjson.h>
 #include <esp_log.h>
+#include <esp_ota_ops.h>
 
 #include "str.h"
 #include "ofp.h"
@@ -50,16 +51,31 @@ esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures)
     time(&current_wifi_uptime);
     current_wifi_uptime -= wi->last_connect_time;
 
-    // provide hardware list
     cJSON *root = cJSON_CreateObject();
+
+    // system uptime
     cJSON *uptime = cJSON_AddObjectToObject(root, "uptime");
     cJSON_AddNumberToObject(uptime, "system", sys_uptime);
+
+    // wifi uptime and statistics
     cJSON *wifi = cJSON_AddObjectToObject(uptime, "wifi");
     cJSON_AddNumberToObject(wifi, "attempts", wi->attempts);
     cJSON_AddNumberToObject(wifi, "successes", wi->successes);
     cJSON_AddNumberToObject(wifi, "disconnects", wi->disconnects);
     cJSON_AddNumberToObject(wifi, "cumulated_uptime", wi->cumulated_uptime + current_wifi_uptime);
     cJSON_AddNumberToObject(wifi, "current_uptime", current_wifi_uptime);
+
+    // firmware and OTA versions and dates
+    cJSON *ota = cJSON_AddObjectToObject(root, "firmware");
+    const esp_partition_t *part_running = esp_ota_get_running_partition();
+    cJSON_AddStringToObject(ota, "running_partition", part_running->label);
+    cJSON_AddNumberToObject(ota, "running_partition_size", part_running->size);
+    const esp_app_desc_t *ead = esp_ota_get_app_description();
+    cJSON_AddStringToObject(ota, "running_app_name", ead->project_name);
+    cJSON_AddStringToObject(ota, "running_app_version", ead->version);
+    cJSON_AddStringToObject(ota, "running_app_compiled_date", ead->date);
+    cJSON_AddStringToObject(ota, "running_app_compiled_time", ead->time);
+    cJSON_AddStringToObject(ota, "running_app_idf_version", ead->idf_ver);
 
     esp_err_t result = serve_json(req, root);
     cJSON_Delete(root);

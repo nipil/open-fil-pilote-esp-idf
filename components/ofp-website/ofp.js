@@ -154,7 +154,7 @@ async function apiGetStatusJson() {
 }
 
 async function loadStatus() {
-    let { uptime } = await apiGetStatusJson();
+    let { uptime, firmware } = await apiGetStatusJson();
 
     let el = document.getElementById('status');
 
@@ -171,9 +171,20 @@ async function loadStatus() {
     el.appendChild(d);
 
     d = document.createElement('div');
-    d.innerText = `${uptime.wifi.disconnects} d\u00E9connexions détectées depuis le dernier démarrage`;
+    d.innerText = `${uptime.wifi.disconnects} d\u00E9connexions détectées depuis le dernier d\u00E9marrage`;
     el.appendChild(d);
 
+    d = document.createElement('div');
+    d.innerText = `Le système a d\u00E9marr\u00E9 sur la partition "${firmware.running_partition}" dont la taille maximale est de ${firmware.running_partition_size} octets`;
+    el.appendChild(d);
+
+    d = document.createElement('div');
+    d.innerText = `Microgiciel actif est "${firmware.running_app_name}" en version ${firmware.running_app_version}`;
+    el.appendChild(d);
+
+    d = document.createElement('div');
+    d.innerText = `Microgiciel g\u00E9n\u00E9r\u00E9 le ${firmware.running_app_compiled_date} ${firmware.running_app_compiled_time} \u00E0 l'aide du framework ESP-IDF ${firmware.running_app_idf_version}`;
+    el.appendChild(d);
 }
 
 /*******************************************************************************/

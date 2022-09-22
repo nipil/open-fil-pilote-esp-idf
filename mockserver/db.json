@@ -287,6 +287,15 @@
         "cumulated_uptime": 765316,
         "last_connect_time": 90123
       }
+    },
+    "firmware": {
+      "running_partition": "factory",
+      "running_partition_size": 1310720,
+      "running_app_name": "open-fil-pilote-esp-idf",
+      "running_app_version": "5714bb7-dirty",
+      "running_app_compiled_date": "Sep 22 2022",
+      "running_app_compiled_time": "08:53:02",
+      "running_app_idf_version": "v4.4.2"
     }
   }
 }
