@@ -7,6 +7,7 @@
 #include "webserver.h"
 #include "uptime.h"
 #include "api_mgmt.h"
+#include "fwupd.h"
 
 static const char TAG[] = "api_mgmt";
 
@@ -102,6 +103,57 @@ esp_err_t serve_api_get_reboot(httpd_req_t *req, struct re_result *captures)
 
     // serve wait page
     return serve_static_ofp_wait_html(req);
+}
+
+/*
+ * OTA driver for contiguous network data
+ */
+static esp_err_t serve_api_post_upgrade_type_application_www_form_urlencoded(httpd_req_t *req)
+{
+    ESP_LOGD(TAG, "serve_api_post_upgrade_type_application_www_form_urlencoded");
+
+    static char buf[CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP];
+
+    int remaining = req->content_len;
+    int len = 0;
+
+    struct fwupd_data upd;
+    esp_err_t result = fwupd_begin(&upd);
+    ESP_LOGV(TAG, "fwupd_begin %i", result);
+    if (result != ESP_OK)
+        goto cleanup;
+
+    while (remaining != 0)
+    {
+        // limit to buffer size
+        len = min_int(remaining, sizeof(buf));
+
+        // get from network
+        result = webserver_read_request_data(req, buf, len);
+        ESP_LOGV(TAG, "webserver_read_request_data %i", result);
+        if (result != ESP_OK)
+            goto cleanup;
+
+        // count
+        remaining -= len;
+        ESP_LOG_BUFFER_HEXDUMP(TAG, buf, len, ESP_LOG_VERBOSE);
+
+        // put to flash
+        result = fwupd_write(&upd, buf, len);
+        ESP_LOGV(TAG, "fwupd_write %i", result);
+        if (result != ESP_OK)
+            goto cleanup;
+    }
+
+    result = fwupd_end(&upd);
+    ESP_LOGV(TAG, "fwupd_end %i", result);
+    if (result != ESP_OK)
+        goto cleanup;
+
+    return ESP_OK;
+
+cleanup:
+    return result;
 }
 
 esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
