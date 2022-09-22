@@ -84,7 +84,7 @@ esp_err_t fwupd_write(struct fwupd_data *data, const void *buf, size_t len)
         if (len >= sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t))
         {
             const esp_app_desc_t *ead = (const esp_app_desc_t *)((uint8_t *)buf + sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t));
-            if (ead->magic_word != ESP_IMAGE_HEADER_MAGIC)
+            if (ead->magic_word != ESP_APP_DESC_MAGIC_WORD)
             {
                 ESP_LOGW(TAG, "OTA app info header magic mismatch: expected 0x%08x and got 0x%08x", ESP_APP_DESC_MAGIC_WORD, ead->magic_word);
                 goto cleanup;
