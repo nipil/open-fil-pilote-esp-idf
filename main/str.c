@@ -94,3 +94,8 @@ const char *http_location_hdr = "Location";
 const char *http_authorization_hdr = "Authorization";
 const char *http_www_authenticate_hdr = "WWW-Authenticate";
 const char *http_content_type_hdr = "Content-Type";
+
+const char *pem_cert_begin = "-----BEGIN CERTIFICATE-----";
+const char *pem_cert_end = "-----END CERTIFICATE-----";
+const char *pem_unencrypted_key_begin = "-----BEGIN PRIVATE KEY-----";
+const char *pem_unencrypted_key_end = "-----END PRIVATE KEY-----";

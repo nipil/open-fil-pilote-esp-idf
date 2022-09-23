@@ -12,6 +12,7 @@
 static const char TAG[] = "api_mgmt";
 
 #define REBOOT_WAIT_SEC 10
+#define CERT_BUNDLE_MAX_LENGTH (16 * 1024)
 
 /***************************************************************************/
 
@@ -243,42 +244,137 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     if (!ofp_session_user_is_admin(req))
         return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
+    // verify header
+    char *buf = ofp_webserver_get_header_string(req, http_content_type_hdr);
+    if (buf == NULL)
+    {
+        ESP_LOGW(TAG, "Could not get value for header: %s", buf);
+        goto cleanup;
+    }
+
+    ESP_LOGD(TAG, "content_type_hdr_value: %s", buf);
+    if (strcmp(buf, str_application_x_pem_file) != 0)
+    {
+        ESP_LOGW(TAG, "Invalid content type %s, expected %s", buf, str_application_x_pem_file);
+        goto cleanup;
+    }
+
+    // cleanup
+    free(buf);
+    buf = NULL;
+
+    // large atomic
     ESP_LOGD(TAG, "Content-length: %u", req->content_len);
-
-    // cleanup variables
-    char *content_type_hdr_value = ofp_webserver_get_header_string(req, http_content_type_hdr);
-    if (content_type_hdr_value == NULL)
+    buf = webserver_get_request_data_atomic_max_size(req, CERT_BUNDLE_MAX_LENGTH);
+    if (buf == NULL)
     {
-        ESP_LOGW(TAG, "Could not get value for header: %s", content_type_hdr_value);
+        ESP_LOGW(TAG, "Provided data is %i bytes and too large to handle, maximum allowed size is %i", req->content_len, CERT_BUNDLE_MAX_LENGTH - 1);
         goto cleanup;
     }
+    // ESP_LOG_BUFFER_HEXDUMP(TAG, buf, req->content_len, ESP_LOG_VERBOSE);
 
-    ESP_LOGD(TAG, "content_type_hdr_value: %s", content_type_hdr_value);
-    if (strcmp(content_type_hdr_value, str_application_x_pem_file) != 0)
-    {
-        ESP_LOGW(TAG, "Invalid content type %s, expected %s", content_type_hdr_value, str_application_x_pem_file);
-        goto cleanup;
-    }
+    // parse
+    const uint8_t pem_cert_begin_len = strlen(pem_cert_begin);
+    const uint8_t pem_cert_end_len = strlen(pem_cert_end);
+    const uint8_t pem_unencrypted_key_begin_len = strlen(pem_unencrypted_key_begin);
+    const uint8_t pem_unencrypted_key_end_len = strlen(pem_unencrypted_key_end);
 
-    // read raw data
-    static char buf[CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP];
-    int remaining = req->content_len;
-    int len = 0;
-    esp_err_t result = ESP_OK;
-    while (remaining != 0)
+    enum bundle_state_machine
     {
-        len = min_int(remaining, sizeof(buf));
-        result = webserver_read_request_data(req, buf, len);
-        ESP_LOGD(TAG, "webserver_read_request_data %i", result);
-        if (result != ESP_OK)
+        BST_IGNORE = 0,
+        BST_CERTIFICATE,
+        BST_UNENCRYPTED_KEY
+    } state = BST_IGNORE;
+
+    char *current = buf;
+    const char *end = buf + req->content_len;
+    ESP_LOGD(TAG, "buf %p end %p", buf, end);
+
+    char *block_start = NULL, *block_end = NULL;
+
+    while (current != end)
+    {
+        int remaining = end - current;
+        ESP_LOGD(TAG, "remaining %i current %i", remaining, current - buf);
+
+        current = memchr(current, '-', remaining);
+        if (current == NULL)
+        {
+            ESP_LOGD(TAG, "Marker not found");
+            break;
+        }
+
+        ESP_LOGV(TAG, "found mark at offset %i", current - buf);
+        ESP_LOGV(TAG, "next few characters %.*s", min_int(remaining, 40), current);
+
+        switch (state)
+        {
+        case BST_IGNORE:
+            if (remaining >= pem_cert_begin_len && strncmp(current, pem_cert_begin, pem_cert_begin_len) == 0)
+            {
+                state = BST_CERTIFICATE;
+                block_start = current;
+                current += pem_cert_begin_len;
+                break;
+            }
+            if (remaining >= pem_unencrypted_key_begin_len && strncmp(current, pem_unencrypted_key_begin, pem_unencrypted_key_begin_len) == 0)
+            {
+                state = BST_UNENCRYPTED_KEY;
+                block_start = current;
+                current += pem_unencrypted_key_begin_len;
+                break;
+            }
+            // invalid token
+            ESP_LOGW(TAG, "Invalid bundle boundary detected, expecting cert begin or key begin, stopping parsing");
             goto cleanup;
 
-        // count
-        remaining -= len;
-        ESP_LOG_BUFFER_HEXDUMP(TAG, buf, len, ESP_LOG_VERBOSE);
+        case BST_CERTIFICATE:
+            if (remaining >= pem_cert_end_len && strncmp(current, pem_cert_end, pem_cert_end_len) == 0)
+            {
+                state = BST_IGNORE;
+                current += pem_cert_end_len;
+                block_end = current;
+                ESP_LOGD(TAG, "FOUND CERT: block_start %p block_end %p", block_start, block_end);
+                // ESP_LOG_BUFFER_HEXDUMP(TAG, block_start, block_end - block_start, ESP_LOG_VERBOSE);
+                // TODO: parse certificate
+                block_start = block_end = NULL;
+                break;
+            }
+            // invalid token
+            ESP_LOGW(TAG, "Invalid bundle boundary detected, expecting cert end, stopping parsing");
+            break;
+
+        case BST_UNENCRYPTED_KEY:
+            if (remaining >= pem_unencrypted_key_end_len && strncmp(current, pem_unencrypted_key_end, pem_unencrypted_key_end_len) == 0)
+            {
+                state = BST_IGNORE;
+                current += pem_unencrypted_key_end_len;
+                block_end = current;
+                ESP_LOGD(TAG, "FOUND KEY: block_start %p block_end %p", block_start, block_end);
+                // ESP_LOG_BUFFER_HEXDUMP(TAG, block_start, block_end - block_start, ESP_LOG_VERBOSE);
+                // TODO: parse key
+                block_start = block_end = NULL;
+                break;
+            }
+            // invalid token
+            ESP_LOGW(TAG, "Invalid bundle boundary detected, expecting cert end, stopping parsing");
+            break;
+        }
     }
-    return httpd_resp_sendstr(req, "ok");
+
+    // check we are not in the middle of a part
+    if (state != BST_IGNORE)
+    {
+        ESP_LOGW(TAG, "Reached end of bundle without finishing a block, stopping parsing");
+        goto cleanup;
+    }
+
+    ESP_LOGI(TAG, "Certificate bundle parsing finished");
+
+    free(buf);
+    return httpd_resp_send_404(req); // TODO: return OK
 
 cleanup:
+    free(buf);
     return httpd_resp_send_500(req);
 }

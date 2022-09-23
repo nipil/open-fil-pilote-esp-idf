@@ -93,4 +93,9 @@ const char *http_authorization_hdr;
 const char *http_www_authenticate_hdr;
 const char *http_content_type_hdr;
 
+const char *pem_cert_begin;
+const char *pem_cert_end;
+const char *pem_unencrypted_key_begin;
+const char *pem_unencrypted_key_end;
+
 #endif /* STR_H */
