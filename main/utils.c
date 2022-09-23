@@ -1111,3 +1111,121 @@ cleanup:
     mbedtls_pk_free(&pk);
     return result;
 }
+
+struct certificate_bundle_iter *certificate_bundle_iter_init(const char *buf, size_t len)
+{
+    if (buf == NULL)
+        return NULL;
+
+    ESP_LOGD(TAG, "certificate_bundle_iter_init buffer %p len %i", buf, len);
+
+    struct certificate_bundle_iter *tmp = calloc(1, sizeof(struct certificate_bundle_iter *));
+    if (tmp == NULL)
+        goto cleanup;
+
+    tmp->current = buf;
+    tmp->remaining = len;
+
+    tmp->state = CBIS_IDLE;
+
+    tmp->block_start = NULL;
+    tmp->block_len = -1;
+
+    return tmp;
+
+cleanup:
+    free(tmp);
+    return NULL;
+}
+
+void certificate_bundle_iter_free(struct certificate_bundle_iter *it)
+{
+    ESP_LOGD(TAG, "certificate_bundle_iter_free it %p", it);
+    free(it);
+}
+
+bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
+{
+    ESP_LOGD(TAG, "certificate_bundle_iter_next it %p", it);
+
+    if (it == NULL)
+        return false;
+
+    if (it->state == CBIS_END_OK || it->state == CBIS_END_FAIL)
+        return false;
+
+    const uint8_t pem_cert_begin_len = strlen(pem_cert_begin);
+    const uint8_t pem_cert_end_len = strlen(pem_cert_end);
+    const uint8_t pem_unencrypted_key_begin_len = strlen(pem_unencrypted_key_begin);
+    const uint8_t pem_unencrypted_key_end_len = strlen(pem_unencrypted_key_end);
+
+    it->state = CBIS_IDLE;
+
+    for (int i = 0; i < 2; i++)
+    {
+        ESP_LOGD(TAG, "current %p remaining %i", it->current, it->remaining);
+
+        char *next = memchr(it->current, '-', it->remaining);
+        if (next == NULL)
+        {
+            ESP_LOGD(TAG, "Label marker not found");
+            break;
+        }
+
+        it->remaining -= next - it->current;
+        it->current = next;
+        ESP_LOGD(TAG, "Found marker, previewing: %.*s", min_int(it->remaining, 30), it->current);
+
+        switch (it->state)
+        {
+        case CBIS_IDLE:
+            if (it->remaining >= pem_cert_begin_len && strncmp(it->current, pem_cert_begin, pem_cert_begin_len) == 0)
+            {
+                it->state = CBIS_CERTIFICATE;
+                it->block_start = it->current;
+                it->current += pem_cert_begin_len;
+                break;
+            }
+            if (it->remaining >= pem_unencrypted_key_begin_len && strncmp(it->current, pem_unencrypted_key_begin, pem_unencrypted_key_begin_len) == 0)
+            {
+                it->state = CBIS_PRIVATE_KEY;
+                it->block_start = it->current;
+                it->current += pem_unencrypted_key_begin_len;
+                break;
+            }
+            ESP_LOGW(TAG, "Unknown opening label found, starting with: %.*s", min_int(it->remaining, 30), it->current);
+            it->state = CBIS_END_FAIL;
+            return false;
+
+        case CBIS_CERTIFICATE:
+            if (it->remaining >= pem_cert_end_len && strncmp(it->current, pem_cert_end, pem_cert_end_len) == 0)
+            {
+                it->current += pem_cert_end_len;
+                it->block_len = it->current - it->block_start;
+                return true;
+            }
+            ESP_LOGW(TAG, "Incorrect closing label detected (expecting %s) but found something starting with: %.*s", pem_cert_end, min_int(it->remaining, 30), it->current);
+            it->state = CBIS_END_FAIL;
+            return false;
+
+        case CBIS_PRIVATE_KEY:
+            if (it->remaining >= pem_unencrypted_key_end_len && strncmp(it->current, pem_unencrypted_key_end, pem_unencrypted_key_end_len) == 0)
+            {
+                it->current += pem_unencrypted_key_end_len;
+                it->block_len = it->current - it->block_start;
+                return true;
+            }
+            // invalid token
+            ESP_LOGW(TAG, "Incorrect closing label detected (expecting %s) but found something starting with: %.*s", pem_unencrypted_key_end, min_int(it->remaining, 30), it->current);
+            it->state = CBIS_END_FAIL;
+            return false;
+
+        case CBIS_END_OK:
+        case CBIS_END_FAIL:
+            return false;
+        }
+    }
+
+    it->state = (it->state == CBIS_IDLE) ? CBIS_END_OK : CBIS_END_FAIL;
+    return false;
+}

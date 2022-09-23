@@ -244,8 +244,12 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     if (!ofp_session_user_is_admin(req))
         return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
+    // cleanup variables
+    char *buf = NULL;
+    struct certificate_bundle_iter *it = NULL;
+
     // verify header
-    char *buf = ofp_webserver_get_header_string(req, http_content_type_hdr);
+    buf = ofp_webserver_get_header_string(req, http_content_type_hdr);
     if (buf == NULL)
     {
         ESP_LOGW(TAG, "Could not get value for header: %s", buf);
@@ -274,107 +278,42 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     // ESP_LOG_BUFFER_HEXDUMP(TAG, buf, req->content_len, ESP_LOG_VERBOSE);
 
     // parse
-    const uint8_t pem_cert_begin_len = strlen(pem_cert_begin);
-    const uint8_t pem_cert_end_len = strlen(pem_cert_end);
-    const uint8_t pem_unencrypted_key_begin_len = strlen(pem_unencrypted_key_begin);
-    const uint8_t pem_unencrypted_key_end_len = strlen(pem_unencrypted_key_end);
-
-    enum bundle_state_machine
-    {
-        BST_IGNORE = 0,
-        BST_CERTIFICATE,
-        BST_UNENCRYPTED_KEY
-    } state = BST_IGNORE;
-
-    char *current = buf;
-    const char *end = buf + req->content_len;
-    ESP_LOGD(TAG, "buf %p end %p", buf, end);
-
-    char *block_start = NULL, *block_end = NULL;
-
-    while (current != end)
-    {
-        int remaining = end - current;
-        ESP_LOGD(TAG, "remaining %i current %i", remaining, current - buf);
-
-        current = memchr(current, '-', remaining);
-        if (current == NULL)
-        {
-            ESP_LOGD(TAG, "Marker not found");
-            break;
-        }
-
-        ESP_LOGV(TAG, "found mark at offset %i", current - buf);
-        ESP_LOGV(TAG, "next few characters %.*s", min_int(remaining, 40), current);
-
-        switch (state)
-        {
-        case BST_IGNORE:
-            if (remaining >= pem_cert_begin_len && strncmp(current, pem_cert_begin, pem_cert_begin_len) == 0)
-            {
-                state = BST_CERTIFICATE;
-                block_start = current;
-                current += pem_cert_begin_len;
-                break;
-            }
-            if (remaining >= pem_unencrypted_key_begin_len && strncmp(current, pem_unencrypted_key_begin, pem_unencrypted_key_begin_len) == 0)
-            {
-                state = BST_UNENCRYPTED_KEY;
-                block_start = current;
-                current += pem_unencrypted_key_begin_len;
-                break;
-            }
-            // invalid token
-            ESP_LOGW(TAG, "Invalid bundle boundary detected, expecting cert begin or key begin, stopping parsing");
-            goto cleanup;
-
-        case BST_CERTIFICATE:
-            if (remaining >= pem_cert_end_len && strncmp(current, pem_cert_end, pem_cert_end_len) == 0)
-            {
-                state = BST_IGNORE;
-                current += pem_cert_end_len;
-                block_end = current;
-                ESP_LOGD(TAG, "FOUND CERT: block_start %p block_end %p", block_start, block_end);
-                // ESP_LOG_BUFFER_HEXDUMP(TAG, block_start, block_end - block_start, ESP_LOG_VERBOSE);
-                // TODO: parse certificate
-                block_start = block_end = NULL;
-                break;
-            }
-            // invalid token
-            ESP_LOGW(TAG, "Invalid bundle boundary detected, expecting cert end, stopping parsing");
-            break;
-
-        case BST_UNENCRYPTED_KEY:
-            if (remaining >= pem_unencrypted_key_end_len && strncmp(current, pem_unencrypted_key_end, pem_unencrypted_key_end_len) == 0)
-            {
-                state = BST_IGNORE;
-                current += pem_unencrypted_key_end_len;
-                block_end = current;
-                ESP_LOGD(TAG, "FOUND KEY: block_start %p block_end %p", block_start, block_end);
-                // ESP_LOG_BUFFER_HEXDUMP(TAG, block_start, block_end - block_start, ESP_LOG_VERBOSE);
-                // TODO: parse key
-                block_start = block_end = NULL;
-                break;
-            }
-            // invalid token
-            ESP_LOGW(TAG, "Invalid bundle boundary detected, expecting cert end, stopping parsing");
-            break;
-        }
-    }
-
-    // check we are not in the middle of a part
-    if (state != BST_IGNORE)
-    {
-        ESP_LOGW(TAG, "Reached end of bundle without finishing a block, stopping parsing");
+    it = certificate_bundle_iter_init(buf, req->content_len);
+    if (it == NULL)
         goto cleanup;
+
+    while (certificate_bundle_iter_next(it))
+    {
+        switch (it->state)
+        {
+        case CBIS_CERTIFICATE:
+            ESP_LOGD(TAG, "CERTIFICATE from %p length %i", it->block_start, it->block_len);
+            ESP_LOG_BUFFER_HEXDUMP(TAG, it->block_start, it->block_len, ESP_LOG_VERBOSE);
+            break;
+        case CBIS_PRIVATE_KEY:
+            ESP_LOGD(TAG, "PRIVATE KEY from %p length %i", it->block_start, it->block_len);
+            ESP_LOG_BUFFER_HEXDUMP(TAG, it->block_start, it->block_len, ESP_LOG_VERBOSE);
+            break;
+        default:
+            ESP_LOGE(TAG, "incorrect CBIS state while returning success");
+            break;
+        }
     }
-
-    ESP_LOGI(TAG, "Certificate bundle parsing finished");
-
-    free(buf);
-    return httpd_resp_send_404(req); // TODO: return OK
+    switch (it->state)
+    {
+    case CBIS_END_OK:
+        ESP_LOGI(TAG, "Certificate bundle iterated successfully");
+        break;
+    case CBIS_END_FAIL:
+        ESP_LOGW(TAG, "Problem occured while iterating over certificate bundle");
+        break;
+    default:
+        ESP_LOGE(TAG, "incorrect CBIS state while returning success");
+        break;
+    }
 
 cleanup:
+    certificate_bundle_iter_free(it);
     free(buf);
     return httpd_resp_send_500(req);
 }

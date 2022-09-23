@@ -95,6 +95,24 @@ struct password_data
     size_t hash_len;
 };
 
+enum certificate_bundle_iter_state
+{
+    CBIS_END_FAIL = -1,
+    CBIS_END_OK = 0,
+    CBIS_IDLE = 1,
+    CBIS_CERTIFICATE,
+    CBIS_PRIVATE_KEY,
+};
+
+struct certificate_bundle_iter
+{
+    const char *current;
+    int remaining;
+    enum certificate_bundle_iter_state state;
+    const char *block_start;
+    int block_len;
+};
+
 // time conversions
 void time_to_localtime(time_t *val, struct tm *timeinfo);
 void localtime_to_string(struct tm *timeinfo, char *buf, int buf_len);
@@ -214,5 +232,15 @@ struct password_data *password_from_string(const char *str);
 
 int certificate_check_public_single(const unsigned char *cert_str, size_t cert_len);
 int certificate_check_private(const unsigned char *key_str, size_t key_len, unsigned char *key_pass, size_t key_pass_len);
+
+/*
+ * (PEM) Certificate bundle iterator function
+ *
+ * "next" returns true each time it finds a block, and false at the end of on failure
+ * "state" tells the kind of block, or the final iteration result (OK or FAIL)
+ */
+bool certificate_bundle_iter_next(struct certificate_bundle_iter *it);
+struct certificate_bundle_iter *certificate_bundle_iter_init(const char *buf, size_t len);
+void certificate_bundle_iter_free(struct certificate_bundle_iter *it);
 
 #endif /* UTILS_H */
