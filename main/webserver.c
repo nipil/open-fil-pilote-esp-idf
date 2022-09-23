@@ -47,6 +47,15 @@ static void ofp_session_set_user_info(httpd_req_t *req, const char *username)
     strcpy(o->user_id, username);
 }
 
+char *ofp_session_get_user(httpd_req_t *req)
+{
+    struct ofp_session_context *o = req->sess_ctx;
+    if (o == NULL)
+        return NULL;
+
+    return o->user_id;
+}
+
 bool ofp_session_user_is_admin(httpd_req_t *req)
 {
     struct ofp_session_context *o = req->sess_ctx;
@@ -78,6 +87,15 @@ static void ofp_session_set_source_ip_address(httpd_req_t *req, char *ip_str)
         return;
 
     strncpy(o->source_ip_str, ip_str, sizeof(o->source_ip_str));
+}
+
+char *ofp_session_get_source_ip_address(httpd_req_t *req)
+{
+    struct ofp_session_context *o = req->sess_ctx;
+    if (o == NULL)
+        return NULL;
+
+    return o->source_ip_str;
 }
 
 /***************************************************************************/

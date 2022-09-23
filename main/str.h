@@ -38,6 +38,7 @@ const char *json_key_order;
 const char *json_key_dow;
 const char *json_key_hour;
 const char *json_key_minute;
+const char *json_key_source_ip;
 
 const char *json_type_number;
 const char *json_type_string;

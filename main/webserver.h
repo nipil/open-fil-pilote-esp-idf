@@ -39,5 +39,7 @@ esp_err_t serve_static_ofp_wait_html(httpd_req_t *req);
 /* session context */
 bool ofp_session_user_is_admin(httpd_req_t *req);
 bool ofp_session_user_is_admin_or_self(httpd_req_t *req, const char *user_id);
+char *ofp_session_get_user(httpd_req_t *req);
+char *ofp_session_get_source_ip_address(httpd_req_t *req);
 
 #endif /* WEBSERVER_H */

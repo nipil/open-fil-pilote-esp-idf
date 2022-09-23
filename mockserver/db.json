@@ -296,6 +296,11 @@
       "running_app_compiled_date": "Sep 22 2022",
       "running_app_compiled_time": "08:53:02",
       "running_app_idf_version": "v4.4.2"
+    },
+    "user":	{
+      "admin":	false,
+      "id":	"foo",
+      "source_ip":	"::FFFF:192.168.1.25"
     }
   }
 }

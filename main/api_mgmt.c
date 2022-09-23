@@ -78,6 +78,21 @@ esp_err_t serve_api_get_status(httpd_req_t *req, struct re_result *captures)
     cJSON_AddStringToObject(ota, "running_app_compiled_time", ead->time);
     cJSON_AddStringToObject(ota, "running_app_idf_version", ead->idf_ver);
 
+    // user infos
+    cJSON *user = cJSON_AddObjectToObject(root, "user");
+    bool user_is_admin = ofp_session_user_is_admin(req);
+    cJSON_AddBoolToObject(user, admin_str, user_is_admin);
+    char *user_id = ofp_session_get_user(req);
+    if (user_id)
+        cJSON_AddStringToObject(user, json_key_id, user_id);
+    else
+        cJSON_AddNullToObject(user, json_key_id);
+    char *source_ip = ofp_session_get_source_ip_address(req);
+    if (source_ip)
+        cJSON_AddStringToObject(user, json_key_source_ip, source_ip);
+    else
+        cJSON_AddNullToObject(user, json_key_source_ip);
+
     esp_err_t result = serve_json(req, root);
     cJSON_Delete(root);
     return result;

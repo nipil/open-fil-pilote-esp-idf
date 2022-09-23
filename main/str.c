@@ -40,6 +40,7 @@ const char *json_key_order = "order";
 const char *json_key_dow = "dow";
 const char *json_key_hour = "hour";
 const char *json_key_minute = "minute";
+const char *json_key_source_ip = "source_ip";
 
 const char *json_type_number = "number";
 const char *json_type_string = "string";

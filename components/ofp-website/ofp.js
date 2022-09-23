@@ -154,7 +154,7 @@ async function apiGetStatusJson() {
 }
 
 async function loadStatus() {
-    let { uptime, firmware } = await apiGetStatusJson();
+    let { user, uptime, firmware } = await apiGetStatusJson();
 
     let el = document.getElementById('status');
 
@@ -184,6 +184,10 @@ async function loadStatus() {
 
     d = document.createElement('div');
     d.innerText = `Microgiciel g\u00E9n\u00E9r\u00E9 le ${firmware.running_app_compiled_date} ${firmware.running_app_compiled_time} \u00E0 l'aide du framework ESP-IDF ${firmware.running_app_idf_version}`;
+    el.appendChild(d);
+
+    d = document.createElement('div');
+    d.innerText = `L'utilisateur "${user.id}" est connect\u00E9, et son IP apparente est ${user.source_ip}`;
     el.appendChild(d);
 }
 
