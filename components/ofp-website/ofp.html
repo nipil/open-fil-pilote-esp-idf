@@ -193,6 +193,44 @@
         </div>
       </div>
 
+      <div class="accordion-item" id="headingCertificateDiv">
+        <h2 class="accordion-header" id="headingCertificate">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#collapseCertificate" aria-expanded="false" aria-controls="collapseCertificate">
+            Certificat TLS/SSL
+          </button>
+        </h2>
+        <div id="collapseCertificate" class="accordion-collapse collapse" aria-labelledby="headingCertificate"
+          data-bs-parent="#accordionApp">
+          <div class="accordion-body">
+
+            <div class="mb-3">
+              <p>Cette section permet de charger un fichier "bundle" constitué d'éléments cryptographiques, qui sera
+                utilisé à la place du certificat autosigné intégré par défaut dans le microgiciel. Si le "bundle" est
+                chargé avec succès, il sera utilisé pour sécuriser les communications (WebUI + API) vers le serveur
+                HTTPS du produit.</p>
+              <p>Le "bundle" doit satisfaire les contraintes ci-dessous :</p>
+              <ul>
+                <li>Un certificat de l'autorité de certification racine (optionnel)</li>
+                <li>Un (ou plusieurs) certificat intermériaires des autorités de certifications (optionnel)</li>
+                <li>Un certificat serveur (<b>obligatoire</b>)</li>
+                <li>Une clé privée associée au certificat serveur (<b>obligatoire</b>)</li>
+                <li>Tous les éléments ci-dessus doivent être au <b>format PEM</b></li>
+                <li>La clé privée <b>ne doit pas</b> être protégée par un mot de passe</li>
+              </ul>
+            </div>
+            <h5 class="mb-3">Changement du nouveau "bundle"</h5>
+            <div class="mb-3">
+              <input type="file" class="form-control" id="certificateTextFilePath" readonly>
+            </div>
+            <div class="mb-3">
+              <button type="button" class="btn btn-danger mb-3 w-100" id="updateCertificateButton">Téléverser et
+                redémarrer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="accordion-item" id="headingHardwareDiv">
         <h2 class="accordion-header" id="headingHardware">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"

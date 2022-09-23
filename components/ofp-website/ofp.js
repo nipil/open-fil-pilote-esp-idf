@@ -641,6 +641,7 @@ function accountCheckAdmin(accounts) {
     if (!userIsAdmin) {
         document.getElementById('accountCreationDiv').style.display = 'none';
         document.getElementById('headingFirmwareDiv').style.display = 'none';
+        document.getElementById('headingCertificateDiv').style.display = 'none';
         document.getElementById('headingHardwareDiv').style.display = 'none';
     }
 }
@@ -709,12 +710,39 @@ async function uploadFirmware(file) {
 async function initFirmwareButtons() {
     el = document.getElementById('updateUploadButton');
     el.onclick = function (e) {
+        let t = document.getElementById('updateTextFilePath');
+        if (t.files.length != 1) return;
         let status = confirm('Etes vous certain de vouloir charger un nouveau microgiciel ? La centrale devra redémarrer pour prendre en compte le changement.');
         if (status !== true)
             return;
-        let t = document.getElementById('updateTextFilePath');
-        if (t.files.length != 1) return;
         uploadFirmware(t.files[0]);
+    }
+}
+
+/*******************************************************************************/
+
+async function uploadCertificate(file) {
+    console.log("uploadCertificate", file);
+    let options = {
+        headers: {
+            'Content-Type': 'appliapplication/x-pem-file'
+        }
+    };
+    let res = await postUrl('/ofp-api/v1/certificate', file, options).catch(logError);
+    if (res.status == 200) {
+        window.location.href = '/ofp-api/v1/reboot';
+    }
+}
+
+async function initCertificateButtons() {
+    el = document.getElementById('updateCertificateButton');
+    el.onclick = function (e) {
+        let t = document.getElementById('certificateTextFilePath');
+        if (t.files.length != 1) return;
+        let status = confirm('Etes vous certain de vouloir charger un nouveau bundle de certificats ? La centrale devra redémarrer pour prendre en compte le changement.');
+        if (status !== true)
+            return;
+        uploadCertificate(t.files[0]);
     }
 }
 
@@ -795,6 +823,7 @@ async function ofp_init() {
     await initAccountCreate().catch(logError);
     await loadAccounts().catch(logError);
     await initFirmwareButtons().catch(logError);
+    await initCertificateButtons().catch(logError);
     await loadHardwareSupported().catch(logError);
     await initHardwareParametersButtons().catch(logError);
 
