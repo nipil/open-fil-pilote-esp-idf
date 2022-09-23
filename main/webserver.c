@@ -753,3 +753,43 @@ struct ofp_form_data *webserver_form_data_from_req(httpd_req_t *req)
 
     return data;
 }
+
+/*
+ * header helper
+ *
+ * returned value MUST BE FREED BY CALLER
+ */
+char *ofp_webserver_get_header_string(httpd_req_t *req, const char *field)
+{
+    if (field == NULL)
+        return NULL;
+
+    ESP_LOGD(TAG, "ofp_webserver_get_header_string field %s", field);
+
+    // resul/cleanup value
+    char *result = NULL;
+
+    size_t content_type_hdr_buff_len = httpd_req_get_hdr_value_len(req, field) + 1;
+    ESP_LOGV(TAG, "content_type_hdr_buff_len: %u", content_type_hdr_buff_len);
+    result = malloc(content_type_hdr_buff_len);
+    if (result == NULL)
+    {
+        ESP_LOGW(TAG, "Couldn't allocate content_type_hdr_value");
+        goto cleanup;
+    }
+
+    esp_err_t err = httpd_req_get_hdr_value_str(req, field, result, content_type_hdr_buff_len);
+    ESP_LOGV(TAG, "httpd_req_get_hdr_value_str %i", err);
+    if (err != ESP_OK)
+    {
+        ESP_LOGW(TAG, "Couldn't read content_type_hdr_value (%s)", esp_err_to_name(err));
+        goto cleanup;
+    }
+
+    ESP_LOGD(TAG, "content_type_hdr_value: %s", result);
+    return result;
+
+cleanup:
+    free(result);
+    return NULL;
+}

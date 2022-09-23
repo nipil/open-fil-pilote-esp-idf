@@ -190,25 +190,13 @@ esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
     if (!ofp_session_user_is_admin(req))
         return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
-    // cleanup variables
-    char *content_type_hdr_value = NULL;
-
     ESP_LOGD(TAG, "Content-length: %u", req->content_len);
 
-    size_t content_type_hdr_buff_len = httpd_req_get_hdr_value_len(req, http_content_type_hdr) + 1;
-    ESP_LOGV(TAG, "content_type_hdr_buff_len: %u", content_type_hdr_buff_len);
-    content_type_hdr_value = malloc(content_type_hdr_buff_len);
+    // cleanup variables
+    char *content_type_hdr_value = ofp_webserver_get_header_string(req, http_content_type_hdr);
     if (content_type_hdr_value == NULL)
     {
-        ESP_LOGI(TAG, "Couldn't allocate content_type_hdr_value");
-        goto cleanup;
-    }
-
-    esp_err_t err = httpd_req_get_hdr_value_str(req, http_content_type_hdr, content_type_hdr_value, content_type_hdr_buff_len);
-    ESP_LOGV(TAG, "httpd_req_get_hdr_value_str %i", err);
-    if (err != ESP_OK)
-    {
-        ESP_LOGI(TAG, "Couldn't read content_type_hdr_value (%s)", esp_err_to_name(err));
+        ESP_LOGW(TAG, "Could not get value for header: %s", content_type_hdr_value);
         goto cleanup;
     }
 
@@ -216,7 +204,7 @@ esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
     if (strcmp(content_type_hdr_value, str_application_octet_stream) == 0)
     {
         ESP_LOGD(TAG, "Attempt CURL-like OTA upload");
-        err = serve_api_post_upgrade_raw(req);
+        esp_err_t err = serve_api_post_upgrade_raw(req);
         ESP_LOGV(TAG, "serve_api_post_upgrade_raw: %i", err);
         if (err != ESP_OK)
             goto cleanup;
@@ -255,30 +243,17 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     if (!ofp_session_user_is_admin(req))
         return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
-    // cleanup variables
-    char *content_type_hdr_value = NULL;
-
     ESP_LOGD(TAG, "Content-length: %u", req->content_len);
 
-    size_t content_type_hdr_buff_len = httpd_req_get_hdr_value_len(req, http_content_type_hdr) + 1;
-    ESP_LOGV(TAG, "content_type_hdr_buff_len: %u", content_type_hdr_buff_len);
-    content_type_hdr_value = malloc(content_type_hdr_buff_len);
+    // cleanup variables
+    char *content_type_hdr_value = ofp_webserver_get_header_string(req, http_content_type_hdr);
     if (content_type_hdr_value == NULL)
     {
-        ESP_LOGI(TAG, "Couldn't allocate content_type_hdr_value");
-        goto cleanup;
-    }
-
-    esp_err_t err = httpd_req_get_hdr_value_str(req, http_content_type_hdr, content_type_hdr_value, content_type_hdr_buff_len);
-    ESP_LOGV(TAG, "httpd_req_get_hdr_value_str %i", err);
-    if (err != ESP_OK)
-    {
-        ESP_LOGI(TAG, "Couldn't read content_type_hdr_value (%s)", esp_err_to_name(err));
+        ESP_LOGW(TAG, "Could not get value for header: %s", content_type_hdr_value);
         goto cleanup;
     }
 
     ESP_LOGD(TAG, "content_type_hdr_value: %s", content_type_hdr_value);
-
     if (strcmp(content_type_hdr_value, str_application_x_pem_file) != 0)
     {
         ESP_LOGW(TAG, "Invalid content type %s, expected %s", content_type_hdr_value, str_application_x_pem_file);
