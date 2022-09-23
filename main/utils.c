@@ -1152,7 +1152,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
         return false;
 
     ESP_LOGD(TAG, "entering state %i remaining %i", it->state, it->remaining);
-    if (it->state == CBIS_END_OK || it->state == CBIS_END_FAIL)
+    if (it->state == CBIS_END_OK || it->state == CBIS_END_FAIL || it->remaining == 0)
         return false;
 
     const uint8_t pem_cert_begin_len = strlen(pem_cert_begin);
