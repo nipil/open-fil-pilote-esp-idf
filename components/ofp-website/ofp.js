@@ -725,7 +725,7 @@ async function uploadCertificate(file) {
     console.log("uploadCertificate", file);
     let options = {
         headers: {
-            'Content-Type': 'appliapplication/x-pem-file'
+            'Content-Type': 'application/x-pem-file'
         }
     };
     let res = await postUrl('/ofp-api/v1/certificate', file, options).catch(logError);
