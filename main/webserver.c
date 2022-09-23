@@ -686,19 +686,18 @@ esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len)
 }
 
 /*
- * received the required amount of data from incoming request body
+ * THIS FUNCTION SHOULD NOT BE USED DIRECTLY EXCEPT EXCEPTIONALY FOR LARGE BUFFERS
+ * Prefer the function below, as most use-cases do not need large buffers
+ * and memory allocation could fail... so do NOT use it for everyday tasks
  *
+ * Received the required amount of data from incoming request body
  * Dynamically alloc a buff and ADD NULL terminator
  *
  * Memory MUST BE FREED BY CALLER !
- *
- * Maximum size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP
  */
-char *webserver_get_request_data_atomic(httpd_req_t *req)
+char *webserver_get_request_data_atomic_max_size(httpd_req_t *req, const int max_size)
 {
-    const int max_size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP;
-
-    ESP_LOGV(TAG, "Content length %i", req->content_len);
+    ESP_LOGV(TAG, "Content length %i max_size %i", req->content_len, max_size);
 
     // include space for a NULL terminator as content is processed as a string
     int needed = req->content_len + 1;
@@ -724,6 +723,19 @@ char *webserver_get_request_data_atomic(httpd_req_t *req)
     buf[req->content_len] = '\0'; // add NULL terminator
 
     return buf; // MUST BE FREED BY CALLER
+}
+
+/*
+ * This function is the "go-to" one to be used
+ * Same as above, but with implicit
+ * Maximum size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP
+ *
+ * Memory MUST BE FREED BY CALLER !
+ */
+char *webserver_get_request_data_atomic(httpd_req_t *req)
+{
+    const int default_max_size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP;
+    return webserver_get_request_data_atomic_max_size(req, default_max_size);
 }
 
 /*

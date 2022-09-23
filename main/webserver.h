@@ -17,13 +17,23 @@ void webserver_disable(void);
 esp_err_t webserver_read_request_data(httpd_req_t *req, char *buf, size_t len);
 
 /*
- * received the required amount of data from incoming request body
+ * THIS FUNCTION SHOULD BE USED ONLY EXCEPTIONNALY FOR LARGE BUFFERS
+ * Prefer the function below, as most use-cases do not need large buffers
+ * and memory allocation could fail... so do NOT use it for everyday tasks
  *
+ * Received the required amount of data from incoming request body
  * Dynamically alloc a buff and ADD NULL terminator
  *
  * Memory MUST BE FREED BY CALLER !
- *
+ */
+char *webserver_get_request_data_atomic_max_size(httpd_req_t *req, const int max_size);
+
+/*
+ * This function is the "go-to" one to be used
+ * Same as above, but with implicit
  * Maximum size = CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP
+ *
+ * Memory MUST BE FREED BY CALLER !
  */
 char *webserver_get_request_data_atomic(httpd_req_t *req);
 
@@ -43,6 +53,6 @@ char *ofp_session_get_user(httpd_req_t *req);
 char *ofp_session_get_source_ip_address(httpd_req_t *req);
 
 /* header helper */
-char * ofp_webserver_get_header_string(httpd_req_t *req, const char *field);
+char *ofp_webserver_get_header_string(httpd_req_t *req, const char *field);
 
 #endif /* WEBSERVER_H */
