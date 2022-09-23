@@ -58,6 +58,7 @@ const char *str_cache_control;
 const char *str_private_max_age_600;
 const char *str_private_no_store;
 const char *str_application_octet_stream;
+const char *str_application_x_pem_file;
 
 const char *route_root;
 const char *route_ofp_html;
@@ -77,6 +78,7 @@ const char *route_api_zones_id;
 const char *route_api_upgrade;
 const char *route_api_status;
 const char *route_api_reboot;
+const char *route_api_certificate;
 
 const char *route_api_plannings;
 const char *route_api_planning_id;

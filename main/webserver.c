@@ -274,6 +274,9 @@ static esp_err_t https_handler_post(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_upgrade, serve_api_post_upgrade))
         return result;
 
+    if (api_route_try(&result, req, route_api_certificate, serve_api_post_certificate))
+        return result;
+
     if (api_route_try(&result, req, route_api_plannings, serve_api_post_plannings))
         return result;
 

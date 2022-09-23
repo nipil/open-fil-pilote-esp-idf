@@ -60,6 +60,7 @@ const char *str_cache_control = "Cache-Control";
 const char *str_private_max_age_600 = "private, max-age=600";
 const char *str_private_no_store = "private, no-store";
 const char *str_application_octet_stream = "application/octet-stream";
+const char *str_application_x_pem_file = "application/x-pem-file";
 
 const char *route_root = "/";
 const char *route_ofp_html = "/ofp.html";
@@ -79,6 +80,7 @@ const char *route_api_zones_id = "^/ofp-api/v([[:digit:]]+)/zones/([[:alnum:]]+)
 const char *route_api_upgrade = "^/ofp-api/v([[:digit:]]+)/upgrade$";
 const char *route_api_status = "^/ofp-api/v([[:digit:]]+)/status$";
 const char *route_api_reboot = "^/ofp-api/v([[:digit:]]+)/reboot$";
+const char *route_api_certificate = "^/ofp-api/v([[:digit:]]+)/certificate$";
 
 const char *route_api_plannings = "^/ofp-api/v([[:digit:]]+)/plannings$";
 const char *route_api_planning_id = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)$";

@@ -235,3 +235,75 @@ cleanup:
     free(content_type_hdr_value);
     return httpd_resp_send_500(req);
 }
+/*
+ * Upload a PEM certificate bundle (with an unencrypted key)
+ *
+ * Example CLI usage :
+ * curl --silent --show-error --header "Content-Type: application/x-pem-file" -X POST --insecure https://admin:admin@ipaddress/ofp-api/v1/certificate --data-ascii @bundle.pem
+ *
+ * Certificate will try to be used on next reboot, which does NOT happen automatically and must be performed by the user (either through API call or button press)
+ */
+esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *captures)
+{
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+    int version = re_get_int(captures, 1);
+    ESP_LOGD(TAG, "serve_api_post_upgrade version=%i", version);
+    if (version != 1)
+        return httpd_resp_send_404(req);
+
+    // restrict access
+    if (!ofp_session_user_is_admin(req))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
+
+    // cleanup variables
+    char *content_type_hdr_value = NULL;
+
+    ESP_LOGD(TAG, "Content-length: %u", req->content_len);
+
+    size_t content_type_hdr_buff_len = httpd_req_get_hdr_value_len(req, http_content_type_hdr) + 1;
+    ESP_LOGV(TAG, "content_type_hdr_buff_len: %u", content_type_hdr_buff_len);
+    content_type_hdr_value = malloc(content_type_hdr_buff_len);
+    if (content_type_hdr_value == NULL)
+    {
+        ESP_LOGI(TAG, "Couldn't allocate content_type_hdr_value");
+        goto cleanup;
+    }
+
+    esp_err_t err = httpd_req_get_hdr_value_str(req, http_content_type_hdr, content_type_hdr_value, content_type_hdr_buff_len);
+    ESP_LOGV(TAG, "httpd_req_get_hdr_value_str %i", err);
+    if (err != ESP_OK)
+    {
+        ESP_LOGI(TAG, "Couldn't read content_type_hdr_value (%s)", esp_err_to_name(err));
+        goto cleanup;
+    }
+
+    ESP_LOGD(TAG, "content_type_hdr_value: %s", content_type_hdr_value);
+
+    if (strcmp(content_type_hdr_value, str_application_x_pem_file) != 0)
+    {
+        ESP_LOGW(TAG, "Invalid content type %s, expected %s", content_type_hdr_value, str_application_x_pem_file);
+        goto cleanup;
+    }
+
+    // read raw data
+    static char buf[CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP];
+    int remaining = req->content_len;
+    int len = 0;
+    esp_err_t result = ESP_OK;
+    while (remaining != 0)
+    {
+        len = min_int(remaining, sizeof(buf));
+        result = webserver_read_request_data(req, buf, len);
+        ESP_LOGD(TAG, "webserver_read_request_data %i", result);
+        if (result != ESP_OK)
+            goto cleanup;
+
+        // count
+        remaining -= len;
+        ESP_LOG_BUFFER_HEXDUMP(TAG, buf, len, ESP_LOG_VERBOSE);
+    }
+    return httpd_resp_sendstr(req, "ok");
+
+cleanup:
+    return httpd_resp_send_500(req);
+}
