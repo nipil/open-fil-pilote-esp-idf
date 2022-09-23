@@ -7,6 +7,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <mbedtls/base64.h>
+#include <mbedtls/pk.h>
+#include <mbedtls/x509_crt.h>
 
 #include "str.h"
 #include "utils.h"
@@ -1047,4 +1049,65 @@ bool password_verify(struct password_data *pwd, const char *cleartext)
 
 cleanup:
     return false;
+}
+
+int certificate_check_public_single(const unsigned char *cert_str, size_t cert_len_with_null)
+{
+    // esp_log_level_set(TAG, ESP_LOG_DEBUG);
+
+    ESP_LOGD(TAG, "certificate_check_public_single cert_str %p cert_len_with_null %i", cert_str, cert_len_with_null);
+    ESP_LOGV(TAG, "%s", cert_str);
+
+    mbedtls_x509_crt crt;
+    mbedtls_x509_crt_init(&crt);
+
+    int result = mbedtls_x509_crt_parse(&crt, cert_str, cert_len_with_null);
+    ESP_LOGD(TAG, "mbedtls_x509_crt_parse result %i", result);
+    if (result != 0)
+        goto cleanup;
+
+    char buf_dn[MBEDTLS_X509_MAX_DN_NAME_SIZE];
+    int result_dn = mbedtls_x509_dn_gets(buf_dn, sizeof(buf_dn), &crt.subject);
+    ESP_LOGD(TAG, "mbedtls_x509_dn_gets result %i", result_dn);
+    if (result_dn < 0)
+        goto cleanup;
+
+    ESP_LOGI(TAG, "Successfully parsed certificate with Subject: %s", buf_dn);
+
+cleanup:
+    mbedtls_x509_crt_free(&crt);
+    return result;
+}
+
+int certificate_check_private(const unsigned char *key_str, size_t key_len_with_null, unsigned char *key_pass, size_t key_pass_len)
+{
+    // esp_log_level_set(TAG, ESP_LOG_DEBUG);
+
+    ESP_LOGD(TAG, "certificate_check_private key_str %p key_len_with_null %i key_pass %p key_pass_len %i", key_str, key_len_with_null, key_pass, key_pass_len);
+    ESP_LOGV(TAG, "%s", key_str);
+
+    mbedtls_pk_context pk;
+    mbedtls_pk_init(&pk);
+
+    int result = mbedtls_pk_parse_key(&pk, key_str, key_len_with_null, key_pass, key_pass_len);
+    ESP_LOGD(TAG, "mbedtls_pk_parse_key result %i", result);
+    if (result == MBEDTLS_ERR_PK_PASSWORD_REQUIRED)
+    {
+        ESP_LOGW(TAG, "Could not parse certificate key, password is required and none provided");
+        goto cleanup;
+    }
+    if (result == MBEDTLS_ERR_PK_PASSWORD_MISMATCH)
+    {
+        ESP_LOGW(TAG, "Could not parse certificate key, provided password does not match");
+        goto cleanup;
+    }
+    if (result != 0)
+        goto cleanup;
+
+    const char *key_name = mbedtls_pk_get_name(&pk);
+    ESP_LOGI(TAG, "Successfully parsed certificate key of type: %s", key_name ? key_name : null_str);
+
+cleanup:
+    mbedtls_pk_free(&pk);
+    return result;
 }

@@ -212,4 +212,7 @@ bool password_verify(struct password_data *pwd, const char *cleartext);
 char *password_to_string(struct password_data *pwd);
 struct password_data *password_from_string(const char *str);
 
+int certificate_check_public_single(const unsigned char *cert_str, size_t cert_len);
+int certificate_check_private(const unsigned char *key_str, size_t key_len, unsigned char *key_pass, size_t key_pass_len);
+
 #endif /* UTILS_H */
