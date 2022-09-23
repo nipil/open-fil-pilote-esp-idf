@@ -284,21 +284,25 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
 
     while (certificate_bundle_iter_next(it))
     {
+        certificate_bundle_iter_log(it, ESP_LOG_DEBUG);
         switch (it->state)
         {
         case CBIS_CERTIFICATE:
-            ESP_LOGD(TAG, "CERTIFICATE from %p length %i", it->block_start, it->block_len);
-            ESP_LOG_BUFFER_HEXDUMP(TAG, it->block_start, it->block_len, ESP_LOG_VERBOSE);
+            ESP_LOGD(TAG, "CERTIFICATE found");
+            // ESP_LOG_BUFFER_HEXDUMP(TAG, it->block_start, it->block_len, ESP_LOG_VERBOSE);
             break;
         case CBIS_PRIVATE_KEY:
-            ESP_LOGD(TAG, "PRIVATE KEY from %p length %i", it->block_start, it->block_len);
-            ESP_LOG_BUFFER_HEXDUMP(TAG, it->block_start, it->block_len, ESP_LOG_VERBOSE);
+            ESP_LOGD(TAG, "PRIVATE KEY found");
+            // ESP_LOG_BUFFER_HEXDUMP(TAG, it->block_start, it->block_len, ESP_LOG_VERBOSE);
             break;
         default:
             ESP_LOGE(TAG, "incorrect CBIS state while returning success");
             break;
         }
     }
+
+    ESP_LOGI(TAG, "While loop finished");
+    certificate_bundle_iter_log(it, ESP_LOG_DEBUG);
     switch (it->state)
     {
     case CBIS_END_OK:

@@ -1151,6 +1151,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
     if (it == NULL)
         return false;
 
+    ESP_LOGD(TAG, "entering state %i remaining %i", it->state, it->remaining);
     if (it->state == CBIS_END_OK || it->state == CBIS_END_FAIL)
         return false;
 
@@ -1228,4 +1229,17 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
 
     it->state = (it->state == CBIS_IDLE) ? CBIS_END_OK : CBIS_END_FAIL;
     return false;
+}
+
+void certificate_bundle_iter_log(struct certificate_bundle_iter *it, esp_log_level_t level)
+{
+    if (it == NULL)
+        return;
+
+    ESP_LOG_LEVEL_LOCAL(level, TAG, "cbis: current %p remaining %i state %i block_start %p block_len %i",
+                        it->current,
+                        it->remaining,
+                        it->state,
+                        it->block_start,
+                        it->block_len);
 }
