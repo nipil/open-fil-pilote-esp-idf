@@ -171,6 +171,14 @@ cleanup:
     return result;
 }
 
+/*
+ * Push a new firmware to the device
+ *
+ * Sample upload with curl:
+ * curl --silent --show-error --header "Content-Type: application/octet-stream" -X POST --insecure https://admin:admin@openfilpilote.local/ofp-api/v1/upgrade --data-binary @ota.bin
+ *
+ * Firmware will try to be used on next reboot, which does NOT happen automatically and must be performed by the user (either through API call or button press)
+ */
 esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
 {
     int version = re_get_int(captures, 1);
@@ -205,12 +213,6 @@ esp_err_t serve_api_post_upgrade(httpd_req_t *req, struct re_result *captures)
     }
 
     ESP_LOGD(TAG, "content_type_hdr_value: %s", content_type_hdr_value);
-
-    /*
-     * Sample upload with curl:
-     *
-     * curl --silent --show-error --header "Content-Type: application/octet-stream" -X POST --insecure https://admin:admin@openfilpilote.local/ofp-api/v1/upgrade --data-binary @ota.bin
-     */
     if (strcmp(content_type_hdr_value, str_application_octet_stream) == 0)
     {
         ESP_LOGD(TAG, "Attempt CURL-like OTA upload");
