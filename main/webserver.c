@@ -40,11 +40,11 @@ static void ofp_session_init_if_needed(httpd_req_t *req)
 static void ofp_session_set_user_info(httpd_req_t *req, const char *username)
 {
     struct ofp_session_context *o = req->sess_ctx;
-    if (o != NULL)
-    {
-        o->user_is_admin = (strcmp(username, admin_str) == 0);
-        strcpy(o->user_id, username);
-    }
+    if (o == NULL)
+        return;
+
+    o->user_is_admin = (strcmp(username, admin_str) == 0);
+    strcpy(o->user_id, username);
 }
 
 bool ofp_session_user_is_admin(httpd_req_t *req)
