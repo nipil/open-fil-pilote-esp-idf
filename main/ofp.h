@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <time.h>
 #include <utils.h>
+#include <lwip/inet.h>
 
 /* limits */
 #define OFP_MAX_ACCOUNT_COUNT 16
@@ -207,6 +208,11 @@ struct ofp_session_context
 {
     char user_id[OFP_MAX_LEN_ID];
     bool user_is_admin;
+#if LWIP_IPV6
+    char source_ip_str[INET6_ADDRSTRLEN];
+#else  /* LWIP_IPV6 */
+    char source_ip_str[INET_ADDRSTRLEN];
+#endif /* LWIP_IPV6 */
 };
 
 /* day of week */

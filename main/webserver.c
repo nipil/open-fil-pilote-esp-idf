@@ -71,6 +71,15 @@ bool ofp_session_user_is_admin_or_self(httpd_req_t *req, const char *user_id)
     return false;
 }
 
+static void ofp_session_set_source_ip_address(httpd_req_t *req, char *ip_str)
+{
+    struct ofp_session_context *o = req->sess_ctx;
+    if (o == NULL || ip_str == NULL)
+        return;
+
+    strncpy(o->source_ip_str, ip_str, sizeof(o->source_ip_str));
+}
+
 /***************************************************************************/
 
 /* disable web serving */
@@ -435,6 +444,7 @@ static bool is_source_ip_authorized(httpd_req_t *req)
         return false;
     }
 
+    ofp_session_set_source_ip_address(req, ip_str);
     ESP_LOGD(TAG, "Request comes from: %s", s);
 
     const char *ip_filter = CONFIG_OFP_UI_SOURCE_IP_FILTER;
