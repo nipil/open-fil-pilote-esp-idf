@@ -242,6 +242,6 @@ int certificate_check_private(const unsigned char *key_str, size_t key_len, unsi
 bool certificate_bundle_iter_next(struct certificate_bundle_iter *it);
 struct certificate_bundle_iter *certificate_bundle_iter_init(const char *buf, size_t len);
 void certificate_bundle_iter_free(struct certificate_bundle_iter *it);
-void certificate_bundle_iter_log(struct certificate_bundle_iter *it, esp_log_level_t level);
+void certificate_bundle_iter_log(struct certificate_bundle_iter *it, const char *tag, esp_log_level_t level);
 
 #endif /* UTILS_H */

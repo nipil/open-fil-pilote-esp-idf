@@ -1231,12 +1231,12 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
     return false;
 }
 
-void certificate_bundle_iter_log(struct certificate_bundle_iter *it, esp_log_level_t level)
+void certificate_bundle_iter_log(struct certificate_bundle_iter *it, const char *tag, esp_log_level_t level)
 {
     if (it == NULL)
         return;
 
-    ESP_LOG_LEVEL_LOCAL(level, TAG, "cbis: current %p remaining %i state %i block_start %p block_len %i",
+    ESP_LOG_LEVEL_LOCAL(level, tag, "cbis: current %p remaining %i state %i block_start %p block_len %i",
                         it->current,
                         it->remaining,
                         it->state,

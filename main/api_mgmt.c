@@ -284,7 +284,7 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
 
     while (certificate_bundle_iter_next(it))
     {
-        certificate_bundle_iter_log(it, ESP_LOG_DEBUG);
+        certificate_bundle_iter_log(it, TAG, ESP_LOG_DEBUG);
         switch (it->state)
         {
         case CBIS_CERTIFICATE:
@@ -302,7 +302,7 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     }
 
     ESP_LOGI(TAG, "While loop finished");
-    certificate_bundle_iter_log(it, ESP_LOG_DEBUG);
+    certificate_bundle_iter_log(it, TAG, ESP_LOG_DEBUG);
     switch (it->state)
     {
     case CBIS_END_OK:
