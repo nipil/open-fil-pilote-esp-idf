@@ -88,6 +88,37 @@ Ensuite, tout dépend du mode d'accès :
 - via le navigateur, comme il y a réutilisation implicite des connexions ("keep-alive"), les requêtes suivantes via le navigateurs sont bien plus rapides
 - via CURL ou similaire, par défaut, chaque commande CURL établit une nouvelle connexion, donc devra attendre quelques secondes à chaque fois. Cependant si vous enchainez toutes vos URL dans la même commande CURL, alors la commande CURL réutilisera aussi la même connexion ("keep-alive")
 
+## Conversion de certificats et clés privés en un "bundle"
+
+L'objectif est d'avoir une clé privée au format texte PEM et à la structure PKCS#8.
+
+Pour un certificat/clé source au format PKCS#12 (.p12) :
+
+    openssl pkcs12 -in input.p12 -out output.key -nodes -nocerts
+    openssl pkcs12 -in input.p12 -out output.crt -nodes -nokeys -chain
+
+Pour un certificat/clé source déjà au formats PEM (.crt, .key ou .pem) assurez vous d'avoir le bon format :
+
+    openssl pkcs8 -in input.key -topk8 -nocrypt -outform pem -out output.key
+    openssl x509 -in input.crt -outform pem -out output.crt
+
+Vérifier ensuite que les marqueurs de début/fin sont corrects :
+
+- votre clé privée (output.key) contient bien "BEGIN PRIVATE KEY" et "END PRIVATE KEY" (PKCS#8)
+- chacun de vos certificats (.crt) contient bien "BEGIN CERTIFICATE" et "END CERTIFICATE" (RFC 7468 section 4)
+
+Finalement, regroupez le contenu de tous ces fichiers dans un même fichier texte :
+
+- en commençant par le certificat du serveur
+- puis éventuellement ceux des autorités intermédiaires
+- puis celui de l'autorité racine
+- puis la clé privée (non chiffrée !)
+
+Et téléversez le fichier résultant vers le microgiciel (soit par la WebUI, soit par l'API, soit par une recompilation).
+
+Après redémarrage, le microcontrôleur devrait présenter le certificat fourni.
+
+
 ## Erreur: "ERR_SSL_VERSION_OR_CIPHER_MISMATCH" ou similaire
 
 Par exemple Chrome affiche "Le client et le serveur ne sont pas compatibles avec une version de protocole ou une méthode de chiffrement SSL commune"
@@ -131,3 +162,9 @@ Dans les logs du moniteur, ça se traduit par :
     W (36330) httpd: httpd_server: error accepting new connection
 
 Raison : le certificat utilisé est un certificat autosigné. Il n'y a rien à faire si ce n'est soit accepter l'exception de sécurité dans vos navigateurs, ou bien obtenir un certificat reconnu, et le téléverser via la WebUI ou l'API.
+
+## Clé privée invalide lors du chargement d'un bundle de certificats
+
+La clé privée doit être au format PEM, 
+
+Solution: respecter les consignes indiquées dans la WebUI pour la construction du bundle !

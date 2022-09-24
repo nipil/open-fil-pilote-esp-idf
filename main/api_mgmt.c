@@ -13,6 +13,7 @@ static const char TAG[] = "api_mgmt";
 
 #define REBOOT_WAIT_SEC 10
 #define CERT_BUNDLE_MAX_LENGTH (16 * 1024)
+#define CERT_BUNDLE_MAX_PART_COUNT 8
 
 /***************************************************************************/
 
@@ -247,6 +248,8 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     // cleanup variables
     char *buf = NULL;
     struct certificate_bundle_iter *it = NULL;
+    int cert_count = 0;
+    int pk_count = 0;
 
     // verify header
     buf = ofp_webserver_get_header_string(req, http_content_type_hdr);
@@ -263,7 +266,7 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
         goto cleanup;
     }
 
-    // cleanup
+    // cleanup header
     free(buf);
     buf = NULL;
 
@@ -275,48 +278,116 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
         ESP_LOGW(TAG, "Provided data is %i bytes and too large to handle, maximum allowed size is %i", req->content_len, CERT_BUNDLE_MAX_LENGTH - 1);
         goto cleanup;
     }
-    // ESP_LOG_BUFFER_HEXDUMP(TAG, buf, req->content_len, ESP_LOG_VERBOSE);
 
     // parse
     it = certificate_bundle_iter_init(buf, req->content_len);
     if (it == NULL)
         goto cleanup;
 
+    int iteration = 1, result;
+    mbedtls_x509_crt cert[CERT_BUNDLE_MAX_PART_COUNT];
+    mbedtls_pk_context pk[CERT_BUNDLE_MAX_PART_COUNT];
     while (certificate_bundle_iter_next(it))
     {
         certificate_bundle_iter_log(it, TAG, ESP_LOG_DEBUG);
-        switch (it->state)
+
+        // The parsing function is made to parse multiple certificates in the same string
+        // its doc explicitely states that the string length includes null terminatin char
+        // here i wand to parse certificates one by one so i must add the null characters
+        // and account for them in the length for the parsing to succeed.
+        // 
+        // And we do not overflow even if there is no terminating null byte on the input
+        // as webserver_get_request_data_atomic_* added a \0 terminating byte as safeguard
+        // which we overwrite here.
+        it->block_start[it->block_len] = 0;
+        it->block_len++;
+
+        if (it->state == CBIS_CERTIFICATE && cert_count < CERT_BUNDLE_MAX_PART_COUNT)
         {
-        case CBIS_CERTIFICATE:
-            ESP_LOGD(TAG, "CERTIFICATE found");
-            // ESP_LOG_BUFFER_HEXDUMP(TAG, it->block_start, it->block_len, ESP_LOG_VERBOSE);
-            break;
-        case CBIS_PRIVATE_KEY:
-            ESP_LOGD(TAG, "PRIVATE KEY found");
-            // ESP_LOG_BUFFER_HEXDUMP(TAG, it->block_start, it->block_len, ESP_LOG_VERBOSE);
-            break;
-        default:
-            ESP_LOGE(TAG, "incorrect CBIS state while returning success");
-            break;
+            result = pem_parse_single_certificate(it->block_start, it->block_len, &cert[cert_count]);
+            ESP_LOGD(TAG, "pem_parse_single_certificate %i", result);
+            if (result == 0)
+                ESP_LOGI(TAG, "Part %i parsed successfully as a certificate", iteration);
+            if (result < 0)
+            {
+                ESP_LOGW(TAG, "Certificate parsing error 0x%04X", -result);
+                ESP_LOGD(TAG, "%.*s", it->block_len, it->block_start);
+                break;
+            }
+            cert_count++;
         }
+        if (it->state == CBIS_PRIVATE_KEY && pk_count < CERT_BUNDLE_MAX_PART_COUNT)
+        {
+            result = pem_parse_single_private_key(it->block_start, it->block_len, NULL, 0, &pk[pk_count]);
+            ESP_LOGD(TAG, "pem_parse_single_private_key %i", result);
+            if (result == 0)
+                ESP_LOGI(TAG, "Part %i parsed successfully as a private key", iteration);
+            if (result < 0)
+            {
+                ESP_LOGW(TAG, "Private key parsing error:  0x%04X", -result);
+                ESP_LOGD(TAG, "%.*s", it->block_len, it->block_start);
+                break;
+            }
+            pk_count++;
+        }
+        iteration++;
     }
 
-    ESP_LOGI(TAG, "While loop finished");
+    ESP_LOGD(TAG, "bundle finished");
     certificate_bundle_iter_log(it, TAG, ESP_LOG_DEBUG);
-    switch (it->state)
+
+    if (it->state == CBIS_END_FAIL)
     {
-    case CBIS_END_OK:
-        ESP_LOGI(TAG, "Certificate bundle iterated successfully");
-        break;
-    case CBIS_END_FAIL:
-        ESP_LOGW(TAG, "Problem occured while iterating over certificate bundle");
-        break;
-    default:
-        ESP_LOGE(TAG, "incorrect CBIS state while returning success");
-        break;
+        ESP_LOGW(TAG, "An error happened while on bundle %i, canceling", iteration);
+        goto cleanup;
     }
+
+    // cleanup buffer
+    free(buf);
+    buf = NULL;
+
+    // cleanup bundle iterator
+    certificate_bundle_iter_free(it);
+    it = NULL;
+
+    if (pk_count != 1)
+    {
+        ESP_LOGW(TAG, "Invalid number of keys in bundle : %i, exactly one is required", pk_count);
+        goto cleanup;
+    }
+
+    if (cert_count < 1)
+    {
+        ESP_LOGW(TAG, "Invalid number of certificates in bundle: %i, at least one is required", cert_count);
+        goto cleanup;
+    }
+
+    // display information
+    buf = malloc(CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP);
+    if (buf == NULL)
+        goto cleanup;
+
+    for (int i = 0; i < cert_count; i++)
+    {
+        mbedtls_x509_crt_info(buf, CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP, "", &cert[i]);
+        ESP_LOGI(TAG, "certificate content: \r\n%s", buf);
+    }
+
+    for (int i = 0; i < pk_count; i++)
+    {
+        const char *key_type = mbedtls_pk_get_name(&pk[i]);
+        ESP_LOGI(TAG, "private key type: %s", key_type);
+    }
+
+    // TODO check chain
+
+    // TODO store in NVRAM
 
 cleanup:
+    for (int i = 0; i < cert_count; i++)
+        mbedtls_x509_crt_free(&cert[i]);
+    for (int i = 0; i < pk_count; i++)
+        mbedtls_pk_free(&pk[i]);
     certificate_bundle_iter_free(it);
     free(buf);
     return httpd_resp_send_500(req);

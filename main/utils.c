@@ -1076,7 +1076,7 @@ int pem_parse_single_certificate(const char *cert_str, size_t cert_len_with_null
     return result;
 
 cleanup:
-    ESP_LOGI(TAG, "Problem %i encountered while parsing certificate", result);
+    ESP_LOGD(TAG, "Problem %i encountered while parsing certificate", result);
     return result;
 }
 
@@ -1113,7 +1113,7 @@ int pem_parse_single_private_key(const char *key_str, size_t key_len_with_null, 
     return result;
 
 cleanup:
-    ESP_LOGI(TAG, "Problem %i encountered while parsing private key", result);
+    ESP_LOGD(TAG, "Problem %i encountered while parsing private key", result);
     return result;
 }
 

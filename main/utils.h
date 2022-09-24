@@ -111,7 +111,7 @@ struct certificate_bundle_iter
     const char *current;
     int remaining;
     enum certificate_bundle_iter_state state;
-    const char *block_start;
+    char *block_start;
     int block_len;
 };
 

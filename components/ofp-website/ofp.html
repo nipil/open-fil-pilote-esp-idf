@@ -213,10 +213,16 @@
               <ul>
                 <li>D'abord, inclure le certificat serveur lié au nom de domaine (qui est <b>indispensable</b>)</li>
                 <li>Puis, ajouter le ou les certificats des autorités de certifications intermédiaires, s'il y en a</li>
-                <li>Ensuite, ajouter le certificat de l'autorité de certification racine, si le certificat serveur n'est pas autosigné</li>
+                <li>Ensuite, ajouter le certificat de l'autorité de certification racine, si le certificat serveur n'est
+                  pas autosigné</li>
                 <li>Finalement, ajouter la clé privée associée au certificat serveur (qui est <b>indispensable</b>)</li>
-                <li>Tous les éléments ci-dessus doivent être au <b>format PEM</b></li>
                 <li>La clé privée <b>ne doit pas</b> être protégée par un mot de passe</li>
+                <li>Le certificat doit être au format PEM selon la <a
+                    href="https://www.rfc-editor.org/rfc/rfc7468.html">RFC 7468</a> (BEGIN CERTIFICATE)</li>
+                <li>La clé privée doit être au format PEM version <a
+                    href="https://mbed-tls.readthedocs.io/en/latest/kb/cryptography/asn1-key-structures-in-der-and-pem/">PKCS#8</a>
+                  (BEGIN PUBLIC KEY)</li>
+                <li>Voir README pour des exemples de commande pour convertir vos clés et certificats au bon format</li>
               </ul>
             </div>
             <h5 class="mb-3">Changement du nouveau "bundle"</h5>
