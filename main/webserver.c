@@ -597,14 +597,14 @@ void webserver_start(void)
 
 #ifdef CONFIG_OFP_UI_WEBSERVER_REQUIRES_ENCRYPTION
     // This need to be null-terminated
-    extern const unsigned char cacert_pem_start[] asm("_binary_cacert_pem_start");
-    extern const unsigned char cacert_pem_end[] asm("_binary_cacert_pem_end");
+    extern const unsigned char cacert_pem_start[] asm("_binary_autosign_crt_start");
+    extern const unsigned char cacert_pem_end[] asm("_binary_autosign_crt_end");
     conf.cacert_pem = cacert_pem_start;
     conf.cacert_len = cacert_pem_end - cacert_pem_start;
 
     // This need to be null-terminated
-    extern const unsigned char prvtkey_pem_start[] asm("_binary_prvtkey_pem_start");
-    extern const unsigned char prvtkey_pem_end[] asm("_binary_prvtkey_pem_end");
+    extern const unsigned char prvtkey_pem_start[] asm("_binary_autosign_key_start");
+    extern const unsigned char prvtkey_pem_end[] asm("_binary_autosign_key_end");
     conf.prvtkey_pem = prvtkey_pem_start;
     conf.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
 #else
