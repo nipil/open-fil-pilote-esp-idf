@@ -1112,7 +1112,7 @@ cleanup:
     return result;
 }
 
-struct certificate_bundle_iter *certificate_bundle_iter_init(const char *buf, size_t len)
+struct certificate_bundle_iter *certificate_bundle_iter_init(const void *buf, size_t len)
 {
     if (buf == NULL)
         return NULL;
