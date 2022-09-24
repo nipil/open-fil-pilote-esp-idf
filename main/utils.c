@@ -1119,7 +1119,7 @@ struct certificate_bundle_iter *certificate_bundle_iter_init(const char *buf, si
 
     ESP_LOGD(TAG, "certificate_bundle_iter_init buffer %p len %i", buf, len);
 
-    struct certificate_bundle_iter *tmp = calloc(1, sizeof(struct certificate_bundle_iter *));
+    struct certificate_bundle_iter *tmp = calloc(1, sizeof(struct certificate_bundle_iter));
     if (tmp == NULL)
         goto cleanup;
 
