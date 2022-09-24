@@ -1151,8 +1151,8 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
     if (it == NULL)
         return false;
 
-    ESP_LOGD(TAG, "entering state %i remaining %i", it->state, it->remaining);
-    if (it->state == CBIS_END_OK || it->state == CBIS_END_FAIL || it->remaining == 0)
+    ESP_LOGD(TAG, "state %i", it->state);
+    if (it->state == CBIS_END_OK || it->state == CBIS_END_FAIL)
         return false;
 
     const uint8_t pem_cert_begin_len = strlen(pem_cert_begin);
@@ -1160,7 +1160,17 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
     const uint8_t pem_unencrypted_key_begin_len = strlen(pem_unencrypted_key_begin);
     const uint8_t pem_unencrypted_key_end_len = strlen(pem_unencrypted_key_end);
 
+    // search for a new block
     it->state = CBIS_IDLE;
+    it->block_start = NULL;
+    it->block_len = -1;
+
+    ESP_LOGD(TAG, "remaining %i", it->remaining);
+    if (it->remaining == 0)
+    {
+        it->state = CBIS_END_OK;
+        return false;
+    }
 
     for (int i = 0; i < 2; i++)
     {
@@ -1175,7 +1185,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
 
         it->remaining -= next - it->current;
         it->current = next;
-        ESP_LOGD(TAG, "Found marker, previewing: %.*s", min_int(it->remaining, 30), it->current);
+        ESP_LOGD(TAG, "Found marker, remaining now %i, previewing current: %.*s", it->remaining, min_int(it->remaining, 30), it->current);
 
         switch (it->state)
         {
@@ -1185,6 +1195,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
                 it->state = CBIS_CERTIFICATE;
                 it->block_start = it->current;
                 it->current += pem_cert_begin_len;
+                it->remaining -= pem_cert_begin_len;
                 break;
             }
             if (it->remaining >= pem_unencrypted_key_begin_len && strncmp(it->current, pem_unencrypted_key_begin, pem_unencrypted_key_begin_len) == 0)
@@ -1192,6 +1203,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
                 it->state = CBIS_PRIVATE_KEY;
                 it->block_start = it->current;
                 it->current += pem_unencrypted_key_begin_len;
+                it->remaining -= pem_unencrypted_key_begin_len;
                 break;
             }
             ESP_LOGW(TAG, "Unknown opening label found, starting with: %.*s", min_int(it->remaining, 30), it->current);
@@ -1202,6 +1214,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
             if (it->remaining >= pem_cert_end_len && strncmp(it->current, pem_cert_end, pem_cert_end_len) == 0)
             {
                 it->current += pem_cert_end_len;
+                it->remaining -= pem_cert_end_len;
                 it->block_len = it->current - it->block_start;
                 return true;
             }
@@ -1213,6 +1226,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
             if (it->remaining >= pem_unencrypted_key_end_len && strncmp(it->current, pem_unencrypted_key_end, pem_unencrypted_key_end_len) == 0)
             {
                 it->current += pem_unencrypted_key_end_len;
+                it->remaining -= pem_unencrypted_key_end_len;
                 it->block_len = it->current - it->block_start;
                 return true;
             }
