@@ -7,8 +7,6 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <mbedtls/base64.h>
-#include <mbedtls/pk.h>
-#include <mbedtls/x509_crt.h>
 
 #include "str.h"
 #include "utils.h"
@@ -1051,45 +1049,50 @@ cleanup:
     return false;
 }
 
-int certificate_check_public_single(const unsigned char *cert_str, size_t cert_len_with_null)
+int pem_parse_single_certificate(const char *cert_str, size_t cert_len_with_null, mbedtls_x509_crt *output)
 {
-    // esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    int result = MBEDTLS_ERR_X509_BAD_INPUT_DATA;
 
-    ESP_LOGD(TAG, "certificate_check_public_single cert_str %p cert_len_with_null %i", cert_str, cert_len_with_null);
+    if (output == NULL)
+        goto cleanup;
+
+    ESP_LOGD(TAG, "certificate_check_public_single cert_str %p cert_len_with_null %i output %p", cert_str, cert_len_with_null, output);
     ESP_LOGV(TAG, "%s", cert_str);
 
-    mbedtls_x509_crt crt;
-    mbedtls_x509_crt_init(&crt);
+    mbedtls_x509_crt_init(output);
 
-    int result = mbedtls_x509_crt_parse(&crt, cert_str, cert_len_with_null);
+    result = mbedtls_x509_crt_parse(output, (const unsigned char *)cert_str, cert_len_with_null);
     ESP_LOGD(TAG, "mbedtls_x509_crt_parse result %i", result);
     if (result != 0)
         goto cleanup;
 
-    char buf_dn[MBEDTLS_X509_MAX_DN_NAME_SIZE];
-    int result_dn = mbedtls_x509_dn_gets(buf_dn, sizeof(buf_dn), &crt.subject);
+    char buf_dn[MBEDTLS_X509_MAX_DN_NAME_SIZE + 1];
+    int result_dn = mbedtls_x509_dn_gets(buf_dn, sizeof(buf_dn), &output->subject);
     ESP_LOGD(TAG, "mbedtls_x509_dn_gets result %i", result_dn);
     if (result_dn < 0)
         goto cleanup;
 
     ESP_LOGI(TAG, "Successfully parsed certificate with Subject: %s", buf_dn);
+    return result;
 
 cleanup:
-    mbedtls_x509_crt_free(&crt);
+    ESP_LOGI(TAG, "Problem %i encountered while parsing certificate", result);
     return result;
 }
 
-int certificate_check_private(const unsigned char *key_str, size_t key_len_with_null, unsigned char *key_pass, size_t key_pass_len)
+int pem_parse_single_private_key(const char *key_str, size_t key_len_with_null, char *key_pass, size_t key_pass_len, mbedtls_pk_context *output)
 {
-    // esp_log_level_set(TAG, ESP_LOG_DEBUG);
+    int result = MBEDTLS_ERR_PK_KEY_INVALID_FORMAT;
 
-    ESP_LOGD(TAG, "certificate_check_private key_str %p key_len_with_null %i key_pass %p key_pass_len %i", key_str, key_len_with_null, key_pass, key_pass_len);
+    if (output == NULL)
+        goto cleanup;
+
+    ESP_LOGD(TAG, "certificate_check_private key_str %p key_len_with_null %i key_pass %p key_pass_len %i output %p", key_str, key_len_with_null, key_pass, key_pass_len, output);
     ESP_LOGV(TAG, "%s", key_str);
 
-    mbedtls_pk_context pk;
-    mbedtls_pk_init(&pk);
+    mbedtls_pk_init(output);
 
-    int result = mbedtls_pk_parse_key(&pk, key_str, key_len_with_null, key_pass, key_pass_len);
+    result = mbedtls_pk_parse_key(output, (const unsigned char *)key_str, key_len_with_null, (const unsigned char *)key_pass, key_pass_len);
     ESP_LOGD(TAG, "mbedtls_pk_parse_key result %i", result);
     if (result == MBEDTLS_ERR_PK_PASSWORD_REQUIRED)
     {
@@ -1104,11 +1107,13 @@ int certificate_check_private(const unsigned char *key_str, size_t key_len_with_
     if (result != 0)
         goto cleanup;
 
-    const char *key_name = mbedtls_pk_get_name(&pk);
-    ESP_LOGI(TAG, "Successfully parsed certificate key of type: %s", key_name ? key_name : null_str);
+    const char *key_name = mbedtls_pk_get_name(output);
+    ESP_LOGI(TAG, "Successfully parsed private key of type: %s", key_name ? key_name : null_str);
+
+    return result;
 
 cleanup:
-    mbedtls_pk_free(&pk);
+    ESP_LOGI(TAG, "Problem %i encountered while parsing private key", result);
     return result;
 }
 

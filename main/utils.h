@@ -4,6 +4,8 @@
 #include <time.h>
 #include <regex.h>
 #include <mbedtls/md.h>
+#include <mbedtls/pk.h>
+#include <mbedtls/x509_crt.h>
 #include <esp_log.h>
 
 #include <cJSON.h>
@@ -230,8 +232,12 @@ bool password_verify(struct password_data *pwd, const char *cleartext);
 char *password_to_string(struct password_data *pwd);
 struct password_data *password_from_string(const char *str);
 
-int certificate_check_public_single(const unsigned char *cert_str, size_t cert_len);
-int certificate_check_private(const unsigned char *key_str, size_t key_len, unsigned char *key_pass, size_t key_pass_len);
+/*
+ * return 0 on success
+ * caller is responsible for calling mbedtls_x509_crt_free and mbedtls_pk_free on the outputs
+ */
+int pem_parse_single_certificate(const char *cert_str, size_t cert_len_with_null, mbedtls_x509_crt *output);
+int pem_parse_single_private_key(const char *key_str, size_t key_len_with_null, char *key_pass, size_t key_pass_len, mbedtls_pk_context *output);
 
 /*
  * (PEM) Certificate bundle iterator function
