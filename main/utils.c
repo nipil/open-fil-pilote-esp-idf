@@ -265,7 +265,7 @@ struct split_result *split_string(const char *str, char sep)
     {
         ESP_LOGV(TAG, "split empty src");
         // alloc and zero members
-        struct split_result *empty = calloc(1, sizeof(struct split_result *));
+        struct split_result *empty = calloc(1, sizeof(struct split_result));
         assert(empty != NULL);
         empty->count = 0;
         empty->strings = NULL;
@@ -285,7 +285,7 @@ struct split_result *split_string(const char *str, char sep)
     ESP_LOGV(TAG, "split sep count %i", count);
 
     // alloc and zero members
-    struct split_result *splits = calloc(1, sizeof(struct split_result *));
+    struct split_result *splits = calloc(1, sizeof(struct split_result));
     assert(splits != NULL);
     splits->count = count;
 
