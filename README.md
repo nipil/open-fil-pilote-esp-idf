@@ -48,7 +48,7 @@ Exemple de commande CURL, pour les utilisateurs avancés :
 
     curl --silent --show-error --header "Content-Type: application/octet-stream" -X POST --insecure https://admin:admin@adresseip/ofp-api/v1/upgrade --data-binary @firmware.bin
 
-Si possible, vérifiez votre microgiciel avant de le téléverser :
+Si possible, vérifiez votre microgiciel à l'aide du framework ESP-IDF (si installé) avant de le téléverser :
 
     python C:\esp\esp-idf\components\esptool_py\esptool\esptool.py --chip esp32 image_info firmware.bin
 
@@ -70,3 +70,64 @@ Si possible, vérifiez votre microgiciel avant de le téléverser :
 
 - certificate update API
 - certificate fallback if custom certs fail
+
+# troubleshooting
+
+## Lenteurs de la première connexion en HTTPS
+
+C'est normal, l'ESP32 est un super microcontrôleur mais pas une bête de course !
+
+Pour l'établissement de la connexion TLS, on constate :
+
+- 1.7 secondes incompressibles avec un certificat 1024 bits (faiblement sécurisé)
+- 3.5 secondes incompressibles avec un certificat 2048 bits (bien sécurisé)
+- 7.2 secondes incompressibles avec un certificat 4096 bits (ultra sécurisé)
+
+Ensuite, tout dépend du mode d'accès :
+
+- via le navigateur, comme il y a réutilisation implicite des connexions ("keep-alive"), les requêtes suivantes via le navigateurs sont bien plus rapides
+- via CURL ou similaire, par défaut, chaque commande CURL établit une nouvelle connexion, donc devra attendre quelques secondes à chaque fois. Cependant si vous enchainez toutes vos URL dans la même commande CURL, alors la commande CURL réutilisera aussi la même connexion ("keep-alive")
+
+## Erreur: "ERR_SSL_VERSION_OR_CIPHER_MISMATCH" ou similaire
+
+Par exemple Chrome affiche "Le client et le serveur ne sont pas compatibles avec une version de protocole ou une méthode de chiffrement SSL commune"
+
+Dans les logs du moniteur, ça se traduit par :
+
+    E (297207) esp-tls-mbedtls: mbedtls_ssl_handshake returned -0x6980 with custom certificate`
+
+Cela peut signifer que dans le "bundle" de certificat fourni (soit à la compilation, soit via la WebUI soit via l'API) ne présente pas le certificat qui dépend de la clé privée *en premier* dans la liste du bundle.
+
+Solution: respecter les consignes indiquées dans la WebUI pour la construction du bundle !
+
+## Erreur: "ERR_CONNECTION_RESET" ou similaire
+
+Par exemple Chrome affiche "Connexion réinitialisée"
+
+Dans les logs du moniteur, ça se traduit par :
+
+    I (52720) esp_https_server: performing session handshake
+    E (52750) esp-tls-mbedtls: mbedtls_pk_parse_keyfile returned -0x3C00
+    E (52750) esp-tls-mbedtls: Failed to set server pki context
+    E (52750) esp-tls-mbedtls: Failed to set server configurations, returned [0x8019] (ESP_ERR_MBEDTLS_PK_PARSE_KEY_FAILED)
+    E (52760) esp-tls-mbedtls: create_ssl_handle failed, returned [0x8019] (ESP_ERR_MBEDTLS_PK_PARSE_KEY_FAILED)
+    E (52780) esp_https_server: esp_tls_create_server_session failed
+    W (52790) httpd: httpd_accept_conn: session creation failed
+    W (52790) httpd: httpd_server: error accepting new connection
+
+Raison : la clé privée du certificat HTTPS a été fournie chiffrée, alors qu'elle doit être en clair.
+
+Solution: respecter les consignes indiquées dans la WebUI pour la construction du bundle !
+
+## Erreur: "NET::ERR_CERT_AUTHORITY_INVALID" ou similaire
+
+Par exemple Chrome affiche "Votre connexion n'est pas privée"
+
+Dans les logs du moniteur, ça se traduit par :
+
+    E (36310) esp-tls-mbedtls: mbedtls_ssl_handshake returned -0x7780
+    E (36310) esp_https_server: esp_tls_create_server_session failed
+    W (36320) httpd: httpd_accept_conn: session creation failed
+    W (36330) httpd: httpd_server: error accepting new connection
+
+Raison : le certificat utilisé est un certificat autosigné. Il n'y a rien à faire si ce n'est soit accepter l'exception de sécurité dans vos navigateurs, ou bien obtenir un certificat reconnu, et le téléverser via la WebUI ou l'API.

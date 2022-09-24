@@ -211,10 +211,10 @@
                 HTTPS du produit.</p>
               <p>Le "bundle" doit satisfaire les contraintes ci-dessous :</p>
               <ul>
-                <li>Un certificat de l'autorité de certification racine (optionnel)</li>
-                <li>Un (ou plusieurs) certificat intermériaires des autorités de certifications (optionnel)</li>
-                <li>Un certificat serveur (<b>obligatoire</b>)</li>
-                <li>Une clé privée associée au certificat serveur (<b>obligatoire</b>)</li>
+                <li>D'abord, inclure le certificat serveur lié au nom de domaine (qui est <b>indispensable</b>)</li>
+                <li>Puis, ajouter le ou les certificats des autorités de certifications intermédiaires, s'il y en a</li>
+                <li>Ensuite, ajouter le certificat de l'autorité de certification racine, si le certificat serveur n'est pas autosigné</li>
+                <li>Finalement, ajouter la clé privée associée au certificat serveur (qui est <b>indispensable</b>)</li>
                 <li>Tous les éléments ci-dessus doivent être au <b>format PEM</b></li>
                 <li>La clé privée <b>ne doit pas</b> être protégée par un mot de passe</li>
               </ul>
