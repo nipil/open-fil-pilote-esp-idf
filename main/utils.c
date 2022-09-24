@@ -179,7 +179,7 @@ struct re_result *re_match(const char *re_str, const char *str)
     regfree(&re);
 
     // alloc and zero members
-    char **smatch = calloc(nmatch, sizeof(char *));
+    char **smatch = calloc(nmatch, sizeof(char *)); // smatch is a array of strings (i.e. char *)
     assert(smatch != NULL);
 
     // extract
@@ -290,7 +290,7 @@ struct split_result *split_string(const char *str, char sep)
     splits->count = count;
 
     // alloc and zero members
-    splits->strings = calloc(count, sizeof(char *));
+    splits->strings = calloc(count, sizeof(char *)); // strings is a array of strings (i.e. char *)
     assert(splits->strings != NULL);
 
     // extract
