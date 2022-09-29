@@ -1198,7 +1198,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
             if (it->remaining >= pem_cert_begin_len && strncmp(it->current, pem_cert_begin, pem_cert_begin_len) == 0)
             {
                 it->state = CBIS_CERTIFICATE;
-                it->block_start = it->current;
+                it->block_start = (char *)it->current;
                 it->current += pem_cert_begin_len;
                 it->remaining -= pem_cert_begin_len;
                 break;
@@ -1206,7 +1206,7 @@ bool certificate_bundle_iter_next(struct certificate_bundle_iter *it)
             if (it->remaining >= pem_unencrypted_key_begin_len && strncmp(it->current, pem_unencrypted_key_begin, pem_unencrypted_key_begin_len) == 0)
             {
                 it->state = CBIS_PRIVATE_KEY;
-                it->block_start = it->current;
+                it->block_start = (char *)it->current;
                 it->current += pem_unencrypted_key_begin_len;
                 it->remaining -= pem_unencrypted_key_begin_len;
                 break;
