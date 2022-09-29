@@ -12,6 +12,7 @@
 #include "api_zones.h"
 #include "api_mgmt.h"
 #include "api_plannings.h"
+#include "storage.h"
 
 static const char TAG[] = "webserver";
 
@@ -610,6 +611,24 @@ void webserver_start(void)
     extern const unsigned char prvtkey_pem_end[] asm("_binary_autosign_key_end");
     conf.prvtkey_pem = prvtkey_pem_start;
     conf.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
+
+    /* tries to load the provided ones from storage */
+    char *https_key = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_https_key);
+    char *https_certs = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_https_certs);
+    if (https_key != NULL && https_certs != NULL)
+    {
+        // These need to be null-terminated too
+        conf.cacert_pem = (const uint8_t *)https_certs;
+        conf.prvtkey_pem = (const uint8_t *)https_key;
+        conf.cacert_len = strlen(https_certs) + 1;
+        conf.prvtkey_len = strlen(https_key) + 1;
+        ESP_LOGI(TAG, "Trying to use provided HTTPS certificate");
+    }
+    else
+    {
+        ESP_LOGW(TAG, "Missing or incomplete stored HTTPS certificate, falling back to certificate compiled in the firmware");
+    }
+
 #else
     conf.port_insecure = CONFIG_OFP_UI_WEBSERVER_INSECURE_PORT;
     conf.transport_mode = HTTPD_SSL_TRANSPORT_INSECURE;
@@ -622,6 +641,19 @@ void webserver_start(void)
     conf.httpd.uri_match_fn = httpd_uri_match_wildcard;
 
     // errors happening here are due to faulty design
+    //
+    // certificate parsing is not done here, but upon new connection
+    // and the ESP-IDF server just logs the problem and continues serving
+    // so we CANNOT detect certificate errors at all
+    //
+    // Here is a sample log from an malformed certificate/key:
+    // E (20606) esp-tls-mbedtls: mbedtls_pk_parse_keyfile returned -0x3D00
+    // E (20616) esp-tls-mbedtls: Failed to set server pki context
+    // E (20616) esp-tls-mbedtls: Failed to set server configurations, returned [0x8019] (ESP_ERR_MBEDTLS_PK_PARSE_KEY_FAILED)
+    // E (20626) esp-tls-mbedtls: create_ssl_handle failed, returned [0x8019] (ESP_ERR_MBEDTLS_PK_PARSE_KEY_FAILED)
+    // E (20646) esp_https_server: esp_tls_create_server_session failed
+    // W (20656) httpd: httpd_accept_conn: session creation failed
+    // W (20656) httpd: httpd_server: error accepting new connection
     ESP_ERROR_CHECK(httpd_ssl_start(&new_server, &conf));
 
     // register generic handles
@@ -629,6 +661,10 @@ void webserver_start(void)
 
     // persist handle
     app_server = new_server;
+
+    // cleanup
+    free(https_key);
+    free(https_certs);
 }
 
 void webserver_stop(void)

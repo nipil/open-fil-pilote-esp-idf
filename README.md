@@ -69,7 +69,6 @@ Si possible, vérifiez votre microgiciel à l'aide du framework ESP-IDF (si inst
 # roadmap
 
 - certificate update API
-- certificate fallback if custom certs fail
 
 # troubleshooting
 
