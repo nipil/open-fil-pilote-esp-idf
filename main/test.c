@@ -319,35 +319,39 @@ cleanup:
     ESP_LOGD(TAG, "Done.");
 }
 
-#include "mbedtls/error.h"
-#include "mbedtls/pk.h"
-#include "mbedtls/ecdsa.h"
-#include "mbedtls/rsa.h"
-#include "mbedtls/error.h"
-#include "mbedtls/entropy.h"
-#include "mbedtls/ctr_drbg.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include <esp_random.h>
+
+#include "mbedtls/error.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/error.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/x509_crt.h"
+
 #define RSA_KEY_SIZE 1024
 #define PEM_BUFFER_SIZE RSA_KEY_SIZE
+#define SERIAL_NUMBER "1"
 
-int gen_priv_key(int argc, char *argv[])
+#define CERT_NOT_BEFORE "20200101000000"
+#define CERT_NOT_AFTER "20401231235959"
+
+bool gen_self_signed(void)
 {
-    int ret = 1;
-    int exit_code = EXIT_FAILURE;
+    int ret = 0;
     mbedtls_pk_context key;
     char buf[1024];
+
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
     mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
-    const char *pers = "gen_key";
 
-    /*
-     * Set to sane values
-     */
+    unsigned char custom[32];
+    esp_fill_random(custom, sizeof(custom));
 
     mbedtls_mpi_init(&N);
     mbedtls_mpi_init(&P);
@@ -364,7 +368,7 @@ int gen_priv_key(int argc, char *argv[])
 
     mbedtls_entropy_init(&entropy);
 
-    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers))) != 0)
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, custom, sizeof(custom))) != 0)
     {
         printf(" failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int)-ret);
         goto cleanup;
@@ -399,11 +403,103 @@ int gen_priv_key(int argc, char *argv[])
     }
     printf((char *)output_buf);
 
-    exit_code = EXIT_SUCCESS;
+    /************************************************/
+
+    mbedtls_x509write_cert crt;
+    mbedtls_mpi serial;
+    char name[] = "CN=openfilpilote.local,O=local,C=FR";
+
+    mbedtls_mpi_init(&serial);
+    mbedtls_x509write_crt_init(&crt);
+
+    memset(buf, 0, 1024);
+
+    if ((ret = mbedtls_mpi_read_string(&serial, 10, SERIAL_NUMBER)) != 0)
+    {
+        mbedtls_strerror(ret, buf, 1024);
+        printf(" failed\n  !  mbedtls_mpi_read_string "
+               "returned -0x%04x - %s\n\n",
+               (unsigned int)-ret, buf);
+        goto cleanup;
+    }
+
+    mbedtls_x509write_crt_set_subject_key(&crt, &key);
+    mbedtls_x509write_crt_set_issuer_key(&crt, &key);
+
+    if ((ret = mbedtls_x509write_crt_set_subject_name(&crt, name)) != 0)
+    {
+        mbedtls_strerror(ret, buf, 1024);
+        printf(" failed\n  !  mbedtls_x509write_crt_set_subject_name "
+               "returned -0x%04x - %s\n\n",
+               (unsigned int)-ret, buf);
+        goto cleanup;
+    }
+
+    if ((ret = mbedtls_x509write_crt_set_issuer_name(&crt, name)) != 0)
+    {
+        mbedtls_strerror(ret, buf, 1024);
+        printf(" failed\n  !  mbedtls_x509write_crt_set_issuer_name "
+               "returned -0x%04x - %s\n\n",
+               (unsigned int)-ret, buf);
+        goto cleanup;
+    }
+
+    mbedtls_x509write_crt_set_version(&crt, MBEDTLS_X509_CRT_VERSION_3);
+    mbedtls_x509write_crt_set_md_alg(&crt, MBEDTLS_MD_SHA256);
+
+    if ((ret = mbedtls_x509write_crt_set_serial(&crt, &serial)) != 0)
+    {
+        mbedtls_strerror(ret, buf, 1024);
+        printf(" failed\n  !  mbedtls_x509write_crt_set_serial "
+               "returned -0x%04x - %s\n\n",
+               (unsigned int)-ret, buf);
+        goto cleanup;
+    }
+
+    if ((ret = mbedtls_x509write_crt_set_validity(&crt, CERT_NOT_BEFORE, CERT_NOT_AFTER)) != 0)
+    {
+        mbedtls_strerror(ret, buf, 1024);
+        printf(" failed\n  !  mbedtls_x509write_crt_set_validity "
+               "returned -0x%04x - %s\n\n",
+               (unsigned int)-ret, buf);
+        goto cleanup;
+    }
+
+#if defined(MBEDTLS_SHA1_C)
+    if ((ret = mbedtls_x509write_crt_set_subject_key_identifier(&crt)) != 0)
+    {
+        mbedtls_strerror(ret, buf, 1024);
+        printf(" failed\n  !  mbedtls_x509write_crt_set_subject"
+               "_key_identifier returned -0x%04x - %s\n\n",
+               (unsigned int)-ret, buf);
+        goto cleanup;
+    }
+
+    if ((ret = mbedtls_x509write_crt_set_authority_key_identifier(&crt)) != 0)
+    {
+        mbedtls_strerror(ret, buf, 1024);
+        printf(" failed\n  !  mbedtls_x509write_crt_set_authority_"
+               "key_identifier returned -0x%04x - %s\n\n",
+               (unsigned int)-ret, buf);
+        goto cleanup;
+    }
+#endif /* MBEDTLS_SHA1_C */
+
+    if ((ret = mbedtls_x509write_crt_pem(&crt, output_buf, PEM_BUFFER_SIZE, mbedtls_ctr_drbg_random, &ctr_drbg)) < 0)
+    {
+        mbedtls_strerror(ret, buf, 1024);
+        printf(" failed\n  !  write_certificate -0x%04x - %s\n\n",
+               (unsigned int)-ret, buf);
+        goto cleanup;
+    }
+
+    printf((char *)output_buf);
+
+    return true;
 
 cleanup:
 
-    if (exit_code != EXIT_SUCCESS)
+    if (ret != 0)
     {
 #ifdef MBEDTLS_ERROR_C
         mbedtls_strerror(ret, buf, sizeof(buf));
@@ -412,6 +508,9 @@ cleanup:
         printf("\n");
 #endif
     }
+
+    mbedtls_x509write_crt_free(&crt);
+    mbedtls_mpi_free(&serial);
 
     mbedtls_mpi_free(&N);
     mbedtls_mpi_free(&P);
@@ -426,5 +525,5 @@ cleanup:
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
 
-    exit(exit_code);
+    return false;
 }
