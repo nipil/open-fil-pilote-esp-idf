@@ -325,6 +325,9 @@ cleanup:
 
 #include <esp_random.h>
 
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
 #include "mbedtls/error.h"
 #include "mbedtls/pk.h"
 #include "mbedtls/rsa.h"
@@ -333,22 +336,25 @@ cleanup:
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/x509_crt.h"
 
-#define RSA_KEY_SIZE 1024
-#define PEM_BUFFER_SIZE RSA_KEY_SIZE
+#define SELF_SIGNED_CERT_RSA_KEY_SIZE 2048
+#define PEM_BUFFER_SIZE SELF_SIGNED_CERT_RSA_KEY_SIZE
 #define SERIAL_NUMBER "1"
 
 #define CERT_NOT_BEFORE "20200101000000"
 #define CERT_NOT_AFTER "20401231235959"
 
+unsigned char output_buf[PEM_BUFFER_SIZE]; // should not be allocated on the stack
+
 bool gen_self_signed(void)
 {
     int ret = 0;
     mbedtls_pk_context key;
-    char buf[1024];
 
     mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
-    mbedtls_entropy_context entropy;
     mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_entropy_context entropy;
+
+    ESP_LOGI(TAG, "sizeof mpi %i", sizeof(mbedtls_mpi));
 
     unsigned char custom[32];
     esp_fill_random(custom, sizeof(custom));
@@ -363,47 +369,86 @@ bool gen_self_signed(void)
     mbedtls_mpi_init(&QP);
 
     mbedtls_pk_init(&key);
-    mbedtls_ctr_drbg_init(&ctr_drbg);
-    memset(buf, 0, sizeof(buf));
 
+    mbedtls_ctr_drbg_init(&ctr_drbg);
     mbedtls_entropy_init(&entropy);
 
-    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, custom, sizeof(custom))) != 0)
+    memset(buf, 0, sizeof(buf));
+
+    ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, custom, sizeof(custom));
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
         printf(" failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int)-ret);
         goto cleanup;
     }
 
-    if ((ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA))) != 0)
+    ESP_LOGI(TAG, "entropy seed done");
+
+    ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
-        printf(" failed\n  !  mbedtls_pk_setup returned -0x%04x", (unsigned int)-ret);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_pk_setup returned -0x%04x", (unsigned int)-ret);
         goto cleanup;
     }
 
-    if ((ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, RSA_KEY_SIZE, 65537)) != 0)
+    ESP_LOGI(TAG, "pk setup done");
+
+    ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, SELF_SIGNED_CERT_RSA_KEY_SIZE, 65537);
+
+    vTaskDelay(10 / portTICK_RATE_MS); // feed the watchdog
+
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
-        printf(" failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", (unsigned int)-ret);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", (unsigned int)-ret);
         goto cleanup;
     }
+
+    ESP_LOGI(TAG, "rsa gen key done");
 
     mbedtls_rsa_context *rsa = mbedtls_pk_rsa(key);
-
-    if ((ret = mbedtls_rsa_export(rsa, &N, &P, &Q, &D, &E)) != 0 || (ret = mbedtls_rsa_export_crt(rsa, &DP, &DQ, &QP)) != 0)
+    if (rsa == NULL)
     {
-        printf(" failed\n  ! could not export RSA parameters\n\n");
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_pk_rsa returned NULL");
         goto cleanup;
     }
 
-    unsigned char output_buf[PEM_BUFFER_SIZE];
+    ESP_LOGI(TAG, "rsa context done");
+
+    ret = mbedtls_rsa_export(rsa, &N, &P, &Q, &D, &E);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, " failed\n  ! could not export RSA parameters part1\n\n");
+        goto cleanup;
+    }
+
+    ESP_LOGI(TAG, "rsa context done");
+
+    ret = mbedtls_rsa_export_crt(rsa, &DP, &DQ, &QP);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, " failed\n  ! could not export RSA parameters part 2\n\n");
+        goto cleanup;
+    }
+
+    ESP_LOGI(TAG, "rsa export crt done");
+
     memset(output_buf, 0, PEM_BUFFER_SIZE);
-    if ((ret = mbedtls_pk_write_key_pem(&key, output_buf, PEM_BUFFER_SIZE)) != 0)
+    ret = mbedtls_pk_write_key_pem(&key, output_buf, PEM_BUFFER_SIZE);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
-        printf(" pem failed\n");
+        ESP_LOGW(TAG, " pem failed\n");
         goto cleanup;
     }
-    printf((char *)output_buf);
 
-    /************************************************/
+    ESP_LOGE(TAG, "PEM KEY\r\n%s", (char *)output_buf);
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     mbedtls_x509write_cert crt;
     mbedtls_mpi serial;
@@ -414,88 +459,120 @@ bool gen_self_signed(void)
 
     memset(buf, 0, 1024);
 
-    if ((ret = mbedtls_mpi_read_string(&serial, 10, SERIAL_NUMBER)) != 0)
+    ret = mbedtls_mpi_read_string(&serial, 10, SERIAL_NUMBER);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
         mbedtls_strerror(ret, buf, 1024);
-        printf(" failed\n  !  mbedtls_mpi_read_string "
-               "returned -0x%04x - %s\n\n",
-               (unsigned int)-ret, buf);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_mpi_read_string "
+                      "returned -0x%04x - %s\n\n",
+                 (unsigned int)-ret, buf);
         goto cleanup;
     }
+
+    ESP_LOGI(TAG, "read serial done");
 
     mbedtls_x509write_crt_set_subject_key(&crt, &key);
+    ESP_LOGI(TAG, "set subject key done");
+
     mbedtls_x509write_crt_set_issuer_key(&crt, &key);
+    ESP_LOGI(TAG, "set issuer key done");
 
-    if ((ret = mbedtls_x509write_crt_set_subject_name(&crt, name)) != 0)
+    ret = mbedtls_x509write_crt_set_subject_name(&crt, name);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
         mbedtls_strerror(ret, buf, 1024);
-        printf(" failed\n  !  mbedtls_x509write_crt_set_subject_name "
-               "returned -0x%04x - %s\n\n",
-               (unsigned int)-ret, buf);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_x509write_crt_set_subject_name "
+                      "returned -0x%04x - %s\n\n",
+                 (unsigned int)-ret, buf);
         goto cleanup;
     }
+    ESP_LOGI(TAG, "set subject name done");
 
-    if ((ret = mbedtls_x509write_crt_set_issuer_name(&crt, name)) != 0)
+    ret = mbedtls_x509write_crt_set_issuer_name(&crt, name);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
         mbedtls_strerror(ret, buf, 1024);
-        printf(" failed\n  !  mbedtls_x509write_crt_set_issuer_name "
-               "returned -0x%04x - %s\n\n",
-               (unsigned int)-ret, buf);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_x509write_crt_set_issuer_name "
+                      "returned -0x%04x - %s\n\n",
+                 (unsigned int)-ret, buf);
         goto cleanup;
     }
+    ESP_LOGI(TAG, "set issuer name done");
 
     mbedtls_x509write_crt_set_version(&crt, MBEDTLS_X509_CRT_VERSION_3);
+    ESP_LOGI(TAG, "set version done");
+
     mbedtls_x509write_crt_set_md_alg(&crt, MBEDTLS_MD_SHA256);
+    ESP_LOGI(TAG, "set digest alg done");
 
-    if ((ret = mbedtls_x509write_crt_set_serial(&crt, &serial)) != 0)
+    ret = mbedtls_x509write_crt_set_serial(&crt, &serial);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
         mbedtls_strerror(ret, buf, 1024);
-        printf(" failed\n  !  mbedtls_x509write_crt_set_serial "
-               "returned -0x%04x - %s\n\n",
-               (unsigned int)-ret, buf);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_x509write_crt_set_serial "
+                      "returned -0x%04x - %s\n\n",
+                 (unsigned int)-ret, buf);
         goto cleanup;
     }
+    ESP_LOGI(TAG, "set serial done");
 
-    if ((ret = mbedtls_x509write_crt_set_validity(&crt, CERT_NOT_BEFORE, CERT_NOT_AFTER)) != 0)
+    ret = mbedtls_x509write_crt_set_validity(&crt, CERT_NOT_BEFORE, CERT_NOT_AFTER);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
         mbedtls_strerror(ret, buf, 1024);
-        printf(" failed\n  !  mbedtls_x509write_crt_set_validity "
-               "returned -0x%04x - %s\n\n",
-               (unsigned int)-ret, buf);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_x509write_crt_set_validity "
+                      "returned -0x%04x - %s\n\n",
+                 (unsigned int)-ret, buf);
         goto cleanup;
     }
+    ESP_LOGI(TAG, "set validity done");
 
 #if defined(MBEDTLS_SHA1_C)
-    if ((ret = mbedtls_x509write_crt_set_subject_key_identifier(&crt)) != 0)
+    ret = mbedtls_x509write_crt_set_subject_key_identifier(&crt);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
         mbedtls_strerror(ret, buf, 1024);
-        printf(" failed\n  !  mbedtls_x509write_crt_set_subject"
-               "_key_identifier returned -0x%04x - %s\n\n",
-               (unsigned int)-ret, buf);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_x509write_crt_set_subject"
+                      "_key_identifier returned -0x%04x - %s\n\n",
+                 (unsigned int)-ret, buf);
         goto cleanup;
     }
+    ESP_LOGI(TAG, "set subj id done");
 
-    if ((ret = mbedtls_x509write_crt_set_authority_key_identifier(&crt)) != 0)
+    ret = mbedtls_x509write_crt_set_authority_key_identifier(&crt);
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret != 0)
     {
         mbedtls_strerror(ret, buf, 1024);
-        printf(" failed\n  !  mbedtls_x509write_crt_set_authority_"
-               "key_identifier returned -0x%04x - %s\n\n",
-               (unsigned int)-ret, buf);
+        ESP_LOGW(TAG, " failed\n  !  mbedtls_x509write_crt_set_authority_"
+                      "key_identifier returned -0x%04x - %s\n\n",
+                 (unsigned int)-ret, buf);
         goto cleanup;
     }
-#endif /* MBEDTLS_SHA1_C */
+    ESP_LOGI(TAG, "set issuer id done");
+#endif // MBEDTLS_SHA1_C
 
-    if ((ret = mbedtls_x509write_crt_pem(&crt, output_buf, PEM_BUFFER_SIZE, mbedtls_ctr_drbg_random, &ctr_drbg)) < 0)
+    ret = mbedtls_x509write_crt_pem(&crt, output_buf, PEM_BUFFER_SIZE, mbedtls_ctr_drbg_random, &ctr_drbg);
+    vTaskDelay(10 / portTICK_RATE_MS); // feed the watchdog
+    ESP_LOGI(TAG, "ret %i", ret);
+    if (ret < 0)
     {
         mbedtls_strerror(ret, buf, 1024);
-        printf(" failed\n  !  write_certificate -0x%04x - %s\n\n",
-               (unsigned int)-ret, buf);
+        ESP_LOGW(TAG, " failed\n  !  write_certificate -0x%04x - %s\n\n",
+                 (unsigned int)-ret, buf);
         goto cleanup;
     }
+    ESP_LOGI(TAG, "write pem done");
 
-    printf((char *)output_buf);
+    ESP_LOGE(TAG, "PEM CERT\r\n%s", (char *)output_buf);
 
-    return true;
+    ret = 0;
 
 cleanup:
 
@@ -503,9 +580,9 @@ cleanup:
     {
 #ifdef MBEDTLS_ERROR_C
         mbedtls_strerror(ret, buf, sizeof(buf));
-        printf(" - %s\n", buf);
+        ESP_LOGW(TAG, " - %s\n", buf);
 #else
-        printf("\n");
+        ESP_LOGW(TAG, "\n");
 #endif
     }
 
@@ -525,5 +602,6 @@ cleanup:
     mbedtls_ctr_drbg_free(&ctr_drbg);
     mbedtls_entropy_free(&entropy);
 
-    return false;
+    ESP_LOGI(TAG, "cleanup done");
+    return ret == 0;
 }
