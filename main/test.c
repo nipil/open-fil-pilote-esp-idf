@@ -318,3 +318,113 @@ cleanup:
     mbedtls_pk_free(&nipil_key);
     ESP_LOGD(TAG, "Done.");
 }
+
+#include "mbedtls/error.h"
+#include "mbedtls/pk.h"
+#include "mbedtls/ecdsa.h"
+#include "mbedtls/rsa.h"
+#include "mbedtls/error.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/ctr_drbg.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define RSA_KEY_SIZE 1024
+#define PEM_BUFFER_SIZE RSA_KEY_SIZE
+
+int gen_priv_key(int argc, char *argv[])
+{
+    int ret = 1;
+    int exit_code = EXIT_FAILURE;
+    mbedtls_pk_context key;
+    char buf[1024];
+    mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    const char *pers = "gen_key";
+
+    /*
+     * Set to sane values
+     */
+
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&P);
+    mbedtls_mpi_init(&Q);
+    mbedtls_mpi_init(&D);
+    mbedtls_mpi_init(&E);
+    mbedtls_mpi_init(&DP);
+    mbedtls_mpi_init(&DQ);
+    mbedtls_mpi_init(&QP);
+
+    mbedtls_pk_init(&key);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    memset(buf, 0, sizeof(buf));
+
+    mbedtls_entropy_init(&entropy);
+
+    if ((ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, (const unsigned char *)pers, strlen(pers))) != 0)
+    {
+        printf(" failed\n  ! mbedtls_ctr_drbg_seed returned -0x%04x\n", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    if ((ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA))) != 0)
+    {
+        printf(" failed\n  !  mbedtls_pk_setup returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    if ((ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, RSA_KEY_SIZE, 65537)) != 0)
+    {
+        printf(" failed\n  !  mbedtls_rsa_gen_key returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    mbedtls_rsa_context *rsa = mbedtls_pk_rsa(key);
+
+    if ((ret = mbedtls_rsa_export(rsa, &N, &P, &Q, &D, &E)) != 0 || (ret = mbedtls_rsa_export_crt(rsa, &DP, &DQ, &QP)) != 0)
+    {
+        printf(" failed\n  ! could not export RSA parameters\n\n");
+        goto cleanup;
+    }
+
+    unsigned char output_buf[PEM_BUFFER_SIZE];
+    memset(output_buf, 0, PEM_BUFFER_SIZE);
+    if ((ret = mbedtls_pk_write_key_pem(&key, output_buf, PEM_BUFFER_SIZE)) != 0)
+    {
+        printf(" pem failed\n");
+        goto cleanup;
+    }
+    printf((char *)output_buf);
+
+    exit_code = EXIT_SUCCESS;
+
+cleanup:
+
+    if (exit_code != EXIT_SUCCESS)
+    {
+#ifdef MBEDTLS_ERROR_C
+        mbedtls_strerror(ret, buf, sizeof(buf));
+        printf(" - %s\n", buf);
+#else
+        printf("\n");
+#endif
+    }
+
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&P);
+    mbedtls_mpi_free(&Q);
+    mbedtls_mpi_free(&D);
+    mbedtls_mpi_free(&E);
+    mbedtls_mpi_free(&DP);
+    mbedtls_mpi_free(&DQ);
+    mbedtls_mpi_free(&QP);
+
+    mbedtls_pk_free(&key);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
+
+    exit(exit_code);
+}
