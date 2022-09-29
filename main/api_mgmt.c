@@ -1,6 +1,17 @@
 #include <cjson.h>
 #include <esp_log.h>
+#include <esp_random.h>
 #include <esp_ota_ops.h>
+
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+#include <mbedtls/error.h>
+#include <mbedtls/pk.h>
+#include <mbedtls/rsa.h>
+#include <mbedtls/entropy.h>
+#include <mbedtls/ctr_drbg.h>
+#include <mbedtls/x509_crt.h>
 
 #include "str.h"
 #include "ofp.h"
@@ -8,12 +19,19 @@
 #include "uptime.h"
 #include "api_mgmt.h"
 #include "fwupd.h"
+#include "storage.h"
 
 static const char TAG[] = "api_mgmt";
 
 #define REBOOT_WAIT_SEC 10
 #define CERT_BUNDLE_MAX_LENGTH (16 * 1024)
 #define CERT_BUNDLE_MAX_PART_COUNT 8
+
+#define SELF_SIGNED_CERT_RSA_KEY_SIZE 2048
+#define SELF_SIGNED_CERT_OUTPUT_PEM_MAX_LENGTH SELF_SIGNED_CERT_RSA_KEY_SIZE
+#define SELF_SIGNED_CERT_SERIAL_NUMBER "1"
+#define SELF_SIGNED_CERT_NOT_BEFORE "20200101000000"
+#define SELF_SIGNED_CERT_NOT_AFTER "20401231235959"
 
 /***************************************************************************/
 
@@ -295,7 +313,6 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
         // its doc explicitely states that the string length includes null terminatin char
         // here i wand to parse certificates one by one so i must add the null characters
         // and account for them in the length for the parsing to succeed.
-        // 
         // And we do not overflow even if there is no terminating null byte on the input
         // as webserver_get_request_data_atomic_* added a \0 terminating byte as safeguard
         // which we overwrite here.
@@ -391,4 +408,204 @@ cleanup:
     certificate_bundle_iter_free(it);
     free(buf);
     return httpd_resp_send_500(req);
+}
+
+esp_err_t serve_api_put_certificate_self_signed(httpd_req_t *req, struct re_result *captures)
+{
+    esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
+    int version = re_get_int(captures, 1);
+    ESP_LOGD(TAG, "serve_api_put_certificate_self_signed version=%i", version);
+    if (version != 1)
+        return httpd_resp_send_404(req);
+
+    // restrict access
+    if (!ofp_session_user_is_admin(req))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
+
+    int ret = 0;
+    unsigned char *output_buf = NULL;
+
+    mbedtls_pk_context key;
+    mbedtls_mpi N, P, Q, D, E, DP, DQ, QP;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_entropy_context entropy;
+
+    mbedtls_x509write_cert crt;
+    mbedtls_mpi serial;
+    char name[] = "CN=openfilpilote.local,O=local,C=FR";
+
+    // generate private key (includes public too)
+
+    mbedtls_mpi_init(&N);
+    mbedtls_mpi_init(&P);
+    mbedtls_mpi_init(&Q);
+    mbedtls_mpi_init(&D);
+    mbedtls_mpi_init(&E);
+    mbedtls_mpi_init(&DP);
+    mbedtls_mpi_init(&DQ);
+    mbedtls_mpi_init(&QP);
+    mbedtls_pk_init(&key);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    mbedtls_entropy_init(&entropy);
+
+    unsigned char custom[32];
+    esp_fill_random(custom, sizeof(custom));
+    ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy, custom, sizeof(custom));
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_ctr_drbg_seed returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    ret = mbedtls_pk_setup(&key, mbedtls_pk_info_from_type(MBEDTLS_PK_RSA));
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_pk_setup returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    ret = mbedtls_rsa_gen_key(mbedtls_pk_rsa(key), mbedtls_ctr_drbg_random, &ctr_drbg, SELF_SIGNED_CERT_RSA_KEY_SIZE, 65537);
+    vTaskDelay(100 / portTICK_RATE_MS); // feed the watchdog ASAP
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_rsa_gen_key returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    mbedtls_rsa_context *rsa = mbedtls_pk_rsa(key);
+    if (rsa == NULL)
+    {
+        ESP_LOGW(TAG, "mbedtls_pk_rsa returned NULL");
+        goto cleanup;
+    }
+
+    ret = mbedtls_rsa_export(rsa, &N, &P, &Q, &D, &E);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "could not export RSA parameters part1");
+        goto cleanup;
+    }
+
+    ret = mbedtls_rsa_export_crt(rsa, &DP, &DQ, &QP);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "could not export RSA parameters part 2");
+        goto cleanup;
+    }
+
+    output_buf = malloc(SELF_SIGNED_CERT_OUTPUT_PEM_MAX_LENGTH);
+    if (output_buf == NULL)
+    {
+        ESP_LOGW(TAG, "could not export RSA parameters part 2");
+        goto cleanup;
+    }
+
+    memset(output_buf, 0, SELF_SIGNED_CERT_OUTPUT_PEM_MAX_LENGTH);
+    ret = mbedtls_pk_write_key_pem(&key, output_buf, SELF_SIGNED_CERT_OUTPUT_PEM_MAX_LENGTH - 1);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "writing pem key failed");
+        goto cleanup;
+    }
+
+    ESP_LOGD(TAG, "PEM KEY\r\n%s", (char *)output_buf);
+    kv_ns_set_str_atomic(kv_get_ns_ofp(), stor_key_https_key, (char *)output_buf);
+
+    // generate self-signed certificate
+
+    mbedtls_mpi_init(&serial);
+    mbedtls_x509write_crt_init(&crt);
+
+    ret = mbedtls_mpi_read_string(&serial, 10, SELF_SIGNED_CERT_SERIAL_NUMBER);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_mpi_read_string returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    mbedtls_x509write_crt_set_subject_key(&crt, &key);
+    mbedtls_x509write_crt_set_issuer_key(&crt, &key);
+
+    ret = mbedtls_x509write_crt_set_subject_name(&crt, name);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_x509write_crt_set_subject_name returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    ret = mbedtls_x509write_crt_set_issuer_name(&crt, name);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_x509write_crt_set_issuer_name returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    mbedtls_x509write_crt_set_version(&crt, MBEDTLS_X509_CRT_VERSION_3);
+    mbedtls_x509write_crt_set_md_alg(&crt, MBEDTLS_MD_SHA256);
+
+    ret = mbedtls_x509write_crt_set_serial(&crt, &serial);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_x509write_crt_set_serial returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    ret = mbedtls_x509write_crt_set_validity(&crt, SELF_SIGNED_CERT_NOT_BEFORE, SELF_SIGNED_CERT_NOT_AFTER);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_x509write_crt_set_validity returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+#if defined(MBEDTLS_SHA1_C)
+    ret = mbedtls_x509write_crt_set_subject_key_identifier(&crt);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_x509write_crt_set_subject_key_identifier returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    ret = mbedtls_x509write_crt_set_authority_key_identifier(&crt);
+    if (ret != 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_x509write_crt_set_authority_key_identifier returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+#endif // MBEDTLS_SHA1_C
+
+    ret = mbedtls_x509write_crt_pem(&crt, output_buf, SELF_SIGNED_CERT_OUTPUT_PEM_MAX_LENGTH - 1, mbedtls_ctr_drbg_random, &ctr_drbg);
+    vTaskDelay(100 / portTICK_RATE_MS); // feed the watchdog
+    if (ret < 0)
+    {
+        ESP_LOGW(TAG, "mbedtls_x509write_crt_pem returned -0x%04x", (unsigned int)-ret);
+        goto cleanup;
+    }
+
+    ESP_LOGD(TAG, "PEM CERT\r\n%s", (char *)output_buf);
+    kv_ns_set_str_atomic(kv_get_ns_ofp(), stor_key_https_certs, (char *)output_buf);
+
+    ret = 0;
+
+cleanup:
+    free(output_buf);
+    mbedtls_x509write_crt_free(&crt);
+    mbedtls_mpi_free(&serial);
+
+    mbedtls_mpi_free(&N);
+    mbedtls_mpi_free(&P);
+    mbedtls_mpi_free(&Q);
+    mbedtls_mpi_free(&D);
+    mbedtls_mpi_free(&E);
+    mbedtls_mpi_free(&DP);
+    mbedtls_mpi_free(&DQ);
+    mbedtls_mpi_free(&QP);
+
+    mbedtls_pk_free(&key);
+    mbedtls_entropy_free(&entropy);
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+
+    if (ret == 0)
+        return httpd_resp_sendstr(req, "self-signed certificate generated successfully");
+    else
+        return httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not generate self-signed certificate");
 }

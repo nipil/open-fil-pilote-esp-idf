@@ -154,6 +154,13 @@ DELETE /ofp-api/v1/accounts/${userId}
 PATCH /ofp-api/v1/accounts/${userId}
     { "password": "pouet" }
 
+
+---------------------------------------------------------------------
+
+PUT /ofp-api/v1/certificate/selfsigned
+
+    Generates, stores, and uses a 2048-bit RSA self-signed certificate
+
 ---------------------------------------------------------------------
 
 POST /ofp-api/v1/upgrade

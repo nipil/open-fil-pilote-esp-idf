@@ -50,6 +50,9 @@ const char *stor_key_id = "id";
 const char *stor_key_name = "name";
 const char *stor_key_class = "class";
 
+const char *stor_key_https_certs = "https_certs";
+const char *stor_key_https_key = "https_key";
+
 const char *stor_val_none = "none";
 
 const char *http_content_type_html = HTTPD_TYPE_TEXT;
@@ -81,6 +84,7 @@ const char *route_api_upgrade = "^/ofp-api/v([[:digit:]]+)/upgrade$";
 const char *route_api_status = "^/ofp-api/v([[:digit:]]+)/status$";
 const char *route_api_reboot = "^/ofp-api/v([[:digit:]]+)/reboot$";
 const char *route_api_certificate = "^/ofp-api/v([[:digit:]]+)/certificate$";
+const char *route_api_certificate_self_signed = "^/ofp-api/v([[:digit:]]+)/certificate/selfsigned$";
 
 const char *route_api_plannings = "^/ofp-api/v([[:digit:]]+)/plannings$";
 const char *route_api_planning_id = "^/ofp-api/v([[:digit:]]+)/plannings/([[:digit:]]+)$";

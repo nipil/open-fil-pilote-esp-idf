@@ -48,6 +48,9 @@ const char *stor_key_id;
 const char *stor_key_name;
 const char *stor_key_class;
 
+const char *stor_key_https_certs;
+const char *stor_key_https_key;
+
 const char *stor_val_none;
 
 const char *http_content_type_html;
@@ -79,6 +82,7 @@ const char *route_api_upgrade;
 const char *route_api_status;
 const char *route_api_reboot;
 const char *route_api_certificate;
+const char *route_api_certificate_self_signed;
 
 const char *route_api_plannings;
 const char *route_api_planning_id;

@@ -293,6 +293,9 @@ static esp_err_t https_handler_put(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_override, serve_api_put_override))
         return result;
 
+    if (api_route_try(&result, req, route_api_certificate_self_signed, serve_api_put_certificate_self_signed))
+        return result;
+
     return httpd_resp_send_404(req);
 }
 
