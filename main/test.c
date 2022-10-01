@@ -145,164 +145,46 @@ void do_test()
     print_cert_chain(pk_cert);
 
     // search for parent certificate
-    mbedtls_x509_crt *current_level = pk_cert;
-    for (int i = 0; i < MAX_BUNDLE_COUNT; i++)
+    mbedtls_x509_crt *current = pk_cert;
+    bool found;
+    int non_empty_count;
+    do
     {
-        if (certs[i] == NULL)
-            continue;
-        // TODO: check that current level matches cert[i]
-        ESP_LOGD(TAG, "current_level %p", current_level);
+        non_empty_count = 0;
+        found = false;
+        for (int i = 0; i < MAX_BUNDLE_COUNT; i++)
+        {
+            if (certs[i] == NULL)
+                continue;
+            ESP_LOGV(TAG, "iter %i candidate %p current %p", i, certs[i], current);
+            non_empty_count++;
+            uint32_t flags;
+            int ret = mbedtls_x509_crt_verify(pk_cert, certs[i], NULL, NULL, &flags, NULL, NULL);
+            ESP_LOGD(TAG, "mbedtls_x509_crt_verify ret 0x%x flags 0x%08x", -ret, flags);
 
-        /**
-         * \brief          Verify a chain of certificates.
-         *
-         *                 The verify callback is a user-supplied callback that
-         *                 can clear / modify / add flags for a certificate. If set,
-         *                 the verification callback is called for each
-         *                 certificate in the chain (from the trust-ca down to the
-         *                 presented crt). The parameters for the callback are:
-         *                 (void *parameter, mbedtls_x509_crt *crt, int certificate_depth,
-         *                 int *flags). With the flags representing current flags for
-         *                 that specific certificate and the certificate depth from
-         *                 the bottom (Peer cert depth = 0).
-         *
-         *                 All flags left after returning from the callback
-         *                 are also returned to the application. The function should
-         *                 return 0 for anything (including invalid certificates)
-         *                 other than fatal error, as a non-zero return code
-         *                 immediately aborts the verification process. For fatal
-         *                 errors, a specific error code should be used (different
-         *                 from MBEDTLS_ERR_X509_CERT_VERIFY_FAILED which should not
-         *                 be returned at this point), or MBEDTLS_ERR_X509_FATAL_ERROR
-         *                 can be used if no better code is available.
-         *
-         * \note           In case verification failed, the results can be displayed
-         *                 using \c mbedtls_x509_crt_verify_info()
-         *
-         * \note           Same as \c mbedtls_x509_crt_verify_with_profile() with the
-         *                 default security profile.
-         *
-         * \note           It is your responsibility to provide up-to-date CRLs for
-         *                 all trusted CAs. If no CRL is provided for the CA that was
-         *                 used to sign the certificate, CRL verification is skipped
-         *                 silently, that is *without* setting any flag.
-         *
-         * \note           The \c trust_ca list can contain two types of certificates:
-         *                 (1) those of trusted root CAs, so that certificates
-         *                 chaining up to those CAs will be trusted, and (2)
-         *                 self-signed end-entity certificates to be trusted (for
-         *                 specific peers you know) - in that case, the self-signed
-         *                 certificate doesn't need to have the CA bit set.
-         *
-         * \param crt      The certificate chain to be verified.
-         * \param trust_ca The list of trusted CAs.
-         * \param ca_crl   The list of CRLs for trusted CAs.
-         * \param cn       The expected Common Name. This will be checked to be
-         *                 present in the certificate's subjectAltNames extension or,
-         *                 if this extension is absent, as a CN component in its
-         *                 Subject name. Currently only DNS names are supported. This
-         *                 may be \c NULL if the CN need not be verified.
-         * \param flags    The address at which to store the result of the verification.
-         *                 If the verification couldn't be completed, the flag value is
-         *                 set to (uint32_t) -1.
-         * \param f_vrfy   The verification callback to use. See the documentation
-         *                 of mbedtls_x509_crt_verify() for more information.
-         * \param p_vrfy   The context to be passed to \p f_vrfy.
-         *
-         * \return         \c 0 if the chain is valid with respect to the
-         *                 passed CN, CAs, CRLs and security profile.
-         * \return         #MBEDTLS_ERR_X509_CERT_VERIFY_FAILED in case the
-         *                 certificate chain verification failed. In this case,
-         *                 \c *flags will have one or more
-         *                 \c MBEDTLS_X509_BADCERT_XXX or \c MBEDTLS_X509_BADCRL_XXX
-         *                 flags set.
-         * \return         Another negative error code in case of a fatal error
-         *                 encountered during the verification process.
-         */
-        // int mbedtls_x509_crt_verify( mbedtls_x509_crt *crt,
-        //                      mbedtls_x509_crt *trust_ca,
-        //                      mbedtls_x509_crl *ca_crl,
-        //                      const char *cn, uint32_t *flags,
-        //                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-        //                      void *p_vrfy );
+            // MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
+            if (ret != 0)
+                continue;
 
-        /**
-         * \brief          Verify a chain of certificates with respect to
-         *                 a configurable security profile.
-         *
-         * \note           Same as \c mbedtls_x509_crt_verify(), but with explicit
-         *                 security profile.
-         *
-         * \note           The restrictions on keys (RSA minimum size, allowed curves
-         *                 for ECDSA) apply to all certificates: trusted root,
-         *                 intermediate CAs if any, and end entity certificate.
-         *
-         * \param crt      The certificate chain to be verified.
-         * \param trust_ca The list of trusted CAs.
-         * \param ca_crl   The list of CRLs for trusted CAs.
-         * \param profile  The security profile to use for the verification.
-         * \param cn       The expected Common Name. This may be \c NULL if the
-         *                 CN need not be verified.
-         * \param flags    The address at which to store the result of the verification.
-         *                 If the verification couldn't be completed, the flag value is
-         *                 set to (uint32_t) -1.
-         * \param f_vrfy   The verification callback to use. See the documentation
-         *                 of mbedtls_x509_crt_verify() for more information.
-         * \param p_vrfy   The context to be passed to \p f_vrfy.
-         *
-         * \return         \c 0 if the chain is valid with respect to the
-         *                 passed CN, CAs, CRLs and security profile.
-         * \return         #MBEDTLS_ERR_X509_CERT_VERIFY_FAILED in case the
-         *                 certificate chain verification failed. In this case,
-         *                 \c *flags will have one or more
-         *                 \c MBEDTLS_X509_BADCERT_XXX or \c MBEDTLS_X509_BADCRL_XXX
-         *                 flags set.
-         * \return         Another negative error code in case of a fatal error
-         *                 encountered during the verification process.
-         */
-        // int mbedtls_x509_crt_verify_with_profile( mbedtls_x509_crt *crt,
-        //                      mbedtls_x509_crt *trust_ca,
-        //                      mbedtls_x509_crl *ca_crl,
-        //                      const mbedtls_x509_crt_profile *profile,
-        //                      const char *cn, uint32_t *flags,
-        //                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-        //                      void *p_vrfy );
+            // candidate signed the current cert
+            found = true;
+            current->next = certs[i];
+            current = certs[i];
+            certs[i] = NULL;
+        }
+    } while (found);
 
-        /**
-         * \brief          Restartable version of \c mbedtls_crt_verify_with_profile()
-         *
-         * \note           Performs the same job as \c mbedtls_crt_verify_with_profile()
-         *                 but can return early and restart according to the limit
-         *                 set with \c mbedtls_ecp_set_max_ops() to reduce blocking.
-         *
-         * \param crt      The certificate chain to be verified.
-         * \param trust_ca The list of trusted CAs.
-         * \param ca_crl   The list of CRLs for trusted CAs.
-         * \param profile  The security profile to use for the verification.
-         * \param cn       The expected Common Name. This may be \c NULL if the
-         *                 CN need not be verified.
-         * \param flags    The address at which to store the result of the verification.
-         *                 If the verification couldn't be completed, the flag value is
-         *                 set to (uint32_t) -1.
-         * \param f_vrfy   The verification callback to use. See the documentation
-         *                 of mbedtls_x509_crt_verify() for more information.
-         * \param p_vrfy   The context to be passed to \p f_vrfy.
-         * \param rs_ctx   The restart context to use. This may be set to \c NULL
-         *                 to disable restartable ECC.
-         *
-         * \return         See \c mbedtls_crt_verify_with_profile(), or
-         * \return         #MBEDTLS_ERR_ECP_IN_PROGRESS if maximum number of
-         *                 operations was reached: see \c mbedtls_ecp_set_max_ops().
-         */
-        // int mbedtls_x509_crt_verify_restartable( mbedtls_x509_crt *crt,
-        //                      mbedtls_x509_crt *trust_ca,
-        //                      mbedtls_x509_crl *ca_crl,
-        //                      const mbedtls_x509_crt_profile *profile,
-        //                      const char *cn, uint32_t *flags,
-        //                      int (*f_vrfy)(void *, mbedtls_x509_crt *, int, uint32_t *),
-        //                      void *p_vrfy,
-        //                      mbedtls_x509_crt_restart_ctx *rs_ctx );
+    // print remaining certificate count
+    if (non_empty_count != 0)
+    {
+        printf("\nRemaining certificates which were not linked to the chain: %i", non_empty_count);
+        goto cleanup;
     }
+
+    // resulting chain
+    print_cert_chain(pk_cert);
+
+    // TODO: beware for cleanup, when certs are chained, the free on the leaf frees all parents, so maybe unlink the cert before freeing them
 
 cleanup:
     ESP_LOGI(TAG, "Cleaning now.");
