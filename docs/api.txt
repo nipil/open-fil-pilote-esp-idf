@@ -159,9 +159,20 @@ PATCH /ofp-api/v1/accounts/${userId}
 
 GET /ofp-api/v1/certificate
 
-    Get used certificates
-    - embedded certificate and key
-    - stored certificate and key
+    Get installed certificates
+    - "embedded" are the ones provided (compiled in) the firmware
+    - "stored" are the ones either the self-signed ones (from PUT) or the uploaded ones (from POST)
+
+    {
+        "embedded":     {
+                "https_certs":  "-----BEGIN CERTIFICATE-----\nMIIC...doI\n-----END CERTIFICATE-----\n",
+                "https_key":    "-----BEGIN PRIVATE KEY-----\nMIIC...6m0=\n-----END PRIVATE KEY-----\n"
+        },
+        "stored":       {
+                "https_certs":  "-----BEGIN CERTIFICATE-----\nMIID...MDgRjw==\n-----END CERTIFICATE-----\n",
+                "https_key":    "-----BEGIN RSA PRIVATE KEY-----\nMIIEp...Z9A==\n-----END RSA PRIVATE KEY-----\n"
+        }
+    }
 
 DELETE /ofp-api/v1/certificate
 
