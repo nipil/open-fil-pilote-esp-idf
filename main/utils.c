@@ -1262,3 +1262,33 @@ void certificate_bundle_iter_log(struct certificate_bundle_iter *it, const char 
                         it->block_start,
                         it->block_len);
 }
+
+bool certificate_matches_private_key(mbedtls_x509_crt *certificate, mbedtls_pk_context *private_key)
+{
+    if (certificate == NULL || private_key == NULL)
+        return false;
+
+    /*
+     * 0 = success
+     * MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE could not be checked
+     * MBEDTLS_ERR_PK_BAD_INPUT_DATA invalid context
+     * not zero if no match
+     */
+    int result = mbedtls_pk_check_pair(&certificate->pk, private_key);
+    ESP_LOGD(TAG, "mbedtls_pk_check_pair %i", result);
+    switch (result)
+    {
+    case 0:
+        ESP_LOGI(TAG, "Certificate %p and private key %p match", certificate, private_key);
+        return true;
+    case MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE:
+        ESP_LOGW(TAG, "Cannot compare certificate %p and private key %p due to unavailable feature", certificate, private_key);
+        return false;
+    case MBEDTLS_ERR_PK_BAD_INPUT_DATA:
+        ESP_LOGW(TAG, "Bad input data in private_key %p", private_key);
+        return false;
+    default:
+        ESP_LOGD(TAG, "No key match between certificate %p and private_key %p", certificate, private_key);
+        return false;
+    }
+}

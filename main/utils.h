@@ -250,4 +250,6 @@ struct certificate_bundle_iter *certificate_bundle_iter_init(const void *buf, si
 void certificate_bundle_iter_free(struct certificate_bundle_iter *it);
 void certificate_bundle_iter_log(struct certificate_bundle_iter *it, const char *tag, esp_log_level_t level);
 
+bool certificate_matches_private_key(mbedtls_x509_crt *certificate, mbedtls_pk_context *private_key);
+
 #endif /* UTILS_H */
