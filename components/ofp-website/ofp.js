@@ -712,7 +712,7 @@ async function initFirmwareButtons() {
     el.onclick = function (e) {
         let t = document.getElementById('updateTextFilePath');
         if (t.files.length != 1) return;
-        let status = confirm('Etes vous certain de vouloir charger un nouveau microgiciel ? La centrale devra redémarrer pour prendre en compte le changement.');
+        let status = confirm('Etes vous certain de vouloir charger un nouveau microgiciel ? La centrale devra redémarrer pour prendre en compte le changement. ATTENTION LA PROCEDURE PREND PLUS DE 2 MINUTES, ne pas rafraichir la page, merci de patienter.');
         if (status !== true)
             return;
         uploadFirmware(t.files[0]);
