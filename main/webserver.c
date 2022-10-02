@@ -619,15 +619,16 @@ void webserver_start(void)
     conf.prvtkey_len = prvtkey_pem_end - prvtkey_pem_start;
 
     /* tries to load the provided ones from storage */
-    char *https_key = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_https_key);
-    char *https_certs = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_https_certs);
+    size_t len_key, len_cert;
+    char *https_key = kv_ns_get_blob_atomic(kv_get_ns_ofp(), stor_key_https_key, &len_key);
+    char *https_certs = kv_ns_get_blob_atomic(kv_get_ns_ofp(), stor_key_https_certs, &len_cert);
     if (https_key != NULL && https_certs != NULL)
     {
         // These need to be null-terminated too
         conf.cacert_pem = (const uint8_t *)https_certs;
         conf.prvtkey_pem = (const uint8_t *)https_key;
-        conf.cacert_len = strlen(https_certs) + 1;
-        conf.prvtkey_len = strlen(https_key) + 1;
+        conf.cacert_len = len_cert;
+        conf.prvtkey_len = len_key;
         ESP_LOGI(TAG, "Trying to use provided HTTPS certificate");
     }
     else

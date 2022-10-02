@@ -271,13 +271,14 @@ esp_err_t serve_api_get_certificate(httpd_req_t *req, struct re_result *captures
     cJSON_AddStringToObject(embedded, stor_key_https_key, (char *)prvtkey_pem_start);
 
     // stored certs and key
-    char *https_certs = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_https_certs);
+    size_t len;
+    char *https_certs = kv_ns_get_blob_atomic(kv_get_ns_ofp(), stor_key_https_certs, &len);
     cJSON *stored = cJSON_AddObjectToObject(root, "stored");
     if (https_certs != NULL)
         cJSON_AddStringToObject(stored, stor_key_https_certs, https_certs);
     else
         cJSON_AddNullToObject(stored, stor_key_https_certs);
-    char *https_key = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_https_key);
+    char *https_key = kv_ns_get_blob_atomic(kv_get_ns_ofp(), stor_key_https_key, &len);
     if (https_key != NULL)
         cJSON_AddStringToObject(stored, stor_key_https_key, https_key);
     else
@@ -604,7 +605,7 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     n += 1; // trailing \0
     ESP_LOGD(TAG, "n %i", n);
 
-    // store
+    // store certs
     buf = calloc(1, n);
     if (buf == NULL)
     {
@@ -619,7 +620,11 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
         strcat(buf, "\n");
         current_level = current_level->next;
     }
+    ESP_LOGD(TAG, "PEM CERTS\n%s", buf);
     kv_ns_set_blob_atomic(kv_get_ns_ofp(), stor_key_https_certs, buf, n);
+
+    // store key
+    ESP_LOGD(TAG, "PEM KEY\n%s", pks[0].pem);
     n = strlen(pks[0].pem) + 1;
     kv_ns_set_blob_atomic(kv_get_ns_ofp(), stor_key_https_key, pks[0].pem, n);
 
@@ -748,7 +753,7 @@ esp_err_t serve_api_put_certificate_self_signed(httpd_req_t *req, struct re_resu
     }
 
     ESP_LOGD(TAG, "PEM KEY\r\n%s", (char *)output_buf);
-    kv_ns_set_str_atomic(kv_get_ns_ofp(), stor_key_https_key, (char *)output_buf);
+    kv_ns_set_blob_atomic(kv_get_ns_ofp(), stor_key_https_key, (char *)output_buf, strlen((char *)output_buf) + 1);
 
     // generate self-signed certificate
 
@@ -821,7 +826,7 @@ esp_err_t serve_api_put_certificate_self_signed(httpd_req_t *req, struct re_resu
     }
 
     ESP_LOGD(TAG, "PEM CERT\r\n%s", (char *)output_buf);
-    kv_ns_set_str_atomic(kv_get_ns_ofp(), stor_key_https_certs, (char *)output_buf);
+    kv_ns_set_blob_atomic(kv_get_ns_ofp(), stor_key_https_certs, (char *)output_buf, strlen((char *)output_buf) + 1);
 
     ret = 0;
 
