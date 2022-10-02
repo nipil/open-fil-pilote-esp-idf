@@ -5,9 +5,8 @@
 
 static const char TAG[] = "fwupd";
 
-void ota_check(void)
+void fwupd_log_part_info(void)
 {
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE);
     const esp_partition_t *part_b = esp_ota_get_boot_partition();
     ESP_LOGI(TAG, "boot partition: label %s addr %08X size %u", part_b->label, part_b->address, part_b->size);
     const esp_partition_t *part_running = esp_ota_get_running_partition();

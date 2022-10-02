@@ -147,6 +147,9 @@ static esp_err_t serve_api_post_upgrade_raw(httpd_req_t *req)
 {
     ESP_LOGD(TAG, "serve_api_post_upgrade_raw");
 
+    // Log partition status before the update
+    fwupd_log_part_info();
+
     static char buf[CONFIG_OFP_UI_WEBSERVER_DATA_MAX_SIZE_SINGLE_OP];
 
     int remaining = req->content_len;
@@ -184,6 +187,9 @@ static esp_err_t serve_api_post_upgrade_raw(httpd_req_t *req)
     ESP_LOGD(TAG, "fwupd_end %i", result);
     if (result != ESP_OK)
         goto cleanup;
+
+    // Log partition status after the update
+    fwupd_log_part_info();
 
     return ESP_OK;
 
