@@ -1279,13 +1279,13 @@ bool certificate_matches_private_key(mbedtls_x509_crt *certificate, mbedtls_pk_c
     switch (result)
     {
     case 0:
-        ESP_LOGI(TAG, "Certificate %p and private key %p match", certificate, private_key);
+        ESP_LOGD(TAG, "Certificate %p and private key %p match", certificate, private_key);
         return true;
     case MBEDTLS_ERR_PK_FEATURE_UNAVAILABLE:
-        ESP_LOGW(TAG, "Cannot compare certificate %p and private key %p due to unavailable feature", certificate, private_key);
+        ESP_LOGD(TAG, "Cannot compare certificate %p and private key %p due to unavailable feature", certificate, private_key);
         return false;
     case MBEDTLS_ERR_PK_BAD_INPUT_DATA:
-        ESP_LOGW(TAG, "Bad input data in private_key %p", private_key);
+        ESP_LOGD(TAG, "Bad input data in private_key %p", private_key);
         return false;
     default:
         ESP_LOGD(TAG, "No key match between certificate %p and private_key %p", certificate, private_key);
