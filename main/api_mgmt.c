@@ -243,6 +243,62 @@ cleanup:
     free(content_type_hdr_value);
     return httpd_resp_send_500(req);
 }
+
+esp_err_t serve_api_get_certificate(httpd_req_t *req, struct re_result *captures)
+{
+    int version = re_get_int(captures, 1);
+    ESP_LOGD(TAG, "serve_api_get_certificate version=%i", version);
+    if (version != 1)
+        return httpd_resp_send_404(req);
+
+    // restrict access
+    if (!ofp_session_user_is_admin(req))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
+
+    cJSON *root = cJSON_CreateObject();
+
+    // embedded certs and key
+    cJSON *embedded = cJSON_AddObjectToObject(root, "embedded");
+    extern const unsigned char cacert_pem_start[] asm("_binary_autosign_crt_start");
+    cJSON_AddStringToObject(embedded, stor_key_https_certs, (char *)cacert_pem_start);
+    extern const unsigned char prvtkey_pem_start[] asm("_binary_autosign_key_start");
+    cJSON_AddStringToObject(embedded, stor_key_https_key, (char *)prvtkey_pem_start);
+
+    // stored certs and key
+    char *https_certs = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_https_certs);
+    cJSON *stored = cJSON_AddObjectToObject(root, "stored");
+    if (https_certs != NULL)
+        cJSON_AddStringToObject(stored, stor_key_https_certs, https_certs);
+    else
+        cJSON_AddNullToObject(stored, stor_key_https_certs);
+    char *https_key = kv_ns_get_str_atomic(kv_get_ns_ofp(), stor_key_https_key);
+    if (https_key != NULL)
+        cJSON_AddStringToObject(stored, stor_key_https_key, https_key);
+    else
+        cJSON_AddNullToObject(stored, stor_key_https_key);
+
+    esp_err_t result = serve_json(req, root);
+    cJSON_Delete(root);
+    return result;
+}
+
+esp_err_t serve_api_delete_certificate(httpd_req_t *req, struct re_result *captures)
+{
+    int version = re_get_int(captures, 1);
+    ESP_LOGD(TAG, "serve_api_delete_certificate version=%i", version);
+    if (version != 1)
+        return httpd_resp_send_404(req);
+
+    // restrict access
+    if (!ofp_session_user_is_admin(req))
+        return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
+
+    kv_ns_delete_atomic(kv_get_ns_ofp(), stor_key_https_certs);
+    kv_ns_delete_atomic(kv_get_ns_ofp(), stor_key_https_key);
+
+    return httpd_resp_sendstr(req, "Stored cert and key removed, only firmware-embedded cert and key remains. Please reboot.");
+}
+
 /*
  * Upload a PEM certificate bundle (with an unencrypted key)
  *
@@ -412,7 +468,6 @@ cleanup:
 
 esp_err_t serve_api_put_certificate_self_signed(httpd_req_t *req, struct re_result *captures)
 {
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     int version = re_get_int(captures, 1);
     ESP_LOGD(TAG, "serve_api_put_certificate_self_signed version=%i", version);
     if (version != 1)

@@ -157,6 +157,20 @@ PATCH /ofp-api/v1/accounts/${userId}
 
 ---------------------------------------------------------------------
 
+GET /ofp-api/v1/certificate
+
+    Get used certificates
+    - embedded certificate and key
+    - stored certificate and key
+
+DELETE /ofp-api/v1/certificate
+
+    Remove stored certificate and key
+
+POST /ofp-api/v1/certificate
+
+    Checks and stores certificate and key
+
 PUT /ofp-api/v1/certificate/selfsigned
 
     Generates, stores, and uses a 2048-bit RSA self-signed certificate

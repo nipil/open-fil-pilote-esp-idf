@@ -252,6 +252,9 @@ static esp_err_t https_handler_get(httpd_req_t *req)
     if (api_route_try(&result, req, route_api_planning_id, serve_api_get_plannings_id))
         return result;
 
+    if (api_route_try(&result, req, route_api_certificate, serve_api_get_certificate))
+        return result;
+
     /*
      * This one is a GET because we can not redirect to POST
      * and by choice because any tool can do a GET
@@ -330,6 +333,9 @@ static esp_err_t https_handler_delete(httpd_req_t *req)
         return result;
 
     if (api_route_try(&result, req, route_api_planning_id_slots_id, serve_api_delete_plannings_id_slots_id))
+        return result;
+
+    if (api_route_try(&result, req, route_api_certificate, serve_api_delete_certificate))
         return result;
 
     return httpd_resp_send_404(req);
