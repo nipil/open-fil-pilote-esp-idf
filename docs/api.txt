@@ -182,6 +182,17 @@ POST /ofp-api/v1/certificate
 
     Checks and stores certificate and key
 
+    See Web UI for how to build the PEM certificate bundle.
+    Then you can build a certificate bundle and upload it via WebUI.
+
+    Or you can follow the example below for to send it from the command-line using CURL.
+    - the content type is required
+    - the "--data-binary" is required to keep newlines, which are part of the PEM format
+    
+    Example:
+        curl -sS --insecure -X POST https://admin:adminpwd@openfilpilote.local/ofp-api/v1/certificate --header 'Content-Type: application/x-pem-file' --data-binary @full.pem
+    
+
 PUT /ofp-api/v1/certificate/selfsigned
 
     Generates, stores, and uses a 2048-bit RSA self-signed certificate

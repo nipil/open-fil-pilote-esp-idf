@@ -326,33 +326,42 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
         return httpd_resp_send_err(req, HTTPD_403_FORBIDDEN, "Unauthorized");
 
     // result
-    int result = 0;
+    int code = 200;
     char *msg = NULL;
 
     // matedata structure for certificates
-    struct data
+    struct cert_data
     {
-        char *pem_start;
-        size_t pem_len;
-        void *data;
+        char *pem;
+        mbedtls_x509_crt *crt;
         bool used;
+        struct cert_data *next;
+    };
+    struct pk_data
+    {
+        char *pem;
+        mbedtls_pk_context *ctx;
     };
 
     // cleanup variables
     char *buf = NULL;
     struct certificate_bundle_iter *it = NULL;
-    mbedtls_x509_crt *leaf_cert = NULL;
     int cert_count = 0;
     int pk_count = 0;
-    struct data certs[CERT_BUNDLE_MAX_PART_COUNT] = {0};
-    struct data pks[CERT_BUNDLE_MAX_PART_COUNT] = {0};
+    struct cert_data *leaf = NULL;
+    struct cert_data certs[CERT_BUNDLE_MAX_PART_COUNT] = {0};
+    struct pk_data pks[CERT_BUNDLE_MAX_PART_COUNT] = {0};
+
+    // other variables
+    int result, n;
 
     // verify header
     buf = ofp_webserver_get_header_string(req, http_content_type_hdr);
     if (buf == NULL)
     {
         ESP_LOGW(TAG, "Could not get value for header: %s", buf);
-        result = HTTPD_500_INTERNAL_SERVER_ERROR;
+        code = HTTPD_500_INTERNAL_SERVER_ERROR;
+        msg = "Could not retreive header";
         goto cleanup;
     }
 
@@ -360,7 +369,7 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     if (strcmp(buf, str_application_x_pem_file) != 0)
     {
         ESP_LOGW(TAG, "Invalid content type %s, expected %s", buf, str_application_x_pem_file);
-        result = HTTPD_400_BAD_REQUEST;
+        code = HTTPD_400_BAD_REQUEST;
         msg = "Invalid content type";
         goto cleanup;
     }
@@ -375,7 +384,7 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     if (buf == NULL)
     {
         ESP_LOGW(TAG, "Provided data is %i bytes and too large to handle, maximum allowed size is %i", req->content_len, CERT_BUNDLE_MAX_LENGTH - 1);
-        result = HTTPD_400_BAD_REQUEST;
+        code = HTTPD_400_BAD_REQUEST;
         msg = "Input data too large to process";
         goto cleanup;
     }
@@ -384,7 +393,8 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     it = certificate_bundle_iter_init(buf, req->content_len);
     if (it == NULL)
     {
-        result = HTTPD_500_INTERNAL_SERVER_ERROR;
+        code = HTTPD_500_INTERNAL_SERVER_ERROR;
+        msg = "Could not initialize certificate bundle iterator";
         goto cleanup;
     }
 
@@ -413,7 +423,12 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
         {
             mbedtls_x509_crt *crt = malloc(sizeof(mbedtls_x509_crt));
             if (crt == NULL)
+            {
+                code = HTTPD_500_INTERNAL_SERVER_ERROR;
+                msg = "Failed to allocate memory";
                 goto cleanup;
+            }
+
             result = pem_parse_single_certificate(it->block_start, it->block_len, crt);
             ESP_LOGV(TAG, "pem_parse_single_certificate %i", result);
             if (result != 0)
@@ -421,15 +436,23 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
                 free(crt);
                 ESP_LOGW(TAG, "Certificate parsing error 0x%04X", -result);
                 ESP_LOGD(TAG, "%.*s", it->block_len, it->block_start);
-                result = HTTPD_400_BAD_REQUEST;
+                code = HTTPD_400_BAD_REQUEST;
                 msg = "Certificate parsing error";
                 goto cleanup;
             }
+
             ESP_LOGI(TAG, "Part %i parsed successfully as a certificate", iteration);
-            certs[cert_count].data = crt;
-            certs[cert_count].pem_start = it->block_start;
-            certs[cert_count].pem_len = it->block_len;
+            certs[cert_count].next = NULL;
             certs[cert_count].used = false;
+            certs[cert_count].crt = crt;
+            certs[cert_count].pem = strdup(it->block_start);
+            if (certs[cert_count].pem == NULL)
+            {
+                code = HTTPD_500_INTERNAL_SERVER_ERROR;
+                msg = "Failed to allocate memory";
+                goto cleanup;
+            }
+
             cert_count++;
         }
 
@@ -438,7 +461,12 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
         {
             mbedtls_pk_context *ctx = malloc(sizeof(mbedtls_pk_context));
             if (ctx == NULL)
+            {
+                code = HTTPD_500_INTERNAL_SERVER_ERROR;
+                msg = "Failed to allocate memory";
                 goto cleanup;
+            }
+
             result = pem_parse_single_private_key(it->block_start, it->block_len, NULL, 0, ctx);
             ESP_LOGV(TAG, "pem_parse_single_private_key %i", result);
             if (result != 0)
@@ -446,14 +474,21 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
                 free(ctx);
                 ESP_LOGW(TAG, "Private key parsing error:  0x%04X", -result);
                 ESP_LOGD(TAG, "%.*s", it->block_len, it->block_start);
-                result = HTTPD_400_BAD_REQUEST;
+                code = HTTPD_400_BAD_REQUEST;
                 msg = "Private key parsing error";
                 goto cleanup;
             }
+
             ESP_LOGI(TAG, "Part %i parsed successfully as a private key", iteration);
-            pks[pk_count].data = ctx;
-            pks[pk_count].pem_start = it->block_start;
-            pks[pk_count].pem_len = it->block_len;
+            pks[pk_count].ctx = ctx;
+            pks[pk_count].pem = strdup(it->block_start);
+            if (pks[pk_count].pem == NULL)
+            {
+                code = HTTPD_500_INTERNAL_SERVER_ERROR;
+                msg = "Failed to allocate memory";
+                goto cleanup;
+            }
+
             pk_count++;
         }
 
@@ -461,13 +496,17 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
         it->block_start[it->block_len - 1] = keep;
     }
 
+    // clean for reuse
+    free(buf);
+    buf = NULL;
+
     // cleanup bundle iterator
     ESP_LOGD(TAG, "bundle finished");
     certificate_bundle_iter_log(it, TAG, ESP_LOG_DEBUG);
     if (it->state == CBIS_END_FAIL)
     {
         ESP_LOGW(TAG, "An error happened while on bundle %i, canceling", iteration);
-        result = HTTPD_400_BAD_REQUEST;
+        code = HTTPD_400_BAD_REQUEST;
         msg = "Certificate bundle error";
         goto cleanup;
     }
@@ -478,14 +517,14 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     if (pk_count != 1)
     {
         ESP_LOGW(TAG, "Invalid number of keys in bundle : %i, exactly one is required", pk_count);
-        result = HTTPD_400_BAD_REQUEST;
+        code = HTTPD_400_BAD_REQUEST;
         msg = "Invalid number of keys";
         goto cleanup;
     }
     if (cert_count < 1)
     {
         ESP_LOGW(TAG, "Invalid number of certificates in bundle: %i, at least one is required", cert_count);
-        result = HTTPD_400_BAD_REQUEST;
+        code = HTTPD_400_BAD_REQUEST;
         msg = "Invalid number of certificates";
         goto cleanup;
     }
@@ -493,78 +532,120 @@ esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *capture
     // searching (and remove) certificates matching the private key
     for (int i = 0; i < cert_count; i++)
     {
-        bool result = certificate_matches_private_key(certs[i].data, pks[0].data);
-        ESP_LOGV(TAG, "certificate_matches_private_key %i", result);
-        if (result)
+        bool match = certificate_matches_private_key(certs[i].crt, pks[0].ctx);
+        ESP_LOGV(TAG, "certificate_matches_private_key %i", match);
+        if (match)
         {
-            leaf_cert = certs[i].data;
+            leaf = &certs[i];
             certs[i].used = true;
-            ESP_LOGI(TAG, "Found a certificate matching the private key");
+            ESP_LOGI(TAG, "Found a certificate matching the private key, using it as current certificate");
         }
     }
-    if (leaf_cert == NULL)
+    if (leaf == NULL)
     {
         ESP_LOGW(TAG, "No certificate found matching provided private key");
-        result = HTTPD_400_BAD_REQUEST;
+        code = HTTPD_400_BAD_REQUEST;
         msg = "No certificate matching the private key";
         goto cleanup;
     }
 
     // search for parent certificate and build the certificate chain
-    mbedtls_x509_crt *current_level = leaf_cert;
+    struct cert_data *current_level = leaf;
     for (int i = 0; i < cert_count; i++)
     {
-        if (certs[i].used)
+        struct cert_data *parent_candidate_level = &certs[i];
+        if (parent_candidate_level->used)
             continue;
-        ESP_LOGV(TAG, "iter %i cert[i].data %p current_level %p", i, certs[i].data, current_level);
+
+        ESP_LOGV(TAG, "iter %i current_level %p parent_candidate_level %p", i, current_level, parent_candidate_level);
 
         // test parent against child
         uint32_t flags;
-        int ret = mbedtls_x509_crt_verify(leaf_cert, certs[i].data, NULL, NULL, &flags, NULL, NULL);
+        int ret = mbedtls_x509_crt_verify(current_level->crt, parent_candidate_level->crt, NULL, NULL, &flags, NULL, NULL);
         ESP_LOGD(TAG, "mbedtls_x509_crt_verify ret 0x%x flags 0x%08x", -ret, flags);
         if (ret != 0) // MBEDTLS_ERR_X509_CERT_VERIFY_FAILED
             continue;
 
         // candidate signed the current_level cert
-        current_level->next = certs[i].data;
-        current_level = certs[i].data;
-        certs[i].used = true;
+        ESP_LOGI(TAG, "Found parent certificate, continue up one level");
+        parent_candidate_level->used = true;                    // mark parent as used
+        current_level->crt->next = parent_candidate_level->crt; // link cert
+        current_level->next = parent_candidate_level;           // link cert_data
+        current_level = parent_candidate_level;                 // level up
 
         // restart search
         i = 0;
     }
 
     // check for unused certs
-    result = 0;
+    n = 0;
     for (int i = 0; i < cert_count; i++)
         if (!certs[i].used)
         {
-            ESP_LOGW(TAG, "Found certificate not used in chain:\n%.*s", certs[i].pem_len, certs[i].pem_start);
-            result++;
+            ESP_LOGW(TAG, "Found certificate not used in chain:\n%s", certs[i].pem);
+            n++;
         }
-    if (result != 0)
+    if (n != 0)
     {
-        result = HTTPD_400_BAD_REQUEST;
+        code = HTTPD_400_BAD_REQUEST;
         msg = "Unused certificates found";
         goto cleanup;
     }
 
-    // TODO store in NVRAM
+    // length
+    n = 0;
+    current_level = leaf;
+    while (current_level)
+    {
+        n += strlen(current_level->pem);
+        n += 1; // trailing \n
+        current_level = current_level->next;
+    }
+    n += 1; // trailing \0
+    ESP_LOGD(TAG, "n %i", n);
+
+    // store
+    buf = calloc(1, n);
+    if (buf == NULL)
+    {
+        code = HTTPD_500_INTERNAL_SERVER_ERROR;
+        msg = "Failed to allocate memory";
+        goto cleanup;
+    }
+    current_level = leaf;
+    while (current_level)
+    {
+        strcat(buf, current_level->pem);
+        strcat(buf, "\n");
+        current_level = current_level->next;
+    }
+    kv_ns_set_blob_atomic(kv_get_ns_ofp(), stor_key_https_certs, buf, n);
+    n = strlen(pks[0].pem) + 1;
+    kv_ns_set_blob_atomic(kv_get_ns_ofp(), stor_key_https_key, pks[0].pem, n);
+
+    ESP_LOGI(TAG, "Certificate bundle parsed and stored successfuly");
 
 cleanup:
     // free leaf certificate and unused ones
-    mbedtls_x509_crt_free(leaf_cert);
+    if (leaf != NULL)
+        mbedtls_x509_crt_free(leaf->crt);
     for (int i = 0; i < cert_count; i++)
+    {
+        free(certs[i].pem);
         if (!certs[i].used)
-            mbedtls_x509_crt_free(certs[i].data);
+            mbedtls_x509_crt_free(certs[i].crt);
+    }
     // free all private keys
     for (int i = 0; i < pk_count; i++)
-        mbedtls_pk_free(pks[i].data);
+    {
+        free(pks[i].pem);
+        mbedtls_pk_free(pks[i].ctx);
+    }
     certificate_bundle_iter_free(it);
     free(buf);
 
-    if (result != 0)
-        return httpd_resp_send_err(req, result, msg);
+    if (code != 200)
+        return httpd_resp_send_err(req, code, msg);
 
     return httpd_resp_sendstr(req, "Certificate bundle successfully loaded");
 }
