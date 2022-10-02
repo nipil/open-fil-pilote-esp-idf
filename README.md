@@ -117,7 +117,6 @@ Et téléversez le fichier résultant vers le microgiciel (soit par la WebUI, so
 
 Après redémarrage, le microcontrôleur devrait présenter le certificat fourni.
 
-
 ## Erreur: "ERR_SSL_VERSION_OR_CIPHER_MISMATCH" ou similaire
 
 Par exemple Chrome affiche "Le client et le serveur ne sont pas compatibles avec une version de protocole ou une méthode de chiffrement SSL commune"
@@ -146,8 +145,11 @@ Dans les logs du moniteur, ça se traduit par :
     W (52790) httpd: httpd_server: error accepting new connection
 
 Raison : la clé privée du certificat HTTPS a été fournie chiffrée, alors qu'elle doit être en clair.
+Ou bien vous avez poussé un bundle de certificat/clé incorrect ou incomplet, et aucune connection HTTPS ne peut fonctionner.
 
 Solution: respecter les consignes indiquées dans la WebUI pour la construction du bundle !
+Procédez à un "factory reset" pour utiliser à nouveau les certificats intégrés au firmware.
+Et si vous avez compilés un firmware avec des certificats invalides, il faut corriger, recompiler et reflasher.
 
 ## Erreur: "NET::ERR_CERT_AUTHORITY_INVALID" ou similaire
 
