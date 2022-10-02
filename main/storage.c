@@ -159,7 +159,6 @@ void kv_erase(const char *part_name)
 
 void kv_init(const char *part_name)
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // debug
     if (part_name == NULL)
         part_name = default_nvs_partition_name;
     assert(kv_is_part_len_valid(part_name));

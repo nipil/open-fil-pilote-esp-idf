@@ -530,7 +530,6 @@ static esp_err_t https_handler_generic(httpd_req_t *req)
 
 static esp_err_t https_handler_input_middleware(httpd_req_t *req)
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     struct timeval begin, end;
     gettimeofday(&begin, NULL);
 

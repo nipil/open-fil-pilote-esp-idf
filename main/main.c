@@ -75,8 +75,6 @@ static void register_hardware(void)
 
 void app_main()
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // debug
-
     // use default partition for NVS content
     kv_init(NULL);
 

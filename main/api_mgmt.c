@@ -316,7 +316,6 @@ esp_err_t serve_api_delete_certificate(httpd_req_t *req, struct re_result *captu
  */
 esp_err_t serve_api_post_certificate(httpd_req_t *req, struct re_result *captures)
 {
-    esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     int version = re_get_int(captures, 1);
     ESP_LOGD(TAG, "serve_api_post_upgrade version=%i", version);
     if (version != 1)

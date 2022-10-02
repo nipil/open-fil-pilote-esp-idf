@@ -619,7 +619,6 @@ enum json_helper_result cjson_get_child_int(cJSON *node, const char *key, int *t
 
 enum json_helper_result cjson_get_child_string(cJSON *node, const char *key, char **target)
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     assert(node != NULL);
     assert(key != NULL);
     assert(target != NULL);
@@ -847,7 +846,6 @@ cleanup:
 
 struct password_data *password_from_string(const char *str)
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     ESP_LOGD(TAG, "password_from_string %p", str);
 
     struct re_result *re = NULL;

@@ -589,7 +589,6 @@ bool ofp_zone_set_allocate(struct ofp_zone_set *zone_set, int zone_count)
 /* initialize the hardware based on stored hardware id */
 void ofp_hw_initialize(void)
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     ESP_LOGD(TAG, "ofp_hw_initialize");
 
     // get selected hardware id from storage
@@ -653,8 +652,6 @@ void ofp_hw_initialize(void)
 
 static bool ofp_zone_update_from_planning(struct ofp_zone *zone, struct tm *timeinfo)
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
-
     ESP_LOGD(TAG, "ofp_zone_update_from_planning");
 
     // planning exists
@@ -781,8 +778,6 @@ struct ofp_planning_list *ofp_planning_list_get(void)
 
 void ofp_planning_list_init(void)
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
-
     ESP_LOGD(TAG, "ofp_planning_list_init");
 
     // init only if not yet initialized
@@ -1820,7 +1815,6 @@ struct ofp_account *ofp_account_list_find_account_by_id(const char *username)
 
 void ofp_account_list_init(void)
 {
-    // esp_log_level_set(TAG, ESP_LOG_VERBOSE); // DEBUG
     ESP_LOGD(TAG, "ofp_account_list_init");
 
     for (int i = 0; i < OFP_MAX_ACCOUNT_COUNT; i++)
