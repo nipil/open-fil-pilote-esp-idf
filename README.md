@@ -71,7 +71,17 @@ Si possible, vérifiez votre microgiciel à l'aide du framework ESP-IDF (si inst
 
 # roadmap
 
-- certificate update API
+- BUILD: generate self signed certificate on build
+- API: split zone state from zone configuration
+- API: standardize error feedback in "err" field
+- FRONT: display error near their usage
+- FRONT: handle error messages
+- FRONT: add button for certificate deletion
+- FRONT: add button to generate self-signed certificate
+- FRONT: data hold refresh source
+- FRONT: refresh from in memory data
+- FRONT: use status info to selec if admin or not
+- FRONT: hide admin parts by default
 
 # troubleshooting
 
