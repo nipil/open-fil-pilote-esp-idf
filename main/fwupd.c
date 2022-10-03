@@ -156,3 +156,11 @@ cleanup:
     esp_ota_abort(data->update_handle);
     return result;
 }
+
+void fwupd_confirm(void)
+{
+    ESP_LOGD(TAG, "fwupd_confirm");
+    fwupd_log_part_info();
+    esp_ota_mark_app_valid_cancel_rollback();
+    fwupd_log_part_info();
+}

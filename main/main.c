@@ -17,6 +17,7 @@
 #include "m_dns.h"
 #include "storage.h"
 #include "console.h"
+#include "fwupd.h"
 
 // hardware
 #include "hw_esp32.h"
@@ -98,6 +99,9 @@ void app_main()
 
     // initialize terminal
     console_init();
+
+    // confirm OTA update if pending
+    fwupd_confirm();
 
 #ifndef OFP_DISABLE_NETWORKING
     /* start the wifi manager */

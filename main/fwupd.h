@@ -14,6 +14,8 @@ esp_err_t fwupd_begin(struct fwupd_data *data);
 esp_err_t fwupd_write(struct fwupd_data *data, const void *buf, size_t len);
 esp_err_t fwupd_end(struct fwupd_data *data);
 
+void fwupd_confirm(void);
+
 void fwupd_log_part_info(void);
 
 #endif /* FWUPD_H */
