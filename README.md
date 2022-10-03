@@ -34,7 +34,10 @@ Pour réinitialiser le matériel à sa version usine (la version que vous télé
 - Ceci déclenchera le formattage du stockage interne (préférences, les comptes, les plannings, paramètres wifi, etc...)
 - Ceci forcera le démarrage du matériel sur la partition "factory" et le microgiciel chargé sur l'ESP via l'outil ESP-IDF
 
-Si vous utilisez ce firmware avec un matériel que vous avez conçu vous-même, ou un kit de développement "nu", en temps normal l'entrée GPIO36 doit être maintenue à l'état haut (via une "pull-up resistor") pour éviter une remise usine accidentelle.
+Si vous utilisez ce firmware avec un matériel que vous avez conçu vous-même, ou un kit de développement "nu",
+en temps normal l'entrée GPIO36 (VP) doit être maintenue à l'état haut (via une "pull-up resistor" ou un fil flottant)
+pour éviter une remise usine accidentelle au gré des fluctuation de tensions si l'entrée est "en l'air"
+
 Si vous utiliser un matériel prédéfini (comme les cartes M1E1) ceci est déjà réalisé grâce au bouton CFG/RUN qui pilote l'entrée GPIO36 de manière sécurisée. 
 
 # Over the air update
