@@ -71,7 +71,6 @@ Si possible, vérifiez votre microgiciel à l'aide du framework ESP-IDF (si inst
 
 # roadmap
 
-- BUILD: generate self signed certificate on build
 - API: split zone state from zone configuration
 - API: standardize error feedback in "err" field
 - FRONT: display error near their usage

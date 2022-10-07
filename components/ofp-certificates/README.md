@@ -25,7 +25,15 @@ Le fichier `info.txt` contient les informations utilisées pour générer le cer
 - la première ligne est obligatoire et donne le nom du certificat
 - les lignes suivantes sont optionnelles, et listent les adresses IP à inclure dans le certificat
 
+# Exécution automatique
+
+La génération du certificat autosigné est automatique dans le processus de construction du microgiciel.
+
+Si l'un ou l'autre fichier `autosign.*` n'est pas présent, il sera généré grâce au fichier `info.txt`.
+
 # Exécution manuelle
+
+Si vous tenez absolument à créer le certificat, il est aussi possible de le générer manuellement.
 
 Ouvrez un terminal ESP-IDF, et déplacez vous dans le présent répertoire, et exécutez
 
