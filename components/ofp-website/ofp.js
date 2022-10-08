@@ -1,4 +1,4 @@
-/*******************************************************************************/
+// *******************************************************************************
 
 const slot_dow = [
     {
@@ -41,7 +41,7 @@ const slot_hours = arrayDictNumber(24);
 
 const slot_minutes = arrayDictNumber(60);
 
-/*******************************************************************************/
+// *******************************************************************************
 
 function handleHttpErrors(response) {
     if (!response.ok) {
@@ -50,7 +50,7 @@ function handleHttpErrors(response) {
     return response;
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function doUrl(url, errorMessage, options = {}) {
     try {
@@ -107,7 +107,7 @@ async function patchUrl(url, body, options = {}) {
     return await doUrl(url, 'Erreur lors de la mise \u00E0 jour partielle', options);
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 function promptNonEmptyString(message) {
     let result = window.prompt(message);
@@ -117,7 +117,7 @@ function promptNonEmptyString(message) {
     return result;
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 function logError(err) {
     console.warn(err);
@@ -130,7 +130,7 @@ function logError(err) {
     el.className = 'mb-3 p-3 bg-warning';
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 function secondsToDuration(s) {
     const d = Math.floor(s / (3600 * 24));
@@ -147,7 +147,7 @@ function secondsToDuration(s) {
     return tmp.join(' ');
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function apiGetStatusJson() {
     return await getUrlJson('/ofp-api/v1/status');
@@ -191,7 +191,7 @@ async function loadStatus() {
     el.appendChild(d);
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function changeZoneOverrides(override) {
     console.log("changeZoneOverrides", override);
@@ -250,7 +250,7 @@ async function loadZoneOverrides() {
     el.toggleAttribute("checked", true);
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
@@ -338,7 +338,7 @@ async function loadZoneConfiguration() {
     });
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function apiGetPlanningListJson() {
     return await getUrlJson('/ofp-api/v1/plannings');
@@ -426,7 +426,7 @@ async function loadPlanningList() {
     }
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function apiGetPlanningSlotsJson(planningId) {
     return await getUrlJson(`/ofp-api/v1/plannings/${planningId}`);
@@ -594,7 +594,7 @@ async function loadPlanningSlots(planningId) {
     }
 }
 
-/**************************************************************************/
+// *******************************************************************************
 
 async function accountCreate(userId, cleartextPassword) {
     console.log('accountCreate', userId, cleartextPassword);
@@ -692,7 +692,7 @@ async function apiGetAccountsJson() {
     return await getUrlJson('/ofp-api/v1/accounts');
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function uploadFirmware(file) {
     console.log("uploadFirmware", file);
@@ -719,7 +719,7 @@ async function initFirmwareButtons() {
     }
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function uploadCertificate(file) {
     console.log("uploadCertificate", file);
@@ -746,7 +746,7 @@ async function initCertificateButtons() {
     }
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 async function apiGetHardwareTypesJson() {
     return await getUrlJson('/ofp-api/v1/hardware');
@@ -810,7 +810,7 @@ async function loadHardwareParameters(hardwareId) {
     el.innerHTML = json2html.render(parameters, template);
 }
 
-/*******************************************************************************/
+// *******************************************************************************
 
 let isIntervalInProgress = false;
 
