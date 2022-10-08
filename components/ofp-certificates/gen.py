@@ -26,14 +26,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# WARNING: the code in the gist generates self-signed certs, for the purposes of testing in development. 
-# Do not use these certs in production, or You Will Have A Bad Time. 
+# WARNING: the code in the gist generates self-signed certs, for the purposes of testing in development.
+# Do not use these certs in production, or You Will Have A Bad Time.
 #
 # Caveat emptor
 #
 
+import os
+import argparse
 from datetime import datetime, timedelta
 import ipaddress
+
+def_infile = 'info.txt'
+def_outdir = '.'
+def_crt = 'autosign.crt'
+def_key = 'autosign.key'
+
 
 def generate_selfsigned_cert(hostname, ip_addresses=None, key=None):
     """Generates self signed certificate for a hostname, and optional IP addresses."""
@@ -43,7 +51,7 @@ def generate_selfsigned_cert(hostname, ip_addresses=None, key=None):
     from cryptography.hazmat.backends import default_backend
     from cryptography.hazmat.primitives import serialization
     from cryptography.hazmat.primitives.asymmetric import rsa
-    
+
     # Generate our key
     if key is None:
         key = rsa.generate_private_key(
@@ -51,15 +59,15 @@ def generate_selfsigned_cert(hostname, ip_addresses=None, key=None):
             key_size=2048,
             backend=default_backend(),
         )
-    
+
     name = x509.Name([
         x509.NameAttribute(NameOID.COMMON_NAME, hostname)
     ])
- 
-    # best practice seem to be to include the hostname in the SAN, which *SHOULD* mean COMMON_NAME is ignored.    
+
+    # best practice seem to be to include the hostname in the SAN, which *SHOULD* mean COMMON_NAME is ignored.
     alt_names = [x509.DNSName(hostname)]
-    
-    # allow addressing by IP, for when you don't have real DNS (common in most testing scenarios 
+
+    # allow addressing by IP, for when you don't have real DNS (common in most testing scenarios
     if ip_addresses:
         for addr in ip_addresses:
             # openssl wants DNSnames for ips...
@@ -67,9 +75,9 @@ def generate_selfsigned_cert(hostname, ip_addresses=None, key=None):
             # ... whereas golang's crypto/tls is stricter, and needs IPAddresses
             # note: older versions of cryptography do not understand ip_address objects
             alt_names.append(x509.IPAddress(ipaddress.ip_address(addr)))
-    
+
     san = x509.SubjectAlternativeName(alt_names)
-    
+
     # path_len=0 means this cert can only sign itself, not other certs.
     basic_contraints = x509.BasicConstraints(ca=True, path_length=0)
     now = datetime.utcnow()
@@ -94,12 +102,11 @@ def generate_selfsigned_cert(hostname, ip_addresses=None, key=None):
 
     return cert_pem, key_pem
 
-def app():
+def app(infile, outdir):
     hostname = None
     ip_addresses = []
 
-
-    with open("info.txt", encoding = 'utf-8') as f:
+    with open(infile, encoding='utf-8') as f:
         first = True
         for line in f:
             for word in line.split():
@@ -114,11 +121,23 @@ def app():
 
     cert_pem, key_pem = generate_selfsigned_cert(hostname, ip_addresses)
 
-    with open("autosign.crt", mode = 'wb') as f:
+    out = os.path.join(outdir, def_crt)
+    with open(out, mode='wb') as f:
         f.write(cert_pem)
-    with open("autosign.key", mode = 'wb') as f:
+    out = os.path.join(outdir, def_key)
+    with open(out, mode='wb') as f:
         f.write(key_pem)
 
 
 if __name__ == '__main__':
-    app()
+    try:
+        parser = argparse.ArgumentParser(
+            description='Generate a self-signed certificate')
+        parser.add_argument('--infile', default=def_infile,
+                            help='input information file')
+        parser.add_argument('--outdir', default=def_outdir,
+                            help='where to generate files')
+        args = parser.parse_args()
+        app(args.infile, args.outdir)
+    except Exception as e:
+        print(e)

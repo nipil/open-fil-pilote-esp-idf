@@ -44,6 +44,11 @@ Deux fichiers sont générés:
 - autosign.crt
 - autosign.key
 
+Optionnellement, vous pouvez sélectionner :
+
+- le fichier d'info en utilisant l'argument, par exemple `--infile a.txt`
+- le répertoire de création des certiticats en ajoutant, par exemple `--outdir=..`
+
 # Vérifications
 
 Vous pouvez utiliser une commande `openssl` pour vérifier les infos dans le certificat:
