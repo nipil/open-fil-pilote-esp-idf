@@ -839,14 +839,34 @@ async function ofp_init() {
 
 // *******************************************************************************
 
-class OfpError extends Error {
-    constructor(message) {
-        super(`Erreur applicative. ${message}`);
-        this.name = "AppError";
-    }
+function showToast(message, duration, background) {
+    Toastify({
+        text: message,
+        duration: duration,
+        stopOnFocus: false,
+        style: {
+            background: background,
+        },
+    }).showToast();
+}
+
+function showError(err) {
+    console.log(err);
+    showToast(err.message, 5000, "linear-gradient(to right, red, orange)");
+}
+
+function showInfo(message) {
+    showToast(message, 3000, "linear-gradient(to right, blue, cyan)");
 }
 
 // *******************************************************************************
+
+class OfpError extends Error {
+    constructor(message) {
+        super(`Erreur applicative. ${message}`);
+        this.name = "OfpError";
+    }
+}
 
 class ValidationError extends OfpError {
     constructor(message) {
@@ -924,7 +944,7 @@ class GetCachedJson {
 
 // *******************************************************************************
 
-class CommonRessources {
+class Ressources {
 
     #ressources;
 
@@ -938,6 +958,8 @@ class CommonRessources {
             "accounts": new GetCachedJson('/ofp-api/v1/accounts'),
             "plannings": new GetCachedJson('/ofp-api/v1/plannings'),
             // "planning_details": new GetCachedJson('/ofp-api/v1/plannings/${planningId}'),
+            "hardware": new GetCachedJson('/ofp-api/v1/hardware'),
+            // "hardware_parameters": new GetCachedJson('/ofp-api/v1/hardware/${hardwareId}/parameters'),
         };
     }
 
@@ -974,39 +996,18 @@ class CommonRessources {
     }
 }
 
-class AdminRessources {
-
-    #ressources;
-
-    constructor() {
-        this.#ressources =
-        {
-            "hardware": new GetCachedJson('/ofp-api/v1/hardware'),
-            // "hardware_parameters": new GetCachedJson('/ofp-api/v1/hardware/${hardwareId}/parameters'),
-        };
-    }
-
-    #getRessource(name) {
-        return this.#ressources[name].get();
-    }
-
-    getHardware() {
-        return this.#getRessource("hardware");
-    }
-}
+// *******************************************************************************
 
 class App {
 
-    #commonRessources
-    #adminRessources
+    #ressources
 
     constructor() {
-        this.#commonRessources = new CommonRessources();
-        this.#adminRessources = new AdminRessources();
+        this.#ressources = new Ressources();
     }
 
     async #isAdmin() {
-        let status = await this.#commonRessources.getStatus();
+        let status = await this.#ressources.getStatus();
         try {
             return status.user.admin;
         }
@@ -1024,7 +1025,7 @@ class App {
             }
         }
         catch (err) {
-            console.log(err);
+            showError(err);
         }
     }
 }
