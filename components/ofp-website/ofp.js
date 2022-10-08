@@ -837,4 +837,201 @@ async function ofp_init() {
     }, 5000);
 }
 
+// *******************************************************************************
+
+class OfpError extends Error {
+    constructor(message) {
+        super(`Erreur applicative. ${message}`);
+        this.name = "AppError";
+    }
+}
+
+// *******************************************************************************
+
+class ValidationError extends OfpError {
+    constructor(message) {
+        super(`Données incorrectes (${message}).`);
+        this.name = "ValidationError";
+    }
+}
+
+// *******************************************************************************
+
+class FetchError extends OfpError {
+    constructor(message, url) {
+        super(`Echec de la requête ${url}. ${message}`);
+        this.name = "FetchError";
+    }
+}
+
+class NetworkFetchError extends FetchError {
+    constructor(url) {
+        super(`Connexion impossible.`, url);
+        this.name = "NetworkError";
+    }
+}
+
+class HttpFetchError extends FetchError {
+    constructor(url, code, message) {
+        super(`(${code}) ${message}.`, url);
+        this.name = "HttpError";
+    }
+}
+
+class JsonFetchError extends FetchError {
+    constructor(url, message) {
+        super(`Erreur de syntaxe (${message}).`, url);
+        this.name = "JsonError";
+    }
+}
+
+class GetCachedJson {
+    constructor(url) {
+        this.url = url;
+        this.data = undefined;
+    }
+
+    invalidate() {
+        this.data = undefined;
+    }
+
+    get() {
+        if (this.data === undefined) {
+            this.data = this.fetchJson();
+        }
+        return this.data;
+    }
+
+    async fetchJson(options = {}) {
+        try {
+            let r = await fetch(this.url, options);
+            if (!r.ok) {
+                throw new HttpFetchError(this.url, r.status, r.statusText);
+            }
+            return await r.json();
+        }
+        catch (err) {
+            if (err instanceof TypeError) {
+                throw new NetworkFetchError(this.url);
+            }
+            if (err instanceof SyntaxError) {
+                throw new JsonFetchError(this.url, err.message);
+            }
+            throw err;
+        }
+    }
+}
+
+// *******************************************************************************
+
+class CommonRessources {
+
+    #ressources;
+
+    constructor() {
+        this.#ressources =
+        {
+            "status": new GetCachedJson('/ofp-api/v1/status'),
+            "orders": new GetCachedJson('/ofp-api/v1/orders'),
+            "zones": new GetCachedJson('/ofp-api/v1/zones'),
+            "overrides": new GetCachedJson('/ofp-api/v1/override'),
+            "accounts": new GetCachedJson('/ofp-api/v1/accounts'),
+            "plannings": new GetCachedJson('/ofp-api/v1/plannings'),
+            // "planning_details": new GetCachedJson('/ofp-api/v1/plannings/${planningId}'),
+        };
+    }
+
+    #getResource(name) {
+        return this.#ressources[name].get();
+    }
+
+    getStatus() {
+        return this.#getResource("status");
+    }
+
+    getOrders() {
+        return this.#getResource("orders");
+    }
+
+    getZones() {
+        return this.#getResource("zones");
+    }
+
+    getOverrides() {
+        return this.#getResource("overrides");
+    }
+
+    getAccounts() {
+        return this.#getResource("accounts");
+    }
+
+    getPlannings() {
+        return this.#getResource("plannings");
+    }
+
+    getHardware() {
+        return this.#getResource("hardware");
+    }
+}
+
+class AdminRessources {
+
+    #ressources;
+
+    constructor() {
+        this.#ressources =
+        {
+            "hardware": new GetCachedJson('/ofp-api/v1/hardware'),
+            // "hardware_parameters": new GetCachedJson('/ofp-api/v1/hardware/${hardwareId}/parameters'),
+        };
+    }
+
+    #getRessource(name) {
+        return this.#ressources[name].get();
+    }
+
+    getHardware() {
+        return this.#getRessource("hardware");
+    }
+}
+
+class App {
+
+    #commonRessources
+    #adminRessources
+
+    constructor() {
+        this.#commonRessources = new CommonRessources();
+        this.#adminRessources = new AdminRessources();
+    }
+
+    async #isAdmin() {
+        let status = await this.#commonRessources.getStatus();
+        try {
+            return status.user.admin;
+        }
+        catch (err) {
+            if (err instanceof TypeError) {
+                throw new ValidationError(err.message);
+            }
+        }
+    }
+
+    async run() {
+        try {
+            let isAdmin = await this.#isAdmin();
+            if (isAdmin) {
+            }
+        }
+        catch (err) {
+            console.log(err);
+        }
+    }
+}
+
+let app = new App();
+
+// *******************************************************************************
+
 window.onload = ofp_init
+// window.onload = app.run();
