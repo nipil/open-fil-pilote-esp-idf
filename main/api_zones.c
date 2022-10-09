@@ -164,7 +164,7 @@ esp_err_t serve_api_patch_zones_id(httpd_req_t *req, struct re_result *captures)
 
     // name is optional
     char *desc = NULL;
-    if (cjson_get_child_string(root, stor_key_name, &desc) == JSON_HELPER_RESULT_INVALID)
+    if (cjson_get_child_string(root, json_key_description, &desc) == JSON_HELPER_RESULT_INVALID)
     {
         ESP_LOGD(TAG, "Invalid description");
         cJSON_Delete(root);
