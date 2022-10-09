@@ -255,6 +255,8 @@ async function loadZoneOverrides() {
 async function changeZoneDescription(zoneId) {
     console.log("changeZoneDescription", zoneId);
     let name = promptNonEmptyString(`Entrez le nouveu nom de la zone '${zoneId}'`);
+    if (name === null) { return; }
+
     await patchUrlJson(`/ofp-api/v1/zones/${zoneId}`, { description: name }).catch(logError);
     await loadZoneConfiguration().catch(logError);
 }
@@ -369,6 +371,8 @@ async function createPlanning(name) {
 async function renamePlanning(id) {
     console.log('renamePlanning', id);
     let name = promptNonEmptyString('Entrez le nouveau nom du planning');
+    if (name === null) { return; }
+    
     await patchUrlJson(`/ofp-api/v1/plannings/${id}`, { name: name }).catch(logError);
     await loadPlanningList().catch(logError);
 
@@ -626,6 +630,8 @@ async function accountDelete(userId) {
 async function accountPasswordReset(userId) {
     console.log('accountPasswordReset', userId);
     let password = promptNonEmptyString(`Entrez le nouveu password du compte '${userId}'`);
+    if (password === null) { return; }
+    
     await patchUrlJson(`/ofp-api/v1/accounts/${userId}`, { password: password }).catch(logError);
 }
 
