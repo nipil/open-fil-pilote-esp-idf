@@ -839,24 +839,45 @@ async function ofp_init() {
 
 // *******************************************************************************
 
-function showToast(message, duration, background) {
-    Toastify({
-        text: message,
-        duration: duration,
-        stopOnFocus: false,
-        style: {
-            background: background,
-        },
-    }).showToast();
+function duckCheck(obj, name) {
+    if (typeof obj[name] !== 'function') {
+        throw new TypeError(`Interface ${name} manquante`);
+    }
 }
 
-function showError(err) {
-    console.log(err);
-    showToast(err.message, 5000, "linear-gradient(to right, red, orange)");
-}
+// *******************************************************************************
 
-function showInfo(message) {
-    showToast(message, 3000, "linear-gradient(to right, blue, cyan)");
+class Toaster {
+
+    #infoParams
+    #errorParams
+
+    constructor(infoParams = {}, errorParams = {}) {
+        this.#infoParams = infoParams;
+        this.#errorParams = errorParams;
+    }
+
+    #show(message, duration, background) {
+        Toastify({
+            text: message,
+            duration: duration,
+            stopOnFocus: false,
+            style: {
+                background: background,
+            },
+        }).showToast();
+    }
+
+    error(err) {
+        console.log(err);
+        const { duration = 5000, style = "linear-gradient(to right, red, orange)" } = this.#errorParams;
+        this.#show(err.message, duration, style);
+    }
+
+    info(message) {
+        const { duration = 3000, style = "linear-gradient(to right, blue, cyan)" } = this.#infoParams;
+        this.#show(message, duration, style);
+    }
 }
 
 // *******************************************************************************
@@ -905,7 +926,7 @@ class JsonFetchError extends FetchError {
     }
 }
 
-class GetCachedJson {
+class CachedJsonFetcher {
     constructor(url) {
         this.url = url;
         this.data = undefined;
@@ -944,70 +965,143 @@ class GetCachedJson {
 
 // *******************************************************************************
 
-class Ressources {
+class Resources {
 
-    #ressources;
+    #resources;
 
     constructor() {
-        this.#ressources =
+        this.#resources =
         {
-            "status": new GetCachedJson('/ofp-api/v1/status'),
-            "orders": new GetCachedJson('/ofp-api/v1/orders'),
-            "zones": new GetCachedJson('/ofp-api/v1/zones'),
-            "overrides": new GetCachedJson('/ofp-api/v1/override'),
-            "accounts": new GetCachedJson('/ofp-api/v1/accounts'),
-            "plannings": new GetCachedJson('/ofp-api/v1/plannings'),
-            // "planning_details": new GetCachedJson('/ofp-api/v1/plannings/${planningId}'),
-            "hardware": new GetCachedJson('/ofp-api/v1/hardware'),
-            // "hardware_parameters": new GetCachedJson('/ofp-api/v1/hardware/${hardwareId}/parameters'),
+            "status": new CachedJsonFetcher('/ofp-api/v1/status'),
+            "orders": new CachedJsonFetcher('/ofp-api/v1/orders'),
+            "zones": new CachedJsonFetcher('/ofp-api/v1/zones'),
+            "overrides": new CachedJsonFetcher('/ofp-api/v1/override'),
+            "accounts": new CachedJsonFetcher('/ofp-api/v1/accounts'),
+            "plannings": new CachedJsonFetcher('/ofp-api/v1/plannings'),
+            // "planning_details": new CachedJsonFetcher('/ofp-api/v1/plannings/${planningId}'),
+            "hardware": new CachedJsonFetcher('/ofp-api/v1/hardware'),
+            // "hardware_parameters": new CachedJsonFetcher('/ofp-api/v1/hardware/${hardwareId}/parameters'),
         };
     }
 
     #getResource(name) {
-        return this.#ressources[name].get();
+        return this.#resources[name].get();
     }
 
-    getStatus() {
-        return this.#getResource("status");
-    }
-
-    getOrders() {
-        return this.#getResource("orders");
-    }
-
-    getZones() {
-        return this.#getResource("zones");
-    }
-
-    getOverrides() {
-        return this.#getResource("overrides");
-    }
-
-    getAccounts() {
-        return this.#getResource("accounts");
-    }
-
-    getPlannings() {
-        return this.#getResource("plannings");
-    }
-
-    getHardware() {
-        return this.#getResource("hardware");
+    get(...names) {
+        let ret = {}
+        for (const name of names) {
+            if (!name in this.#resources) {
+                throw Error(`Ressource ${name} inconnue`);
+            }
+            ret[name] = this.#resources[name];
+        }
+        return ret;
     }
 }
 
 // *******************************************************************************
 
-class App {
+class Controller {
 
-    #ressources
+    #resources
 
-    constructor() {
-        this.#ressources = new Ressources();
+    constructor(resources) {
+        this.#resources = resources;
     }
 
-    async #isAdmin() {
-        let status = await this.#ressources.getStatus();
+    setResource(name, res) {
+        duckCheck(res, 'get');
+        this.#resources[name] = res;
+        return this;
+    }
+
+    getResource(name) {
+        if (!name in this.#resources) {
+            throw Error(`Ressource ${name} inconnue`);
+        }
+        return this.#resources[name];
+    }
+}
+
+class ZoneController extends Controller {
+
+    constructor(resources) {
+        super(resources.get("status"));
+    }
+
+    refresh() {
+        console.log("ZoneController.refresh");
+    }
+}
+
+class PlanningController extends Controller {
+
+    constructor(resources) {
+        super(resources.get("status"));
+    }
+
+    refresh() {
+        console.log("PlanningController.refresh");
+    }
+}
+
+class AccountController extends Controller {
+
+    constructor(resources) {
+        super(resources.get("status"));
+    }
+
+    refresh() {
+        console.log("AccountController.refresh");
+    }
+}
+
+class FirmwareController extends Controller {
+
+    constructor(resources) {
+        super(resources.get("status"));
+    }
+
+    refresh() {
+        console.log("FirmwareController.refresh");
+    }
+}
+
+class CertificateController extends Controller {
+
+    constructor(resources) {
+        super(resources.get("status"));
+    }
+
+    refresh() {
+        console.log("CertificateController.refresh");
+    }
+}
+
+class HardwareController extends Controller {
+
+    constructor(resources) {
+        super(resources.get("status"));
+    }
+
+    refresh() {
+        console.log("HardwareController.refresh");
+    }
+}
+
+class StatusController extends Controller {
+
+    constructor(resources) {
+        super(resources.get("status"));
+    }
+
+    refresh() {
+        console.log("StatusController.refresh");
+    }
+
+    async isAdmin() {
+        let status = await this.getResource("status").get();
         try {
             return status.user.admin;
         }
@@ -1017,20 +1111,100 @@ class App {
             }
         }
     }
+}
+
+// *******************************************************************************
+
+class App {
+
+    #controllers
+
+    constructor() {
+        this.#controllers = {}
+    }
 
     async run() {
         try {
-            let isAdmin = await this.#isAdmin();
-            if (isAdmin) {
+            // inform the user of his privileges
+            let isAdmin = await statusController.isAdmin();
+            if (isAdmin === true) {
+                new Toaster().info("Privilèges administrateur");
             }
+
+            // select and refresh what is needed
+            let ctrls = ["zone", "planning", "account", "status"];
+            if (isAdmin === true) {
+                ctrls = [...ctrls, "firmware", "certificate", "hardware"]
+            }
+            for (let ctrl of ctrls) {
+                try {
+                    let c = this.#controllers[ctrl];
+                    c.refresh();
+                }
+                catch (err) {
+                    new Toaster().error(err);
+                }
+            }
+
         }
         catch (err) {
-            showError(err);
+            new Toaster().error(err);
         }
+    }
+
+    #setController(name, ctrl) {
+        duckCheck(ctrl, 'refresh');
+        this.#controllers[name] = ctrl;
+        return this;
+    }
+
+    setZoneController(ctrl) {
+        return this.#setController("zone", ctrl);
+    }
+
+    setPlanningController(ctrl) {
+        return this.#setController("planning", ctrl);
+    }
+
+    setAccountController(ctrl) {
+        return this.#setController("account", ctrl);
+    }
+
+    setFirmwareController(ctrl) {
+        return this.#setController("firmware", ctrl);
+    }
+
+    setCertificateController(ctrl) {
+        return this.#setController("certificate", ctrl);
+    }
+
+    setHardwareController(ctrl) {
+        return this.#setController("hardware", ctrl);
+    }
+
+    setStatusController(ctrl) {
+        return this.#setController("status", ctrl);
     }
 }
 
-let app = new App();
+let resources = new Resources();
+
+let zoneController = new ZoneController(resources);
+let planningController = new PlanningController(resources);
+let accountController = new AccountController(resources);
+let firmwareController = new FirmwareController(resources);
+let certificateController = new CertificateController(resources);
+let hardwareController = new HardwareController(resources);
+let statusController = new StatusController(resources);
+
+let app = new App()
+    .setZoneController(zoneController)
+    .setPlanningController(planningController)
+    .setAccountController(accountController)
+    .setFirmwareController(firmwareController)
+    .setCertificateController(certificateController)
+    .setHardwareController(hardwareController)
+    .setStatusController(statusController);
 
 // *******************************************************************************
 
